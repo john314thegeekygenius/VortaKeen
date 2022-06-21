@@ -13,6 +13,7 @@
 
 #include "VK_Headers.h"
 
+// Intro
 #include "../graph/bitmaps/ONE_MOMENT.h"
 #include "../graph/bitmaps/INT_APOGEE.h"
 #include "../graph/bitmaps/INT_AN.h"
@@ -20,9 +21,15 @@
 #include "../graph/bitmaps/INT_OF_AN.h"
 #include "../graph/bitmaps/ID_SOFT.h"
 #include "../graph/bitmaps/INT_PROD.h"
-
+// Main Menu
 #include "../graph/bitmaps/TITLE_SCREEN.h"
 #include "../graph/sheets/CK_FONT.h"
+// High Scores
+#include "../graph/bitmaps/HIGH_SCORE.h"
+#include "../graph/bitmaps/NAME.h"
+#include "../graph/bitmaps/SCORE.h"
+#include "../graph/bitmaps/PARTS.h"
+
 
 
 
@@ -95,7 +102,8 @@ void VK_DoIntroDemo(){
 
 
 	// Position the level
-	VK_PositionLevel(vk_level_width-21,3);
+	VK_UnLockCamera();
+	VK_PositionLevel(vk_level_width-20,3);
 	VK_PositionCamera(0x4,0x6);
 
 	// Render the level
@@ -142,9 +150,9 @@ void VK_DoIntroDemo(){
 
 		// Break on key input
 		if(VK_ButtonDown()){
-			APOGEE_y = (31*8);
-			*(volatile uint16_t*)GBA_REG_BG1HOFS = APOGEE_x;
-			*(volatile uint16_t*)GBA_REG_BG1VOFS = APOGEE_y;
+			VK_FadeOut();
+			vk_engine_demo = VK_DEMO_MAINMENU;
+			return;
 		}
 	}
 	
@@ -219,6 +227,206 @@ void VK_DoIntroDemo(){
 };
 
 
+
+void VK_DrawBox(uint16_t spawnx, uint16_t spawny, uint16_t width, uint16_t height){
+	uint16_t bx,by;
+	// Draw the box
+	for(by = spawny; by <= spawny+height; by ++){
+		for(bx = spawnx; bx <= spawnx+width; bx ++){
+			if(by == spawny){
+				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C2;
+			}else if(by == spawny+height){
+				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C7;
+			}else if(bx == spawnx){
+				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C4;
+			}else if(bx == spawnx+width){
+				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C5;
+			}else{
+				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2E0;
+			}
+		}
+	}
+	bx = spawnx;
+	by = spawny;
+	VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C1;
+	VK_GBA_BG_MAPA[(by<<5)+bx+width] = 0x2C3;
+	VK_GBA_BG_MAPA[((by+height)<<5)+bx] = 0x2C6;
+	VK_GBA_BG_MAPA[((by+height)<<5)+bx+width] = 0x2C8;
+
+};
+
+void VK_SpawnBox(uint16_t spawnx, uint16_t spawny, uint16_t width, uint16_t height){
+	uint16_t bw,bh,bx,by;
+	
+	bh = 0;
+	bw = 0;
+	
+	if(width<=0 || height <=0)
+		return;
+
+	while(bw < (width>>1)){
+		bw ++;
+		VK_DrawBox(spawnx-bw,spawny-bh,bw<<1,2);
+		GBA_WAIT_VBLANK
+		GBA_Delay(25);
+	}
+	while(bh < (height>>1)){
+		bh ++;
+		VK_DrawBox(spawnx-(width>>1),spawny-bh,width,bh<<1);
+		GBA_WAIT_VBLANK
+		GBA_Delay(25);
+	}
+	VK_DrawBox(spawnx-(width>>1),spawny-(height>>1),width,height);
+	// 0x2C1
+};
+
+
+
+void VK_DrawHighScores(){
+	int i,e;
+	unsigned int bmptileoff = 0;
+	
+	// These need to be reloaded in case they were overwritten
+
+	// Load the level and tileset
+	VK_LoadLevel(90);
+	// Load the font bitmap
+	GBA_DMA_Copy32((VK_GBA_BG_TilesEnd-ck_font_size),ck_font_data,ck_font_size>>2);
+		
+	// Load the graphics
+	bmptileoff = 0;
+	GBA_DMA_Copy32((VK_GBA_BG_Tiles2+bmptileoff),HIGH_SCORE_data,HIGH_SCORE_size>>2);
+	bmptileoff += HIGH_SCORE_size;
+	GBA_DMA_Copy32((VK_GBA_BG_Tiles2+bmptileoff),NAME_data,NAME_size>>2);
+	bmptileoff += NAME_size;
+	GBA_DMA_Copy32((VK_GBA_BG_Tiles2+bmptileoff),SCORE_data,SCORE_size>>2);
+	bmptileoff += SCORE_size;
+	GBA_DMA_Copy32((VK_GBA_BG_Tiles2+bmptileoff),PARTS_data,PARTS_size>>2);
+	bmptileoff += PARTS_size;
+
+	// Position the level
+	VK_UnLockCamera();
+	VK_PositionLevel(vk_level_width-40,2);
+	VK_PositionCamera(0x6,0x6);
+
+	// Render the level
+	VK_RenderLevel();
+
+	// Lock the camera
+	VK_LockCamera();
+	
+	// Render the HIGH SCORES logo
+	for(e = 0; e < (HIGH_SCORE_height>>3); e++){
+		for(i = 0; i < (HIGH_SCORE_width>>3); i++){
+			VK_GBA_BG_MAPB[((e+2)<<5)+i+7] = (e*(HIGH_SCORE_width>>3))+i+(VK_GBA_TILES2_OFF);
+		}
+	}
+	
+	bmptileoff = (HIGH_SCORE_size>>6);
+
+	// Render the AN text
+	for(e = 0; e < (NAME_height>>3); e++){
+		for(i = 0; i < (NAME_width>>3); i++){
+			VK_GBA_BG_MAPB[((e+6)<<5)+i+0] = (e*(NAME_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+		}
+	}
+
+	bmptileoff += (NAME_size>>6);
+
+	// Render the PRESENTAION text
+	for(e = 0; e < (SCORE_height>>3); e++){
+		for(i = 0; i < (SCORE_width>>3); i++){
+			VK_GBA_BG_MAPB[((e+6)<<5)+i+14] = (e*(SCORE_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+		}
+	}
+	bmptileoff += (SCORE_size>>6);
+
+	// Render the OF AN text
+	for(e = 0; e < (PARTS_height>>3); e++){
+		for(i = 0; i < (PARTS_width>>3); i++){
+			VK_GBA_BG_MAPB[((e+6)<<5)+i+24] = (e*(PARTS_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+		}
+	}
+
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = 0x00;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0F;
+
+	// Fade in the level
+	VK_FadeIn();
+	
+	uint16_t countdown = 0x1000;
+	
+	while(countdown > 0){
+
+		// Render the level
+		VK_UpdateLevel();
+		
+		VK_RenderLevel();
+		
+		countdown -= 0x1;
+
+		GBA_WAIT_VBLANK
+
+		// Break on key input
+		if(VK_ButtonDown()){
+			countdown = 0;
+		}
+	}
+	
+	VK_FadeOut();
+	
+	// Render the rest of the things
+	vk_engine_demo = VK_DEMO_MAINMENU;
+
+};
+
+void VK_DrawStory(){
+	int i,e;
+	unsigned int bmptileoff = 0;
+	
+	// Load the level and tileset
+	VK_LoadLevel(90);
+	// Load the font bitmap
+	GBA_DMA_Copy32((VK_GBA_BG_TilesEnd-ck_font_size),ck_font_data,ck_font_size>>2);
+	
+
+	// Position the level
+	VK_UnLockCamera();
+	VK_PositionLevel(vk_level_width-84,5);
+	VK_PositionCamera(0x0,0x0);
+
+	// Render the level
+	VK_RenderLevel();
+
+	// Lock the camera
+	VK_LockCamera();
+	
+	// Fade in the level
+	VK_FadeIn();
+	
+	VK_DrawBox(0,0,29,14);
+	VK_DrawBox(0,12,29,2);
+	
+	while(1){
+
+		// Render story text
+
+		GBA_WAIT_VBLANK
+
+		// Break on key input
+		if(VK_ButtonDown()){
+			break;
+		}
+	}
+
+	VK_FadeOut();
+	
+	// Render the rest of the things
+	vk_engine_demo = VK_DEMO_MAINMENU;
+};
+
+
+
 void VK_DrawTitleScreen(){
 	
 	int i,e;
@@ -252,69 +460,123 @@ void VK_DrawTitleScreen(){
 	vk_engine_demo = VK_DEMO_MAINMENU;
 };
 
-void VK_DrawBox(uint16_t spawnx, uint16_t spawny, uint16_t width, uint16_t height){
-	uint16_t bx,by;
-	// Draw the box
-	for(by = spawny; by <= spawny+height; by ++){
-		for(bx = spawnx; bx <= spawnx+width; bx ++){
-			if(by == spawny){
-				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C2;
-			}else if(by == spawny+height){
-				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C7;
-			}else if(bx == spawnx){
-				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C4;
-			}else if(bx == spawnx+width){
-				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C5;
-			}else{
-				VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2E0;
-			}
-		}
-	}
-	bx = spawnx;
-	by = spawny;
-	VK_GBA_BG_MAPA[(by<<5)+bx] = 0x2C1;
-	VK_GBA_BG_MAPA[(by<<5)+bx+width] = 0x2C3;
-	VK_GBA_BG_MAPA[((by+height)<<5)+bx] = 0x2C6;
-	VK_GBA_BG_MAPA[((by+height)<<5)+bx+width] = 0x2C8;
-
-};
-
-void VK_SpawnBox(uint16_t spawnx, uint16_t spawny, uint16_t width, uint16_t height){
-	uint16_t bw,bh,bx,by;
-	
-	bh = 1;
-	bw = 1;
-	
-	height -= 1;
-	width -= 1;
-
-	if(width<=0 || height <=0)
-		return;
-
-	while(bh < (height>>1)){
-		if(bw >= (width>>1)){
-			bh ++;
-		}else{
-			bw ++;
-		}
-		VK_DrawBox(spawnx-bw,spawny-bh,bw<<1,bh<<1);
-		GBA_WAIT_VBLANK
-		GBA_Delay(50);
-	}
-	// 0x2C1
-};
-
 
 uint16_t VK_LoadMenu(){
+	VK_SpawnBox(14,9,29,3);
+	
+	// Write the text on the dialog box
+	VK_TextX = 6;
+	VK_TextY = 9;
+	VK_Print("Continue Which Game?");
+	VK_TextX = 2;
+	VK_TextY = 10;
+	VK_Print("1: 2: 3: 4: 5: 6: 7: 8: 9: ");
+
+	uint16_t cursor_animation = 0;
+	uint16_t cursor_ani_tick = 0;
+	uint16_t cursor_x = 0;
+	
+	while(1){
+		
+		VK_UpdateInput();
+		
+		// Do Menu Logic
+		if(VK_ButtonUp()==GBA_BUTTON_A){
+			
+			if(1){
+				// Spawn a box
+				VK_SpawnBox(14,9,29,3);
+				
+				// Write the text on the dialog box
+				VK_TextX = 4;
+				VK_TextY = 9;
+				VK_Print("That game hasn't been");
+				VK_TextX = 4;
+				VK_TextY = 10;
+				VK_Print("saved yet!:");
+				
+				VK_UpdateInput();
+
+				// Wait for button press
+				while(!VK_ButtonUp()){
+					VK_UpdateInput();
+					
+					cursor_ani_tick++;
+					if(cursor_ani_tick>0x80){
+						cursor_ani_tick = 0;
+						cursor_animation += 1;
+						if(cursor_animation>5){
+							cursor_animation = 0;
+						}
+					}
+
+					*(volatile uint16_t*)GBA_REG_BG1HOFS = -0x78;
+					*(volatile uint16_t*)GBA_REG_BG1VOFS = -0x50;
+
+					// Draw the cursor
+					VK_GBA_BG_MAPB[0] = 0x2C9+cursor_animation;
+					
+					GBA_WAIT_VBLANK
+
+				}
+				// Redraw the main one
+				VK_SpawnBox(14,9,29,3);
+				
+				// Write the text on the dialog box
+				VK_TextX = 6;
+				VK_TextY = 9;
+				VK_Print("Continue Which Game?");
+				VK_TextX = 2;
+				VK_TextY = 10;
+				VK_Print("1: 2: 3: 4: 5: 6: 7: 8: 9: ");
+			}
+			
+		}
+		if(VK_ButtonUp()==GBA_BUTTON_B){
+			return 0;
+		}
+
+		// Move the cursor
+		if(VK_ButtonUp()==GBA_BUTTON_LEFT){
+			if(cursor_x==0){
+				cursor_x = 8*24;
+			}else{
+				cursor_x -= 24;
+			}
+		}
+		if(VK_ButtonUp()==GBA_BUTTON_RIGHT){
+			if(cursor_x==8*24){
+				cursor_x = 0;
+			}else{
+				cursor_x += 24;
+			}
+		}
+		
+		cursor_ani_tick++;
+		if(cursor_ani_tick>0x80){
+			cursor_ani_tick = 0;
+			cursor_animation += 1;
+			if(cursor_animation>5){
+				cursor_animation = 0;
+			}
+		}
+
+		// Position the cursor
+		*(volatile uint16_t*)GBA_REG_BG1HOFS = -0x20-cursor_x;
+		*(volatile uint16_t*)GBA_REG_BG1VOFS = -0x50;
+
+		// Draw the cursor
+		VK_GBA_BG_MAPB[0] = 0x2C9+cursor_animation;
+		
+		GBA_WAIT_VBLANK
+	}
 	
 	return 0;
 };
 
 void VK_DrawMainMenu(){
-	// Load the font bitmap
-	GBA_DMA_Copy32((VK_GBA_BG_TilesEnd-ck_font_size),ck_font_data,ck_font_size>>2);
-	
-	VK_SpawnBox(15,10,20,9);
+
+	VK_SpawnBox(15,10,20,8);
 	
 	// Write the text on the dialog box
 	VK_TextX = 10;
@@ -335,6 +597,8 @@ void VK_DrawMainMenu(){
 };
 
 void VK_MainMenu(){
+	// Load the font bitmap
+	GBA_DMA_Copy32((VK_GBA_BG_TilesEnd-ck_font_size),ck_font_data,ck_font_size>>2);
 	
 	VK_FadeIn();
 	
@@ -388,12 +652,12 @@ void VK_MainMenu(){
 				// Story
 				VK_FadeOut();
 				vk_engine_demo = VK_DEMO_STORY;
-				break;
+				return;
 				case 24:
 				// High Scores
 				VK_FadeOut();
 				vk_engine_demo = VK_DEMO_HIGHSCORES;
-				break;
+				return;
 				case 32:
 				// Restart Demo
 				VK_FadeOut();
@@ -468,6 +732,12 @@ void VK_MainEngine(){
 			case VK_DEMO_MAINMENU:
 				VK_DrawTitleScreen();
 				VK_MainMenu();
+			break;
+			case VK_DEMO_HIGHSCORES:
+				VK_DrawHighScores();
+			break;
+			case VK_DEMO_STORY:
+				VK_DrawStory();
 			break;
 		}
 	}
