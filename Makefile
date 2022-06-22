@@ -24,7 +24,7 @@ LIBS	:= -lmm -lgba
 
 BIN_NAME = VORTKEEN
 
-GB_SRC = src/GBA_Defs.c src/VK_Main.c src/VK_SoundEngine.c src/VK_GraphicsEngine.c src/VK_LevelEngine.c src/VK_InputEngine.c src/VK_MainEngine.c 
+GB_SRC = src/GBA_Defs.c src/VK_Main.c src/VK_SoundEngine.c src/VK_GraphicsEngine.c src/VK_LevelEngine.c src/VK_InputEngine.c src/VK_GUIEngine.c src/VK_MainEngine.c 
 
 GB_GBA = bin/$(BIN_NAME).gba
 
@@ -33,7 +33,7 @@ GB_GBA = bin/$(BIN_NAME).gba
 #https://gist.github.com/JShorthouse/bfe49cdfad126e9163d9cb30fd3bf3c2
 
 build:
-	arm-none-eabi-gcc crt0.s -O2 $(GB_SRC) -mcpu=arm7tdmi -nostartfiles -Tlnkscript
+	arm-none-eabi-gcc crt0.s -O2 $(GB_SRC) -w -mcpu=arm7tdmi -nostartfiles -Tlnkscript
 	#mv a.out $(GB_GBA)
 	arm-none-eabi-objcopy -v -O binary a.out $(GB_GBA)
 	gbafix $(GB_GBA) -t $(BIN_NAME)
