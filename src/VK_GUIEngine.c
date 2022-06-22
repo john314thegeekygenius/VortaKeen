@@ -292,14 +292,14 @@ void VK_SpawnBox(uint16_t spawnx, uint16_t spawny, uint16_t width, uint16_t heig
 		return;
 
 	while(bw < (width>>1)){
+		VK_DrawBox(spawnx-bw,spawny-bh,bw<<1,1);
 		bw ++;
-		VK_DrawBox(spawnx-bw,spawny-bh,bw<<1,2);
 		GBA_WAIT_VBLANK
 		GBA_Delay(25);
 	}
 	while(bh < (height>>1)){
-		bh ++;
 		VK_DrawBox(spawnx-(width>>1),spawny-bh,width,bh<<1);
+		bh ++;
 		GBA_WAIT_VBLANK
 		GBA_Delay(25);
 	}
@@ -526,6 +526,9 @@ void VK_DrawTitleScreen(){
 			VK_GBA_BG_MAPA[(e<<5)+i] = (e*(TITLE_SCREEN_width>>3))+i+2;
 		}
 	}
+
+	// Set a custom clear tile
+	VK_CLEAR_TILE = 0;
 	
 	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
 	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
@@ -533,10 +536,13 @@ void VK_DrawTitleScreen(){
 	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0;
 	
 	vk_engine_demo = VK_DEMO_MAINMENU;
+	
 };
 
 
 uint16_t VK_LoadMenu(){
+	VK_ClearTopLayer();
+	
 	VK_SpawnBox(14,9,29,3);
 	
 	// Write the text on the dialog box
@@ -559,6 +565,8 @@ uint16_t VK_LoadMenu(){
 		if(VK_ButtonUp()==GBA_BUTTON_A){
 			
 			if(1){
+				VK_ClearTopLayer();
+				
 				// Spawn a box
 				VK_SpawnBox(14,9,29,3);
 				
@@ -594,6 +602,9 @@ uint16_t VK_LoadMenu(){
 					VK_WaitVRB();
 
 				}
+				
+				VK_ClearTopLayer();
+				
 				// Redraw the main one
 				VK_SpawnBox(14,9,29,3);
 				
@@ -794,5 +805,154 @@ void VK_MainMenu(){
 		
 		VK_WaitVRB();
 	}
+};
+
+
+void VK_StatusBar(){
+	// Reposition the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = (vk_map_offsetx>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = (vk_map_offsety>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = (vk_map_offsetx>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = (vk_map_offsety>>3)<<3;
+	
+	VK_ClearTopLayer();
+	
+	VK_SpawnBox(14+(vk_map_offsetx/8),10+(vk_map_offsety/8),29,14);
+	
+	// Write the text on the status bar
+	VK_TextX = 1+(vk_map_offsetx/8);
+	VK_TextY = 4+(vk_map_offsety/8);
+	VK_Print2("    SCORE     EXTRA KEEN AT ");
+	VK_TextY += 2;
+	VK_Print2("    KEENS       SHIP PARTS  ");
+	VK_TextY += 4;
+	VK_Print2(" RAYGUN   POGO    KEYCARDS  ");
+	VK_TextY += 4;
+	VK_Print2(" CHARGE ");
+	VK_TextY += 2;
+	VK_Print2("    PLEASE PRESS A BUTTON   ");
+	// Line 1
+	VK_TextX = 13+(vk_map_offsetx/8);
+	VK_TextY = 5+(vk_map_offsety/8);
+	VK_Print2(" ");
+	// Line 2
+	VK_TextX = 15+(vk_map_offsetx/8);
+	VK_TextY = 7+(vk_map_offsety/8);
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	// Line 3
+	VK_TextX = 9+(vk_map_offsetx/8);
+	VK_TextY = 10+(vk_map_offsety/8);
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	// Line 4
+	VK_TextX = 16+(vk_map_offsetx/8);
+	VK_TextY = 10+(vk_map_offsety/8);
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	VK_TextY += 1;
+	VK_Print2(" ");
+	
+	while(1){
+		VK_UpdateInput();
+		uint16_t button = VK_ButtonUp();
+		
+		if(button == (GBA_BUTTON_START) ||
+		button == (GBA_BUTTON_SELECT) ||
+		button == (GBA_BUTTON_A) ||
+		button == (GBA_BUTTON_B) ){
+			break;
+		}
+		VK_WaitVRB();
+	}
+	
+	VK_ForceLevelUpdate();
+	VK_UpdateInput();
+	
+};
+
+uint16_t VK_QuitDialog(){
+	// Reposition the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = (vk_map_offsetx>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = (vk_map_offsety>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = (vk_map_offsetx>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = (vk_map_offsety>>3)<<3;
+
+	uint16_t cursor_animation = 0;
+	uint16_t cursor_ani_tick = 0;
+	uint16_t outputv = 0;
+	
+	VK_ClearTopLayer();
+
+	VK_SpawnBox(14,9,21,2);
+	
+	// Write the text on the dialog box
+	VK_TextX = 6;
+	VK_TextY = 9;
+	VK_Print("Quit to Title:");
+	
+	
+	while(1){
+		VK_UpdateInput();
+		
+		uint16_t button = VK_ButtonUp();
+
+		if(button==(GBA_BUTTON_START)){
+			outputv = 1;
+			break;
+		}
+		if(button==(GBA_BUTTON_A)){
+			outputv = 1;
+			break;
+		}
+
+		if(button==(GBA_BUTTON_SELECT)){
+			outputv = 0;
+			break;
+		}
+		if(button==(GBA_BUTTON_B)){
+			outputv = 0;
+			break;
+		}
+		
+		
+		cursor_ani_tick++;
+		if(cursor_ani_tick>0x2){
+			cursor_ani_tick = 0;
+			cursor_animation += 1;
+			if(cursor_animation>5){
+				cursor_animation = 0;
+			}
+		}
+
+		// Draw the cursor
+		VK_GBA_BG_MAPB[308] = 0x2C9+cursor_animation;
+		
+		VK_WaitVRB();
+	}
+	
+	VK_GBA_BG_MAPB[308] = VK_CLEAR_TILE;
+	VK_ForceLevelUpdate();
+	
+	return outputv;
 };
 

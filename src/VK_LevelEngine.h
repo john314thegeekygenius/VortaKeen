@@ -15,6 +15,7 @@
 #define __VK_LEVEL_ENGINE__
 
 
+extern unsigned short VK_CLEAR_TILE;
 
 extern unsigned short vk_num_of_tiles;
 
@@ -30,6 +31,9 @@ extern signed short vk_map_offsety ;
 extern unsigned char vk_level_needs_update;
 extern unsigned short vk_level_update_tick;
 
+// Clear GBA Map 1
+void VK_ClearTopLayer();
+
 void VK_LoadLevel(uint16_t levelid);
 
 // Render the level
@@ -37,6 +41,9 @@ void VK_RenderLevel();
 
 // Update the level
 void VK_UpdateLevel();
+
+// Force a screen update
+void VK_ForceLevelUpdate();
 
 // Position the level
 void VK_PositionLevel(uint16_t offsetx,uint16_t offsety);

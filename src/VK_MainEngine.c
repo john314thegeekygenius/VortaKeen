@@ -13,9 +13,54 @@
 
 #include "VK_Headers.h"
 
+#include "../graph/bitmaps/GAME_OVER.h"
 
 uint16_t vk_engine_demo = 0;
 vk_game_state vk_engine_gstate;
+
+
+void VK_QuitGame(){
+	uint16_t i,e, gameovertimer;
+	// Play the gameover sound
+	VK_PlaySound(15);
+	
+	// Load the GameOver bitmap
+	GBA_DMA_Copy32(VK_GBA_BG_Tiles3,GAME_OVER_data,GAME_OVER_size>>2);
+
+	// Depending on player score, output gameover, or congrats
+	if(1==0){
+	}else{
+		// TODO:
+		// Make this based off keens actual location
+		VK_UnLockCamera();
+		VK_PositionLevel(2,2);
+		VK_PositionCamera(0,0);
+		
+		VK_UpdateLevel();
+		VK_RenderLevel();
+		
+		VK_ClearTopLayer();
+		
+		// Render the GAME OVER bitmap
+		for(e = 0; e < (GAME_OVER_height>>3); e++){
+			for(i = 0; i < (GAME_OVER_width>>3); i++){
+				VK_GBA_BG_MAPB[((e+8)<<5)+i+8] = (e*(GAME_OVER_width>>3))+i+(VK_GBA_TILES3_OFF);
+			}
+		}
+		
+		gameovertimer = 0x100;
+
+		while(gameovertimer){
+			gameovertimer --;
+			VK_WaitVRB();
+		}
+	}
+
+	VK_FadeOut();
+	vk_engine_gstate.in_game = 0;
+	
+	vk_engine_demo = VK_DEMO_HIGHSCORES;
+};
 
 void VK_DoGameLoop(){
 
@@ -40,19 +85,31 @@ void VK_DoGameLoop(){
 
 		VK_UpdateInput();
 		
-		if(VK_ButtonDown()==GBA_BUTTON_RIGHT){
+		if(VK_CheckButton(GBA_BUTTON_RIGHT)){
 			KEENX += 1;
 		}
-		if(VK_ButtonDown()==GBA_BUTTON_LEFT){
+		if(VK_CheckButton(GBA_BUTTON_LEFT)){
 			KEENX -= 1;
 		}
-		if(VK_ButtonDown()==GBA_BUTTON_DOWN){
+		if(VK_CheckButton(GBA_BUTTON_DOWN)){
 			KEENY += 1;
 		}
-		if(VK_ButtonDown()==GBA_BUTTON_UP){
+		if(VK_CheckButton(GBA_BUTTON_UP)){
 			KEENY -= 1;
 		}
-		if(VK_ButtonDown()==GBA_BUTTON_A){
+		uint16_t button_up = VK_ButtonUp();
+		if(button_up==GBA_BUTTON_START){
+			// Spawn status bar
+			VK_StatusBar();
+		}
+		if(button_up==GBA_BUTTON_SELECT){
+			// Spawn exit dialog
+			if(VK_QuitDialog()){
+				VK_QuitGame();
+				return;
+			}
+		}
+		if(button_up==GBA_BUTTON_A){
 			KEENX = 0;
 			KEENY = 0;
 			if(vk_engine_gstate.level_to_load == 80){

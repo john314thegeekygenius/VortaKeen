@@ -18,9 +18,11 @@ volatile uint16_t* VK_GBA_BG_MAPA = (volatile uint16_t*)GBA_SCREEN_BLOCK(30);
 volatile uint16_t* VK_GBA_BG_MAPB = (volatile uint16_t*)GBA_SCREEN_BLOCK(31);
 volatile uint8_t* VK_GBA_BG_Tiles = (volatile uint16_t*)GBA_CHAR_BLOCK(0);
 volatile uint8_t* VK_GBA_BG_Tiles2 = (volatile uint16_t*)GBA_CHAR_BLOCK(2);
+volatile uint8_t* VK_GBA_BG_Tiles3 = (volatile uint16_t*)GBA_CHAR_BLOCK(2)+0x1000;
 volatile uint8_t* VK_GBA_BG_TilesEnd= (volatile uint16_t*)GBA_CHAR_BLOCK(4)-(32*64);
 
 const uint32_t VK_GBA_TILES2_OFF = 0x200;
+const uint32_t VK_GBA_TILES3_OFF = 0x280;
 const uint32_t VK_GBA_TILES_END_OFF = 0x3C0;
 
 const uint16_t vk_ega_palette[4][17] = {

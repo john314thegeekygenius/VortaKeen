@@ -54,4 +54,8 @@ uint16_t VK_LoadMenu();
 void VK_DrawMainMenu();
 void VK_MainMenu();
 
+
+void VK_StatusBar();
+uint16_t VK_QuitDialog();
+
 #endif

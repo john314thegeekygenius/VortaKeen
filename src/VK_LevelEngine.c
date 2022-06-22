@@ -102,7 +102,17 @@ unsigned char vk_level_needs_update = 0;
 unsigned char vk_level_lock_cam = 0;
 
 unsigned short vk_level_update_tick = 0;
+unsigned short VK_CLEAR_TILE = 0;
 
+void VK_ClearTopLayer(){
+	uint16_t i;
+	// Clear the maps
+	for(i = 0; i < 32*32; i++){
+		VK_GBA_BG_MAPB[i] = VK_CLEAR_TILE;
+	}
+	// Hide all sprites
+	
+};
 
 // Load the level and tileset
 void VK_LoadLevel(uint16_t levelid){	
@@ -315,10 +325,12 @@ void VK_LoadLevel(uint16_t levelid){
 		VK_GBA_BG_Tiles[i+cleartof+64+1024] = 3;
 
 	}
+	
+	VK_CLEAR_TILE = ((clear_tile_offset%8)<<1) + ((clear_tile_offset>>3)<<5);
 	// Clear the maps
 	for(i = 0; i < 32*32; i++){
 		VK_GBA_BG_MAPA[i] = 0;
-		VK_GBA_BG_MAPB[i] = ((clear_tile_offset%8)<<1) + ((clear_tile_offset>>3)<<5);
+		VK_GBA_BG_MAPB[i] = VK_CLEAR_TILE;
 	}
 	
 	// Generate animation list
@@ -361,7 +373,7 @@ void VK_RenderLevel(){
 		
 	if(vk_level_needs_update==1){
 		vk_level_needs_update = 0;
-		GBA_WAIT_VBLANK
+		//GBA_WAIT_VBLANK
 		for(e = 0; e < 11; e++){
 			for(i = 0; i < 16; i++){
 				uint16_t lvlt = vk_level_data[((e+vk_level_offsety)*vk_level_width)+i+vk_level_offsetx];
@@ -436,35 +448,6 @@ void VK_UpdateLevel(){
 				}
 			}
 		}
-		/*
-		// Use a pre defined pointer cause it's faster?
-		uint16_t *tile = &vk_level_data;
-		uint16_t updateloc = 0;
-
-		for(e = 0; e < vk_level_height; e++){
-			for(i = 0; i < vk_level_width; i++){
-				ck_update_locations[updateloc] = 0xFFFF;
-				if((vk_tileanimations[*tile]&0xF) != 0x1){
-					// Animate the tile
-					if(((vk_tileanimations[*tile]>>4)&0xF) == 0x3){
-						*tile -= 4;
-					}
-					*tile += 1;
-					
-					uint16_t tx = (i-vk_level_offsetx);
-					uint16_t ty = (e-vk_level_offsety);
-
-					if( tx >= 0 && ty >= 0){
-						if( tx < 16 && ty < 16){
-							ck_update_locations[updateloc] = (ty<<6)+(tx<<1);
-							ck_update_locations2[updateloc] = (e*vk_level_width) + i;
-							updateloc++;
-						}
-					}
-				}
-				tile ++; // Move the pointer
-			}
-		}*/
 		
 		// Only tell the engine to update tiles only if no update is present
 		if(vk_level_needs_update==0){
@@ -473,6 +456,13 @@ void VK_UpdateLevel(){
 	}
 	
 };
+
+// Force a screen update
+void VK_ForceLevelUpdate(){
+	vk_level_needs_update = 1;
+	vk_level_lock_cam = 0;
+};
+
 
 // Position the map offset
 void VK_PositionCamera(uint16_t offsetx,uint16_t offsety){

@@ -19,10 +19,12 @@ extern volatile uint16_t* VK_GBA_BG_MAPB ;
 
 extern volatile uint8_t* VK_GBA_BG_Tiles;
 extern volatile uint8_t* VK_GBA_BG_Tiles2;
+extern volatile uint8_t* VK_GBA_BG_Tiles3;
 extern volatile uint8_t* VK_GBA_BG_TilesEnd;
 
 
 extern const uint32_t VK_GBA_TILES2_OFF;
+extern const uint32_t VK_GBA_TILES3_OFF;
 extern const uint32_t VK_GBA_TILES_END_OFF;
 
 void VK_SetupVideo();

@@ -31,11 +31,13 @@ uint16_t vk_input_buttons[] = {
 	GBA_BUTTON_DOWN,
 	GBA_BUTTON_LEFT,
 	GBA_BUTTON_RIGHT,
+	GBA_BUTTON_START,
+	GBA_BUTTON_SELECT,
 };
 
 uint16_t VK_ButtonDown(){
 	int i;
-	for (int i = 0; i < 8; i++){
+	for (int i = 0; i < 10; i++){
 		if(VK_CheckButton(vk_input_buttons[i]))
 			return vk_input_buttons[i];
 	}
