@@ -33,5 +33,8 @@ void VK_FadeIn();
 extern uint16_t VK_TextX;
 extern uint16_t VK_TextY;
 void VK_Print(char *string);
+void VK_Print2(char *string);
+
+void VK_WaitVRB();
 
 #endif

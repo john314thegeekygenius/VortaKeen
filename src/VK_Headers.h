@@ -23,5 +23,6 @@
 #include "VK_GraphicsEngine.h"
 #include "VK_LevelEngine.h"
 #include "VK_InputEngine.h"
+#include "VK_GUIEngine.h"
 
 #endif

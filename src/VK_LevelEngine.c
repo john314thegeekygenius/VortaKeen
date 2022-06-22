@@ -80,6 +80,11 @@ GBA_IN_EWRAM unsigned short vk_level_data[128*128];
 
 GBA_IN_EWRAM unsigned char vk_tileanimations[256];
 
+GBA_IN_EWRAM unsigned short ck_update_positions[0x1000][2];
+GBA_IN_EWRAM unsigned short ck_update_locations[1024][2];
+unsigned short ck_number_of_updates = 0;
+unsigned short ck_number_of_ulocations = 0;
+
 unsigned short *vk_level_tileinfo = NULL;
 
 unsigned short vk_num_of_tiles = 0;
@@ -87,11 +92,11 @@ unsigned short vk_num_of_tiles = 0;
 unsigned short vk_level_width = 0;
 unsigned short vk_level_height = 0;
 
-unsigned short vk_level_offsetx = 0;
-unsigned short vk_level_offsety = 0;
+signed short vk_level_offsetx = 0;
+signed short vk_level_offsety = 0;
 
-unsigned short vk_map_offsetx = 0;
-unsigned short vk_map_offsety = 0;
+signed short vk_map_offsetx = 0;
+signed short vk_map_offsety = 0;
 
 unsigned char vk_level_needs_update = 0;
 unsigned char vk_level_lock_cam = 0;
@@ -101,7 +106,7 @@ unsigned short vk_level_update_tick = 0;
 
 // Load the level and tileset
 void VK_LoadLevel(uint16_t levelid){	
-	int i;
+	int i,e;
 	// Setup the tileset
 	unsigned char *TILESET_data = NULL;
 	unsigned short TILESET_size = 0;
@@ -316,6 +321,25 @@ void VK_LoadLevel(uint16_t levelid){
 		VK_GBA_BG_MAPB[i] = ((clear_tile_offset%8)<<1) + ((clear_tile_offset>>3)<<5);
 	}
 	
+	// Generate animation list
+	uint16_t *tile = &vk_level_data; // Use a pre defined pointer cause it's faster?
+
+	ck_number_of_updates = 0;
+	for(e = 0; e < vk_level_height; e++){
+		for(i = 0; i < vk_level_width; i++){
+			if((vk_tileanimations[*tile]&0xF) != 0x1){
+				ck_update_positions[ck_number_of_updates][0] = i;
+				ck_update_positions[ck_number_of_updates][1] = e;
+				ck_number_of_updates++;
+				if(ck_number_of_updates>0x1000){
+					ck_number_of_updates = 0x1000;
+				}
+			}
+			tile ++; // Move the pointer
+		}
+	}
+
+	
 	vk_level_needs_update = 1;
 	vk_level_update_tick = 0;
 };
@@ -324,9 +348,21 @@ void VK_LoadLevel(uint16_t levelid){
 void VK_RenderLevel(){
 	int i,e;
 	
-	if(vk_level_needs_update){
+	if(vk_level_needs_update==2){
+		vk_level_needs_update = 0;
 		
-		for(e = 0; e < 16; e++){
+		for(i = 0; i < ck_number_of_ulocations; i++){
+			VK_GBA_BG_MAPA[ck_update_locations[i][0]] = ck_update_locations[i][1];
+			VK_GBA_BG_MAPA[ck_update_locations[i][0]+1] = ck_update_locations[i][1]+1;
+			VK_GBA_BG_MAPA[ck_update_locations[i][0]+32] = ck_update_locations[i][1]+16;
+			VK_GBA_BG_MAPA[ck_update_locations[i][0]+33] = ck_update_locations[i][1]+17;
+		}
+	}
+		
+	if(vk_level_needs_update==1){
+		vk_level_needs_update = 0;
+		GBA_WAIT_VBLANK
+		for(e = 0; e < 11; e++){
 			for(i = 0; i < 16; i++){
 				uint16_t lvlt = vk_level_data[((e+vk_level_offsety)*vk_level_width)+i+vk_level_offsetx];
 				uint16_t tile = ((lvlt%8)<<1) + ((lvlt>>3)<<5);
@@ -347,7 +383,9 @@ void VK_RenderLevel(){
 		*(volatile uint16_t*)GBA_REG_BG1HOFS = vk_map_offsetx;
 		*(volatile uint16_t*)GBA_REG_BG1VOFS = vk_map_offsety;
 	}
+	
 };
+
 
 // Update the map
 void VK_UpdateLevel(){
@@ -355,24 +393,83 @@ void VK_UpdateLevel(){
 	
 	vk_level_update_tick ++;
 	
-	if(vk_level_update_tick > 0x08){
+	if(vk_level_update_tick > 0x8){
 		vk_level_update_tick = 0;
-		
+			
+		ck_number_of_ulocations = 0;
+		for(i = 0; i < ck_number_of_updates; i++){
+			// Find the tile
+			uint16_t *tile = &vk_level_data;
+			tile += (ck_update_positions[i][1]*vk_level_width)+ck_update_positions[i][0];
+
+			if((vk_tileanimations[*tile]&0xF) == 0x1){
+				continue;
+			}
+
+			if((vk_tileanimations[*tile]&0xF) == 0x4){
+				// Animate the tile
+				if(((vk_tileanimations[*tile]>>4)&0xF) == 0x3){
+					*tile -= 3;
+				}else{
+					*tile += 1;
+				}
+			}
+			if((vk_tileanimations[*tile]&0xF) == 0x2){
+				if(((vk_tileanimations[*tile]>>4)&0xF) == 0x1){
+					*tile -= 1;
+				}else{
+					*tile += 1;
+				}
+			}
+			
+			uint16_t tx = (ck_update_positions[i][0]-vk_level_offsetx);
+			uint16_t ty = (ck_update_positions[i][1]-vk_level_offsety);
+
+			if( tx >= 0 && ty >= 0){
+				if( tx < 16 && ty < 16){
+					ck_update_locations[ck_number_of_ulocations][0] = (ty<<6)+(tx<<1);
+					ck_update_locations[ck_number_of_ulocations][1] = (((*tile)%8)<<1) + (((*tile)>>3)<<5);
+					ck_number_of_ulocations++;
+					if(ck_number_of_ulocations>=1024){
+						ck_number_of_ulocations = 1023;
+					}
+				}
+			}
+		}
+		/*
 		// Use a pre defined pointer cause it's faster?
 		uint16_t *tile = &vk_level_data;
+		uint16_t updateloc = 0;
+
 		for(e = 0; e < vk_level_height; e++){
 			for(i = 0; i < vk_level_width; i++){
+				ck_update_locations[updateloc] = 0xFFFF;
 				if((vk_tileanimations[*tile]&0xF) != 0x1){
 					// Animate the tile
 					if(((vk_tileanimations[*tile]>>4)&0xF) == 0x3){
 						*tile -= 4;
 					}
 					*tile += 1;
+					
+					uint16_t tx = (i-vk_level_offsetx);
+					uint16_t ty = (e-vk_level_offsety);
+
+					if( tx >= 0 && ty >= 0){
+						if( tx < 16 && ty < 16){
+							ck_update_locations[updateloc] = (ty<<6)+(tx<<1);
+							ck_update_locations2[updateloc] = (e*vk_level_width) + i;
+							updateloc++;
+						}
+					}
 				}
 				tile ++; // Move the pointer
 			}
+		}*/
+		
+		// Only tell the engine to update tiles only if no update is present
+		if(vk_level_needs_update==0){
+			vk_level_needs_update = 2;
 		}
-		vk_level_needs_update = 1;
 	}
 	
 };
@@ -381,13 +478,36 @@ void VK_UpdateLevel(){
 void VK_PositionCamera(uint16_t offsetx,uint16_t offsety){
 	vk_map_offsetx = offsetx;
 	vk_map_offsety = offsety;
+	
+	// Clamp the camera
+	/*if(vk_level_offsetx==2){
+		if(vk_map_offsetx>0){
+			vk_map_offsetx = 0; // We don't scroll
+		}
+	}
+	if(vk_level_offsetx==vk_level_width-2){
+		if(vk_map_offsetx>0){
+			vk_map_offsetx = 0; // We don't scroll
+		}
+	}*/
 };
 
 
 // Position the level
 void VK_PositionLevel(uint16_t offsetx,uint16_t offsety){
+	if(offsetx != vk_level_offsetx || offsety != vk_level_offsety){
+		vk_level_needs_update = 1;
+	}
 	vk_level_offsetx = offsetx;
 	vk_level_offsety = offsety;
+	/*
+	// Clamp the offset to the map size
+	if(vk_level_offsetx<2){
+		vk_level_offsetx = 2;
+	}
+	if(vk_level_offsetx>vk_level_width-2){
+		vk_level_offsetx = vk_level_width-2;
+	}*/
 };
 
 // Lock the camera

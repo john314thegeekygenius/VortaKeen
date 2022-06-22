@@ -3,7 +3,10 @@
 #define __GBA_DEFS__
 
 
+
 #define MULTIBOOT_ROM int __gba_multiboot;
+
+#define DONT_OPTIMISE __attribute__((optimize("O0"))) 
 
 #define GBA_NO_VBLANK_FUNCTION 1
 
@@ -50,6 +53,8 @@ extern unsigned int GBA_VSyncCounter;
 
 #define GBA_ARM __attribute__((__target__("arm")))
 #define GBA_THUMB __attribute__((__target__("thumb")))
+
+#define GBA_GAMEPAK_RAM_START 0x0E000000
 
 ////////////// DMA Stuff
 
@@ -343,7 +348,8 @@ X  X  X  X   S  I  I  I   I  I  I  I   I  I  I  I   I  I  I  I   I  I  I I  F F 
 // 0x06011000  -- block 22 (22<<8) 1600h
 // 0x06011800  -- block 23 (23<<8) 1700h
 
-#define GBA_WAIT_VBLANK while (*(volatile uint16_t*) GBA_REG_VTRACE < 160) { }
+#define GBA_WAIT_FOR_VBLANK while(*(volatile uint16_t*) GBA_REG_VTRACE >= 160);   // wait till VDraw
+#define GBA_WAIT_VBLANK while (*(volatile uint16_t*) GBA_REG_VTRACE < 160); 
 
 // set all control the bits in this register
 #define GBA_FINISH_BG0(flags) *(volatile uint16_t*)GBA_REG_BG0CNT = flags | GBA_BG_256COLORS;

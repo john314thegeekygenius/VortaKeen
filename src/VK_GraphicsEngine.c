@@ -67,6 +67,12 @@ void VK_SetupVideo(){
 };
 
 
+void VK_WaitVRB(){
+	GBA_WAIT_FOR_VBLANK
+	// Wait again
+	GBA_WAIT_VBLANK
+};
+
 void VK_FadeOut(){
 	// Swap the palettes to the next one
 	int fadev = 0;
@@ -101,6 +107,16 @@ void VK_Print(char *string){
 	while(*string!=0x00){
 		// Draw the letter
 		VK_GBA_BG_MAPA[(VK_TextY<<5)+VK_TextX+offset] = 0x2E0+(*string)-' ';
+		string++;
+		offset++;
+	}
+};
+
+void VK_Print2(char *string){
+	uint16_t offset = 0;
+	while(*string!=0x00){
+		// Draw the letter
+		VK_GBA_BG_MAPA[(VK_TextY<<5)+VK_TextX+offset] = 0x360+(*string)-' ';
 		string++;
 		offset++;
 	}
