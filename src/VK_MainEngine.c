@@ -163,6 +163,11 @@ void VK_DoGameLoop(){
 };
 
 void VK_MainEngine(){
+	
+	// Test out sprites
+	while(1){
+		VK_RenderSprites();
+	}
 
 	while(1){
 		// Run the demos

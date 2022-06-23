@@ -66,6 +66,14 @@ copyloop:
 		goto copyloop;
 };
 
+void GBA_ASM_MemSet16(uint16_t* dest, uint16_t val, int amount){
+setloop:
+	*(dest++) = val;
+	if(--amount)
+		goto setloop;
+};
+
+
 GBA_Sprite GBA_SpriteList[GBA_NUM_SPRITES];
 uint16_t GBA_SpriteIndex = 0;
 

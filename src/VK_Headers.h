@@ -24,5 +24,7 @@
 #include "VK_LevelEngine.h"
 #include "VK_InputEngine.h"
 #include "VK_GUIEngine.h"
+#include "VK_SpriteEngine.h"
+
 
 #endif
