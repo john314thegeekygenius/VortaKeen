@@ -95,38 +95,47 @@ void VK_RenderSprites(){
 	spr_off[3][1] = spr_ch[0];
 	
 	// Create gba sprites for keen sprite
-	spr_cnt = 0;
+	
 	unsigned short setoff = 0;
-	unsigned short gfxoff = (1*spr_width)<<3;
+	
+	spr_cnt = 0;
 	for(i = 0; i < 4; i++){
-		spr_off[i][2] = setoff>>2;
-
+		spr_off[i][2] = setoff;
+		
 		if(spr_cw[i]>0&&spr_ch[i]>0){
-			GBA_SpriteSizes spr_size = SPR_SIZE_TABLE[spr_ch[i]>>3][spr_cw[i]>>3];
-
-			// Copy the sprite image
-			uint16_t e;
-			for(e = 0; e < spr_ch[i]>>3; e++){
-				GBA_DMA_Copy16(GBA_SPRGFX_START+(setoff<<3), spr_data+gfxoff, spr_cw[i]<<2);
-				gfxoff += (sheet_width)*8;
-				setoff += (spr_cw[i]*spr_ch[i])>>4;
-			}
-			
-			spr_indx[i] = GBA_CreateSprite(50+spr_off[i][0],50+spr_off[i][1],spr_size,spr_off[i][2],GBA_SPRITE_ZTOP,-1);
-
-			spr_cnt += 1;
+			spr_indx[i] = GBA_CreateSprite(50+spr_off[i][0],50+spr_off[i][1],SPR_SIZE_TABLE[spr_ch[i]>>3][spr_cw[i]>>3],spr_off[i][2]>>5,GBA_SPRITE_ZTOP,-1);
+			setoff += (spr_cw[i]*spr_ch[i]);
 		}
 	}
 	
+//	GBA_UPDATE_SPRITES();
 
-	GBA_UPDATE_SPRITES();
-	for(i = 0; i < spr_cnt; i++){
-//		GBA_SET_SPRITE_POSITION(spr_indx[i],50+spr_off[i][0],50+spr_off[i][1]);
-//		GBA_SET_SPRITE_TILES(spr_indx[i],spr_off[i][2]);
-		GBA_UPDATE_SPRITE(spr_indx[i]);
-	}
-	
+	uint16_t sprani = 0;
 	while(1){
+		
+		// Render the sprite
+		unsigned short gfxoff = (sprani*spr_width)<<3;
+		uint16_t e, bmpof;
+		for(i = 0; i < 4; i++){
+			if(spr_cw[i]>0&&spr_ch[i]>0){
+				// Copy the sprite image
+				bmpof = 0;
+				for(e = 0; e < spr_ch[i]>>3; e++){
+					GBA_DMA_Copy16(GBA_SPRGFX_START+spr_off[i][2]+bmpof, spr_data+gfxoff, spr_cw[i]<<2);
+					gfxoff += (sheet_width)<<3;
+					bmpof += spr_cw[i]<<3;
+				}
+			GBA_SET_SPRITE_POSITION(spr_indx[i],50+spr_off[i][0],50+spr_off[i][1]);
+			GBA_UPDATE_SPRITE(spr_indx[i]);
+			}
+		}
+		
+		sprani += 1;
+		if(sprani>=sheet_width/spr_width){
+			sprani = 0;
+		}
+		VK_WaitVRB();
+		GBA_Delay(500);		
 	}
 };
 

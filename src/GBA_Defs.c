@@ -113,7 +113,7 @@ void GBA_RemoveSprite(uint16_t id){
 
 // Function to create a new sprite in the list
 // returns index into sprite array
-GBA_SpriteIndex_t GBA_CreateSprite(int x, int y, GBA_SpriteSizes size, uint16_t tileIndex, int zLayer,int palette){
+GBA_SpriteIndex_t GBA_CreateSprite(uint16_t x, uint16_t y, GBA_SpriteSizes size, uint16_t tileIndex, int zLayer,int palette){
 	uint16_t size_bits = 0, shape_bits = 0;
 	uint16_t index = GBA_SpriteIndex; // Get the current index
 	uint16_t palflags = 0;
@@ -130,8 +130,8 @@ GBA_SpriteIndex_t GBA_CreateSprite(int x, int y, GBA_SpriteSizes size, uint16_t 
 
 	for(i = 0; i < GBA_SpriteIndex; i++){
 		if(GBA_SpriteList[i].a0 == 0xF0 && GBA_SpriteList[i].a1 == 0xA0 && GBA_SpriteList[i].a2 == 0){
-			GBA_SpriteList[i].a0 = y | palflags | (shape_bits<<14);
-			GBA_SpriteList[i].a1 = x | (size_bits<<14);
+			GBA_SpriteList[i].a0 = (y&0xFF) | palflags | (shape_bits<<14);
+			GBA_SpriteList[i].a1 = (x&0x1FF) | (size_bits<<14);
 			GBA_SpriteList[i].a2 = tileIndex | zLayer | (palette<<12);
 
 			return i;
