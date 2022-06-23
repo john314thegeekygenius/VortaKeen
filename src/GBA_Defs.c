@@ -32,25 +32,25 @@ uint32_t GBA_Rand(){
 };
 
 // Copy data using DMA 
-void GBA_DMA_Copy16(uint16_t* dest, uint16_t* source, int amount) {
+DONT_OPTIMISE void GBA_DMA_Copy16(uint16_t* dest, uint16_t* source, int amount) {
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) source;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = amount | GBA_DMA_16 | GBA_DMA_ENABLE;
 };
 
-void GBA_DMA_Copy32(uint32_t* dest, uint32_t* source, int amount) {
+DONT_OPTIMISE void GBA_DMA_Copy32(uint32_t* dest, uint32_t* source, int amount) {
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) source;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = amount | GBA_DMA_32 | GBA_DMA_ENABLE;
 };
 
-void GBA_DMA_MemSet16(uint16_t* dest, uint16_t val, int len){
+DONT_OPTIMISE void GBA_DMA_MemSet16(uint16_t* dest, uint16_t val, int len){
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) &val;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = len | GBA_DMA_16 | GBA_DMA_SRC_FIXED | GBA_DMA_ENABLE;
 };
 
-void GBA_DMA_MemSet32(uint32_t* dest, uint32_t val, int len){
+DONT_OPTIMISE void GBA_DMA_MemSet32(uint32_t* dest, uint32_t val, int len){
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) &val;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = len | GBA_DMA_32 | GBA_DMA_SRC_FIXED | GBA_DMA_ENABLE;
@@ -72,6 +72,14 @@ setloop:
 	if(--amount)
 		goto setloop;
 };
+
+void GBA_ASM_Copy32(uint32_t* dest, uint32_t* source, int amount) {
+copyloop:
+	*(dest++) = *(source++);
+	if(--amount)
+		goto copyloop;
+};
+
 
 
 GBA_Sprite GBA_SpriteList[GBA_NUM_SPRITES];
@@ -128,24 +136,26 @@ GBA_SpriteIndex_t GBA_CreateSprite(uint16_t x, uint16_t y, GBA_SpriteSizes size,
 	size_bits = size&0x3;//((int)size%4);
 	shape_bits = (size >> 2);
 
-	for(i = 0; i < GBA_SpriteIndex; i++){
-		if(GBA_SpriteList[i].a0 == 0xF0 && GBA_SpriteList[i].a1 == 0xA0 && GBA_SpriteList[i].a2 == 0){
-			GBA_SpriteList[i].a0 = (y&0xFF) | palflags | (shape_bits<<14);
-			GBA_SpriteList[i].a1 = (x&0x1FF) | (size_bits<<14);
-			GBA_SpriteList[i].a2 = tileIndex | zLayer | (palette<<12);
+	if(GBA_SpriteIndex>0){
+		for(i = 0; i < GBA_SpriteIndex; i++){
+			if(GBA_SpriteList[i].a0 == 0xF0 && GBA_SpriteList[i].a1 == 0xA0 && GBA_SpriteList[i].a2 == 0){
+				GBA_SpriteList[i].a0 = (y&0xFF) | palflags | (shape_bits<<14);
+				GBA_SpriteList[i].a1 = (x&0x1FF) | (size_bits<<14);
+				GBA_SpriteList[i].a2 = tileIndex | zLayer | (palette<<12);
 
-			return i;
+				return i;
+			}
 		}
-	}
-
-	++GBA_SpriteIndex; // Increment the index by one
-	if(GBA_SpriteIndex>127){
-		GBA_SpriteIndex = 127; // lock in place
 	}
 
 	GBA_SpriteList[index].a0 = y | palflags | (shape_bits<<14);
 	GBA_SpriteList[index].a1 = x | (size_bits<<14);
 	GBA_SpriteList[index].a2 = tileIndex | zLayer | (palette<<12);
+
+	GBA_SpriteIndex+=1; // Increment the index by one
+	if(GBA_SpriteIndex>127){
+		GBA_SpriteIndex = 127; // lock in place
+	}
 
 	return index;
 };
