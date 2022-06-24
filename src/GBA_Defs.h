@@ -93,15 +93,17 @@ extern unsigned int GBA_VSyncCounter;
 
 
 // Copy data using DMA 
-void GBA_DMA_Copy16(uint16_t* dest, uint16_t* source, int amount);
-void GBA_DMA_Copy32(uint32_t* dest, uint32_t* source, int amount) ;
+DONT_OPTIMISE void GBA_DMA_Copy16(uint16_t* dest, uint16_t* source, int amount);
+DONT_OPTIMISE void GBA_DMA_Copy32(uint32_t* dest, uint32_t* source, int amount) ;
 
-void GBA_DMA_MemSet16(uint16_t* dest, uint16_t val, int len);
-void GBA_DMA_MemSet32(uint32_t* dest, uint32_t val, int len);
+DONT_OPTIMISE void GBA_DMA_MemSet16(uint16_t* dest, uint16_t val, int len);
+DONT_OPTIMISE void GBA_DMA_MemSet32(uint32_t* dest, uint32_t val, int len);
 
 // ASM Copy
 
 void GBA_ASM_Copy16(uint16_t* dest, uint16_t* source, int amount);
+void GBA_ASM_MemSet16(uint16_t* dest, uint16_t val, int amount);
+void GBA_ASM_Copy32(uint32_t* dest, uint32_t* source, int amount);
 
 
 /////////// Interupts
@@ -456,7 +458,7 @@ typedef uint16_t GBA_SpriteIndex_t;
 
 // Function to create a new sprite in the list
 // returns index into sprite array
-GBA_SpriteIndex_t GBA_CreateSprite(int x, int y, GBA_SpriteSizes size, uint16_t tileIndex, int zLayer, int palette);
+GBA_SpriteIndex_t GBA_CreateSprite(uint16_t x, uint16_t y, GBA_SpriteSizes size, uint16_t tileIndex, int zLayer, int palette);
 void GBA_RemakeSprite(GBA_SpriteIndex_t index, int x, int y, GBA_SpriteSizes size, uint16_t tileIndex, int zLayer, int palette);
 
 #define GBA_SET_SPRITE_CLEAR(index) \
@@ -505,7 +507,7 @@ void GBA_RemakeSprite(GBA_SpriteIndex_t index, int x, int y, GBA_SpriteSizes siz
 	GBA_SpriteList[(index)].a1 |= (rend);\
 	}
 
-#define GBA_UPDATE_SPRITES() GBA_DMA_Copy32((uint32_t*)GBA_SPRITE_START, (uint32_t*)GBA_SpriteList, GBA_NUM_SPRITES << 1);
+#define GBA_UPDATE_SPRITES() GBA_DMA_Copy32((uint32_t*)GBA_SPRITE_START, (uint32_t*)GBA_SpriteList, GBA_NUM_SPRITES<<1);
 
 #define GBA_UPDATE_SPRITE(index) if((index)>=0&&(index)<128) GBA_DMA_Copy16((uint16_t*)GBA_SPRITE_START+(index<<2), (uint16_t*)&GBA_SpriteList[index], 4);
 

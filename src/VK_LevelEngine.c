@@ -77,7 +77,7 @@
 uint16_t clear_tile_offset = 0;
 
 GBA_IN_EWRAM unsigned short vk_level_data[128*128];
-
+unsigned short *vk_level_map;
 GBA_IN_EWRAM unsigned char vk_tileanimations[256];
 
 GBA_IN_EWRAM unsigned short ck_update_positions[0x1000][2];
@@ -104,6 +104,7 @@ unsigned char vk_level_lock_cam = 0;
 unsigned short vk_level_update_tick = 0;
 unsigned short VK_CLEAR_TILE = 0;
 
+
 void VK_ClearTopLayer(){
 	uint16_t i;
 	// Clear the maps
@@ -128,6 +129,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level01_num_tiles;
 			 vk_level_tileinfo = &level01_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level01_data,level01_size>>1);
+			 vk_level_map = &level01_data;
 			 vk_level_width = level01_width;
 			 vk_level_height = level01_height;
 		break;
@@ -137,6 +139,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level02_num_tiles;
 			 vk_level_tileinfo = &level02_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level02_data,level02_size>>1);
+			 vk_level_map = &level02_data;
 			 vk_level_width = level02_width;
 			 vk_level_height = level02_height;
 		break;
@@ -146,6 +149,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level03_num_tiles;
 			 vk_level_tileinfo = &level03_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level03_data,level03_size>>1);
+			 vk_level_map = &level03_data;
 			 vk_level_width = level03_width;
 			 vk_level_height = level03_height;
 		break;
@@ -155,6 +159,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level04_num_tiles;
 			 vk_level_tileinfo = &level04_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level04_data,level04_size>>1);
+			 vk_level_map = &level04_data;
 			 vk_level_width = level04_width;
 			 vk_level_height = level04_height;
 		break;
@@ -165,6 +170,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_level_tileinfo = &level05_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level05_data,level05_size>>1);
 			 vk_level_width = level05_width;
+			 vk_level_map = &level05_data;
 			 vk_level_height = level05_height;
 		break;
 		case 6:
@@ -174,6 +180,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_level_tileinfo = &level06_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level06_data,level06_size>>1);
 			 vk_level_width = level06_width;
+			 vk_level_map = &level06_data;
 			 vk_level_height = level06_height;
 		break;
 		case 7:
@@ -182,6 +189,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level07_num_tiles;
 			 vk_level_tileinfo = &level07_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level07_data,level07_size>>1);
+			 vk_level_map = &level07_data;
 			 vk_level_width = level07_width;
 			 vk_level_height = level07_height;
 		break;
@@ -191,6 +199,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level08_num_tiles;
 			 vk_level_tileinfo = &level08_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level08_data,level08_size>>1);
+			 vk_level_map = &level08_data;
 			 vk_level_width = level08_width;
 			 vk_level_height = level08_height;
 		break;
@@ -200,6 +209,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level09_num_tiles;
 			 vk_level_tileinfo = &level09_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level09_data,level09_size>>1);
+			 vk_level_map = &level09_data;
 			 vk_level_width = level09_width;
 			 vk_level_height = level09_height;
 		break;
@@ -209,6 +219,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level10_num_tiles;
 			 vk_level_tileinfo = &level10_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level10_data,level10_size>>1);
+			 vk_level_map = &level10_data;
 			 vk_level_width = level10_width;
 			 vk_level_height = level10_height;
 		break;
@@ -218,6 +229,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level11_num_tiles;
 			 vk_level_tileinfo = &level11_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level11_data,level11_size>>1);
+			 vk_level_map = &level11_data;
 			 vk_level_width = level11_width;
 			 vk_level_height = level11_height;
 		break;
@@ -227,6 +239,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level12_num_tiles;
 			 vk_level_tileinfo = &level12_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level12_data,level12_size>>1);
+			 vk_level_map = &level12_data;
 			 vk_level_width = level12_width;
 			 vk_level_height = level12_height;
 		break;
@@ -236,6 +249,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level13_num_tiles;
 			 vk_level_tileinfo = &level13_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level13_data,level13_size>>1);
+			 vk_level_map = &level13_data;
 			 vk_level_width = level13_width;
 			 vk_level_height = level13_height;
 		break;
@@ -245,6 +259,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level14_num_tiles;
 			 vk_level_tileinfo = &level14_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level14_data,level14_size>>1);
+			 vk_level_map = &level14_data;
 			 vk_level_width = level14_width;
 			 vk_level_height = level14_height;
 		break;
@@ -254,6 +269,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level15_num_tiles;
 			 vk_level_tileinfo = &level15_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level15_data,level15_size>>1);
+			 vk_level_map = &level15_data;
 			 vk_level_width = level15_width;
 			 vk_level_height = level15_height;
 		break;
@@ -263,6 +279,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level16_num_tiles;
 			 vk_level_tileinfo = &level16_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level16_data,level16_size>>1);
+			 vk_level_map = &level16_data;
 			 vk_level_width = level16_width;
 			 vk_level_height = level16_height;
 		break;
@@ -273,6 +290,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level80_num_tiles;
 			 vk_level_tileinfo = &level80_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level80_data,level80_size>>1);
+			 vk_level_map = &level80_data;
 			 vk_level_width = level80_width;
 			 vk_level_height = level80_height;
 		break;
@@ -283,6 +301,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level81_num_tiles;
 			 vk_level_tileinfo = &level81_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level81_data,level81_size>>1);
+			 vk_level_map = &level81_data;
 			 vk_level_width = level81_width;
 			 vk_level_height = level81_height;
 		break;		
@@ -293,12 +312,17 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_num_of_tiles = level90_num_tiles;
 			 vk_level_tileinfo = &level90_tinfo;
 			 GBA_DMA_Copy32(vk_level_data,level90_data,level90_size>>1);
+			 vk_level_map = &level90_data;
 			 vk_level_width = level90_width;
 			 vk_level_height = level90_height;
 		break;
 	}
 
 	clear_tile_offset = vk_num_of_tiles;
+
+	if(levelid==80){
+		clear_tile_offset += 13; // Make space for world map tiles
+	}
 
 	if(TILESET_data==NULL || vk_level_tileinfo == NULL)
 		return ; // Uh oh!
@@ -333,8 +357,12 @@ void VK_LoadLevel(uint16_t levelid){
 		VK_GBA_BG_MAPB[i] = VK_CLEAR_TILE;
 	}
 	
+	// Remove any old sprites
+	VK_RemoveObjects();
+	
 	// Generate animation list
 	uint16_t *tile = &vk_level_data; // Use a pre defined pointer cause it's faster?
+	uint16_t *sprite = vk_level_map+(vk_level_width*vk_level_height);
 
 	ck_number_of_updates = 0;
 	for(e = 0; e < vk_level_height; e++){
@@ -347,7 +375,18 @@ void VK_LoadLevel(uint16_t levelid){
 					ck_number_of_updates = 0x1000;
 				}
 			}
+			
+			if( ((*sprite)>=1&&(*sprite)<=10) || ((*sprite)==255) ){
+				vk_object * obj = VK_CreateObject(*sprite);
+				if(obj!=NULL){
+					obj->x = i*16;
+					obj->y = e*16;
+					obj->y += 8;
+				}
+			}
+			
 			tile ++; // Move the pointer
+			sprite++;
 		}
 	}
 

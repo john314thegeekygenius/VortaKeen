@@ -141,6 +141,8 @@ void VK_DoGameLoop(){
 		VK_UpdateLevel();
 		VK_RenderLevel();
 		
+		VK_RenderObjects();
+		
 		if(vk_engine_gstate.level_to_load==0){
 			if(vk_engine_gstate.faded==1){
 				vk_engine_gstate.faded = 0;
@@ -163,6 +165,73 @@ void VK_DoGameLoop(){
 };
 
 void VK_MainEngine(){
+		/*
+	VK_ClearSprites();
+	
+	vk_sprite *yorp = VK_CreateSprite(1);
+	if(yorp==NULL){
+		// Uh oh!
+		GBA_ASM_MemSet16(GBA_SPRGFX_START,0x110,256);
+		while(1);
+	}
+
+	vk_sprite *keen = VK_CreateSprite(255);
+	if(keen==NULL){
+		// Uh oh!
+		GBA_ASM_MemSet16(GBA_SPRGFX_START,0x204,256);
+		while(1);
+	}
+
+	vk_sprite *vort = VK_CreateSprite(3);
+	if(vort==NULL){
+		// Uh oh!
+		GBA_ASM_MemSet16(GBA_SPRGFX_START,0x50A,256);
+		while(1);
+	}
+	
+	uint16_t sprani = 0;
+	keen->x = 100;
+	keen->y = 64;
+	
+	vort->x = 50;
+	vort->y = 64-8;
+	
+	yorp->x = 60;
+	yorp->y = 64;
+	
+	
+	// Test out sprites
+	while(1){
+
+		yorp->s.spr_gfx_ani = sprani;
+		keen->s.spr_gfx_ani = sprani;
+		vort->s.spr_gfx_ani = sprani+4;
+
+		vort->x += 0x4;
+		if(vort->x > 240){
+			vort->x = -32;
+		}
+		
+		keen->x += 0x4;
+		if(keen->x > 240){
+			keen->x = -32;
+		}
+	
+		VK_SetSpriteGraphics(yorp);
+		VK_SetSpriteGraphics(keen);
+		VK_SetSpriteGraphics(vort);
+		
+
+		sprani += 1;
+		if(sprani>=4){
+			sprani = 0;
+		}
+
+		VK_RenderSprites();
+
+		VK_WaitVRB();
+		GBA_Delay(250);
+	}*/
 
 	while(1){
 		// Run the demos
