@@ -24,7 +24,7 @@ LIBS	:= -lmm -lgba
 
 BIN_NAME = VORTKEEN
 
-GB_SRC = src/GBA_Defs.c src/VK_Main.c src/VK_SoundEngine.c src/VK_GraphicsEngine.c src/VK_LevelEngine.c src/VK_InputEngine.c src/VK_GUIEngine.c src/VK_MainEngine.c 
+GB_SRC = src/GBA_Defs.c src/VK_Main.c src/VK_SoundEngine.c src/VK_GraphicsEngine.c src/VK_LevelEngine.c src/VK_InputEngine.c src/VK_GUIEngine.c src/VK_SpriteEngine.c src/VK_ObjectsEngine.c src/VK_MainEngine.c 
 
 GB_GBA = bin/$(BIN_NAME).gba
 
