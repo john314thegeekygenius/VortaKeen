@@ -13,27 +13,38 @@
 
 #include "VK_Headers.h"
 
-#include "VK_Animations.h"
-
-
 GBA_IN_EWRAM vk_object vk_level_objects[VK_MAX_OBJECTS];
 uint16_t vk_num_of_objects = 0;
 
+vk_object *vk_keen_obj = NULL;
 
+uint16_t vk_oupdate_tick = 0;
 
-vk_object *VK_CreateObject(uint16_t sprite_id){
+#include "VK_Animations.h"
+
+vk_object *VK_CreateObject(uint16_t sprite_id, uint16_t x, uint16_t y){
 	vk_object * obj = &vk_level_objects[vk_num_of_objects];
 	vk_num_of_objects+= 1;
 	if(vk_num_of_objects >= VK_MAX_OBJECTS){
 		vk_num_of_objects = 0; // Loop arround?
 		while(1); // Just hang
 	}
+	obj->s = NULL;
+	obj->animation = NULL;
+	obj->collide = NULL;
+	obj->think = NULL;
+
+	obj->vel_x = 0;
+	obj->vel_y = 0;
 
 	switch(sprite_id){
 		case 1:
 			// Yorp
 			obj->s = VK_CreateSprite(1);
 			obj->animation = &VKA_yorp_idle_1;
+			obj->collide = &VKF_yorp_collide;
+			obj->think = &VKF_yorp_think;
+			VKF_yorp_init(obj);
 			break;
 		case 2:
 			// Garg
@@ -65,9 +76,12 @@ vk_object *VK_CreateObject(uint16_t sprite_id){
 		case 255:
 			// Commander Keen
 			obj->s = VK_CreateSprite(255);
-			
+			// WARNING: This makes it so that only one keen sprite is playable
+			vk_keen_obj = obj;
 		break;
 	};
+	obj->pos_x = x;
+	obj->pos_y = y;
 	obj->gfx_needs_update = 1;
 	obj->frame_count = 0;
 
@@ -77,29 +91,50 @@ vk_object *VK_CreateObject(uint16_t sprite_id){
 void VK_RemoveObjects(){
 	VK_ClearSprites();
 
+	vk_oupdate_tick = 0;
 	vk_num_of_objects = 0;
+};
+
+void VK_SetObjAnimation(vk_object *obj,vk_obj_ani *animation){
+	obj->frame_count = 0;
+	obj->animation = animation;
+	if(obj->facing==0){
+		obj->s->s.spr_gfx_ani = obj->animation->gfxoff_l;
+	}else{
+		obj->s->s.spr_gfx_ani = obj->animation->gfxoff_r;
+	}
+	obj->gfx_needs_update = 1;
 };
 
 void VK_RenderObjects(){
 	int i, cx, cy;
+
+	vk_oupdate_tick += 1;
+
 	for(i=0;i<vk_num_of_objects;i++){
 		vk_object * obj = &vk_level_objects[i];
 		
 		if(obj!=NULL&&obj->s!=NULL){
 			
-			if(obj->animation!=NULL){
-				obj->frame_count += 1;
+			if(vk_oupdate_tick >= 0x4){
+				if(obj->animation!=NULL){
+					obj->frame_count += 1;
 
-				if(obj->frame_count >= obj->animation->ticks){
-					obj->frame_count = 0;
-					obj->animation = obj->animation->next;
-					obj->s->s.spr_gfx_ani = obj->animation->gfxoff;
-					obj->gfx_needs_update = 1;
+					if(obj->frame_count >= obj->animation->ticks){
+						VK_SetObjAnimation(obj,obj->animation->next);
+					}
+				}
+
+				if(obj->collide!=NULL){
+					obj->collide(obj);
+				}
+				if(obj->think!=NULL){
+					obj->think(obj);
 				}
 			}
 
-			cx = obj->x-(vk_level_offsetx<<4);
-			cy = obj->y-(vk_level_offsety<<4);
+			cx = obj->pos_x-(vk_level_offsetx<<4);
+			cy = obj->pos_y-(vk_level_offsety<<4);
 			cx -= vk_map_offsetx;
 			cy -= vk_map_offsety;
 			
@@ -114,5 +149,10 @@ void VK_RenderObjects(){
 			}
 		}
 	}
+
+	if(vk_oupdate_tick >= 0x4){
+		vk_oupdate_tick = 0;
+	}
+
 };
 

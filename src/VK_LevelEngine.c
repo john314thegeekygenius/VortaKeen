@@ -365,6 +365,13 @@ void VK_LoadLevel(uint16_t levelid){
 	uint16_t *sprite = vk_level_map+(vk_level_width*vk_level_height);
 
 	ck_number_of_updates = 0;
+
+	// Spawn a dummy keen
+	vk_object * temp_keen_obj = VK_CreateObject(255,0,0);
+	
+	// In case somthing goes wrong, we have an object to link to
+	vk_keen_obj = temp_keen_obj;
+
 	for(e = 0; e < vk_level_height; e++){
 		for(i = 0; i < vk_level_width; i++){
 			if((vk_tileanimations[*tile]&0xF) != 0x1){
@@ -376,13 +383,12 @@ void VK_LoadLevel(uint16_t levelid){
 				}
 			}
 			
-			if( ((*sprite)>=1&&(*sprite)<=10) || ((*sprite)==255) ){
-				vk_object * obj = VK_CreateObject(*sprite);
-				if(obj!=NULL){
-					obj->x = i*16;
-					obj->y = e*16;
-					obj->y += 8;
-				}
+			if( (*sprite)>=1&&(*sprite)<=10 ){
+				vk_object * obj = VK_CreateObject(*sprite,(i*16),(e*16));
+			}
+			if( (*sprite)==255) {
+				temp_keen_obj->pos_x = (i*16);
+				temp_keen_obj->pos_y = (e*16);
 			}
 			
 			tile ++; // Move the pointer
