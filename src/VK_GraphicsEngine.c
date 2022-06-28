@@ -124,6 +124,34 @@ void VK_Print2(char *string){
 	}
 };
 
+char vk_iota_str[256];
+
+char * VK_Iota16(int32_t val){
+	int16_t i = 0, e = 0;
+	if(val < 0){
+		val = -val;
+		vk_iota_str[i++] = '-';
+	}
+	i = 0;
+	while(val){
+		char hexv = '0';
+		for(e = 0; e < 16; e++){
+			if(e==(val&0xF)){
+				hexv = "0123456789ABCDEF"[e];
+				break;
+			}
+		}
+		for(e = i; e >=1; e--)
+			vk_iota_str[e] = vk_iota_str[e-1];
+		i ++;
+		vk_iota_str[0] = hexv;
+		val >>= 4;
+	}
+	// End the string
+	vk_iota_str[i] = 0;
+	return vk_iota_str;
+};
+
 
 
 

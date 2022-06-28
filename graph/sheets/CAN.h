@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short CAN_spr_width = 16;
+const unsigned short CAN_spr_height = 16;
 const unsigned short CAN_width = 160;
 const unsigned short CAN_height = 16;
 const unsigned short CAN_size = 2560;

@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short YORP_spr_width = 16;
+const unsigned short YORP_spr_height = 24;
 const unsigned short YORP_width = 192;
 const unsigned short YORP_height = 24;
 const unsigned short YORP_size = 4608;

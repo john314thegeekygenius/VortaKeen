@@ -22,6 +22,9 @@ extern unsigned short vk_num_of_tiles;
 extern unsigned short vk_level_width;
 extern unsigned short vk_level_height;
 
+extern GBA_IN_EWRAM unsigned short vk_level_data[256*256];
+extern unsigned short *vk_level_tileinfo;
+
 extern signed short vk_level_offsetx ;
 extern signed short vk_level_offsety ;
 

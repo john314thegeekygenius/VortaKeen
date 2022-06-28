@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short EXPRESION_spr_width = 8;
+const unsigned short EXPRESION_spr_height = 16;
 const unsigned short EXPRESION_width = 16;
 const unsigned short EXPRESION_height = 16;
 const unsigned short EXPRESION_size = 256;

@@ -31,6 +31,309 @@ const uint16_t VK_2_FRAMES = 0x2;
 const uint16_t VK_4_FRAMES = 0x4;
 const uint16_t VK_8_FRAMES = 0x8;
 
+
+
+//        Keen =====================================
+
+vk_obj_ani VKA_keen_idle;
+
+vk_obj_ani VKA_keen_walk_1,
+			VKA_keen_walk_2,
+			VKA_keen_walk_3,
+			VKA_keen_walk_4;
+
+vk_obj_ani VKA_keen_prejump_1,
+			VKA_keen_prejump_2,
+			VKA_keen_prejump_3,
+			VKA_keen_prejump_4,
+			VKA_keen_jump,
+			VKA_keen_fall;
+
+vk_obj_ani VKA_keen_shoot,
+			VKA_keen_die_1,
+			VKA_keen_die_2,
+			VKA_keen_pogo_1,
+			VKA_keen_pogo_2,
+			VKA_keen_ice_1,
+			VKA_keen_ice_2,
+			VKA_keen_confused,
+			VKA_keen_ice_break;
+
+
+vk_obj_ani VKA_keen_idle = { 0, 4, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_idle };
+
+vk_obj_ani VKA_keen_walk_1 = { 1, 5, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_walk_2 };
+vk_obj_ani VKA_keen_walk_2 = { 2, 6, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_walk_3 };
+vk_obj_ani VKA_keen_walk_3 = { 3, 7, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_walk_4 };
+vk_obj_ani VKA_keen_walk_4 = { 2, 6, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_walk_1 };
+
+vk_obj_ani VKA_keen_prejump_1 = { 8, 14, VK_1_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_prejump_2 };
+vk_obj_ani VKA_keen_prejump_2 = { 9, 15, VK_1_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_prejump_3 };
+vk_obj_ani VKA_keen_prejump_3 = {10, 16, VK_1_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_prejump_4 };
+vk_obj_ani VKA_keen_prejump_4 = {11, 17, VK_1_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_jump };
+
+vk_obj_ani VKA_keen_jump = {12, 18, VK_1_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_fall };
+vk_obj_ani VKA_keen_fall = {13, 19, VK_1_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_fall };
+
+vk_obj_ani VKA_keen_shoot = {20, 21, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_shoot };
+
+vk_obj_ani VKA_keen_die_1 = {22, 22, VK_2_FRAMES, { 4<<8, 16<<8, 12<<8, 24<<8}, &VKA_keen_die_2 };
+vk_obj_ani VKA_keen_die_2 = {23, 23, VK_2_FRAMES, { 4<<8, 16<<8, 12<<8, 24<<8}, &VKA_keen_die_1 };
+
+vk_obj_ani VKA_keen_pogo_1 = {25, 27, VK_2_FRAMES, { 4<<8, 0<<8, 12<<8, 24<<8}, &VKA_keen_pogo_2 };
+vk_obj_ani VKA_keen_pogo_2 = {24, 26, VK_2_FRAMES, { 4<<8, 0<<8, 12<<8, 24<<8}, &VKA_keen_pogo_2 };
+
+vk_obj_ani VKA_keen_ice_1 = {28, 28, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_ice_2 };
+vk_obj_ani VKA_keen_ice_2 = {29, 29, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_ice_1 };
+
+vk_obj_ani VKA_keen_confused = {30, 30, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_confused };
+vk_obj_ani VKA_keen_ice_break = {31, 31, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_idle };
+
+
+
+int VKF_keen_init(vk_object *obj){
+	// Set is jumping
+	obj->var1 = 0x00;
+	// Set jump time
+	obj->var3 = 0x00;
+	return 0;
+};
+
+int VKF_keen_collide(vk_object *obj){
+	return 0;
+};
+
+int VKF_keen_input(vk_object *obj){
+	// Grab the input :D
+	
+	if(VK_CheckButton(GBA_BUTTON_RIGHT)){
+		// Move right
+		obj->vel_x += 0x40;
+		if(obj->vel_x>0){
+			obj->facing = 1;
+		}
+		if(obj->on_ground){
+			if(obj->animation == &VKA_keen_idle){
+				VK_SetObjAnimation(obj,&VKA_keen_walk_1);
+			}
+		}
+	}else if(VK_CheckButton(GBA_BUTTON_LEFT)){
+		// Move left
+		obj->vel_x -= 0x40;
+		if(obj->vel_x<0){
+			obj->facing = 0;
+		}
+		if(obj->on_ground){
+			if(obj->animation == &VKA_keen_idle){
+				VK_SetObjAnimation(obj,&VKA_keen_walk_1);
+			}
+		}
+	}else{
+		if(obj->animation == &VKA_keen_walk_1 ||
+			obj->animation == &VKA_keen_walk_2 ||
+			obj->animation == &VKA_keen_walk_3 ||
+			obj->animation == &VKA_keen_walk_4 ){
+			VK_SetObjAnimation(obj,&VKA_keen_idle);
+		}
+	}
+	if(VK_CheckButton(GBA_BUTTON_A)){
+		// Jump
+		if(obj->on_ground){
+			if(obj->var1==0){
+				if(obj->animation == &VKA_keen_idle ||
+				obj->animation == &VKA_keen_walk_1 ||
+				obj->animation == &VKA_keen_walk_2 ||
+				obj->animation == &VKA_keen_walk_3 ||
+				obj->animation == &VKA_keen_walk_4 ){
+					VK_SetObjAnimation(obj,&VKA_keen_prejump_1);
+				}
+				
+				if(obj->animation == &VKA_keen_pogo_2){
+					VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
+				}
+				obj->var1 = 1;
+			}
+		}
+	}
+	if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+		// Pogo
+		if(obj->animation==&VKA_keen_pogo_1 || obj->animation==&VKA_keen_pogo_2){
+			VK_SetObjAnimation(obj,&VKA_keen_fall);
+		}else{
+			if(obj->on_ground){
+				if(obj->var1==0){
+					VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
+					obj->var1 = 1;
+				}
+			}else{
+				VK_SetObjAnimation(obj,&VKA_keen_pogo_2);
+			}
+		}
+	}
+	if(obj->animation == &VKA_keen_pogo_2){
+		if(obj->var1){
+			obj->var1 = 0;
+			obj->var3 = 0x08;
+			obj->vel_y = -0x180;
+			if(VK_CheckButton(GBA_BUTTON_A)){
+				obj->vel_y -= 0x100;
+			}
+			// Play jump sound
+			VK_PlaySound(5);
+		}else{
+			// Only bounce if we land on ground
+			if(obj->on_ground){
+				if(obj->var1==0){
+					VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
+					obj->var1 = 1;
+				}
+			}
+		}
+	}
+	
+	if(obj->animation == &VKA_keen_jump){
+		if(obj->var1){
+			obj->var1 = 0;
+			obj->var3 = 0x08;
+			obj->vel_y = -0x80;
+			if(VK_CheckButton(GBA_BUTTON_A)){
+				obj->vel_y -= 0x100;
+			}
+			// Play jump sound
+			VK_PlaySound(5);
+		}
+	}
+	if(obj->var3>0){
+		if(VK_CheckButton(GBA_BUTTON_A)){
+			obj->vel_y -= 0x20;
+		}
+		obj->var3 -= 1;
+	}
+	return 0;
+};
+
+int VKF_keen_think(vk_object *obj){
+	// vk_keen_obj is defined in VK_ObjectsEngine.c
+	if(obj->hit_left||obj->hit_right){
+		if(obj->animation == &VKA_keen_walk_1 ||
+			obj->animation == &VKA_keen_walk_2 ||
+			obj->animation == &VKA_keen_walk_3 ||
+			obj->animation == &VKA_keen_walk_4 ){
+			// Play the block sound
+			VK_PlaySound(4);
+			VK_SetObjAnimation(obj,&VKA_keen_idle);
+		}
+	}
+	if(obj->hit_bottom){
+		if(obj->animation == &VKA_keen_fall){
+			VK_SetObjAnimation(obj,&VKA_keen_idle);		
+			VK_PlaySound(6); // play land sound
+		}
+	}else{
+		if(obj->animation == &VKA_keen_idle ||
+			obj->animation == &VKA_keen_walk_1 ||
+			obj->animation == &VKA_keen_walk_2 ||
+			obj->animation == &VKA_keen_walk_3 ||
+			obj->animation == &VKA_keen_walk_4 ){
+			
+			VK_SetObjAnimation(obj,&VKA_keen_fall);		
+			VK_PlaySound(26); // play fall sound
+		}
+	}
+	
+	if(obj->animation == &VKA_keen_walk_1 ){
+		// Play the walk sound
+		VK_PlaySound(3);
+	}
+	if(obj->animation == &VKA_keen_walk_3){
+		// Play the walk sound
+		VK_PlaySound(4);
+	}
+
+	// Move keen
+	if(obj->var1==0){
+		obj->pos_x += obj->vel_x;
+		obj->pos_y += obj->vel_y;
+		
+		if(obj->vel_x>0x200){
+			obj->vel_x = 0x200;
+		}
+		if(obj->vel_x<-0x200){
+			obj->vel_x = -0x200;
+		}
+		
+		obj->vel_y += 0x10;
+		
+		// Stop keen from going crazy
+		if(obj->vel_y > 0x400){
+			obj->vel_y = 0x400;
+		}
+		
+		if(obj->animation == &VKA_keen_pogo_1 || obj->animation == &VKA_keen_pogo_2){
+			if(obj->vel_x>0x200){
+				obj->vel_x -= 0x200;
+				// Stop the velocity from going too far
+				if(obj->vel_x<0x200){
+					obj->vel_x = 0x200;
+				}
+			}
+			if(obj->vel_x<-0x200){
+				obj->vel_x += 0x200;
+				// Stop the velocity from going too far
+				if(obj->vel_x>-0x200){
+					obj->vel_x = -0x200;
+				}
+			}
+		}else{
+			if(obj->on_ground==0){
+				if(obj->vel_x>0){
+					obj->vel_x -= 0x10;
+					// Stop the velocity from going too far
+					if(obj->vel_x<0){
+						obj->vel_x = 0;
+					}
+				}
+				if(obj->vel_x<0){
+					obj->vel_x += 0x10;
+					// Stop the velocity from going too far
+					if(obj->vel_x>0){
+						obj->vel_x = 0;
+					}
+				}
+			}
+			if(obj->on_ground==1){
+				if(obj->vel_x>0){
+					obj->vel_x -= 0x30;
+					// Stop the velocity from going too far
+					if(obj->vel_x<0){
+						obj->vel_x = 0;
+					}
+				}
+				if(obj->vel_x<0){
+					obj->vel_x += 0x30;
+					// Stop the velocity from going too far
+					if(obj->vel_x>0){
+						obj->vel_x = 0;
+					}
+				}
+			}
+		}
+	}
+	// Kill keen if out of level
+	/*
+	if(obj->pos_y > 80<<8){
+		obj->pos_y = 80<<8;
+		obj->vel_y = 0;
+	}*/
+	
+	return 0;
+};
+
+
+
+
+//       Enemeys =========================================
+
 vk_obj_ani VKA_yorp_idle_1,
 			VKA_yorp_idle_2,
 			VKA_yorp_idle_3,
@@ -43,20 +346,21 @@ vk_obj_ani VKA_yorp_hit_1,
 vk_obj_ani VKA_yorp_die_1,
 			VKA_yorp_die_2;
 
-// --------------------------- R  L   # Frames      Next Animation
-vk_obj_ani VKA_yorp_idle_1 = { 0, 0, VK_2_FRAMES, &VKA_yorp_idle_2 };
-vk_obj_ani VKA_yorp_idle_2 = { 1, 1, VK_2_FRAMES, &VKA_yorp_idle_3 };
-vk_obj_ani VKA_yorp_idle_3 = { 2, 2, VK_2_FRAMES, &VKA_yorp_idle_4 };
-vk_obj_ani VKA_yorp_idle_4 = { 3, 3, VK_2_FRAMES, &VKA_yorp_idle_1 };
+// --------------------------- R  L   # Frames    Collistion Box    Next Animation
+vk_obj_ani VKA_yorp_idle_1 = { 0, 0, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_idle_2 };
+vk_obj_ani VKA_yorp_idle_2 = { 1, 1, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_idle_3 };
+vk_obj_ani VKA_yorp_idle_3 = { 2, 2, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_idle_4 };
+vk_obj_ani VKA_yorp_idle_4 = { 3, 3, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_idle_1 };
 
-vk_obj_ani VKA_yorp_walk_1 = { 4, 6, VK_2_FRAMES, &VKA_yorp_walk_2 };
-vk_obj_ani VKA_yorp_walk_2 = { 5, 7, VK_2_FRAMES, &VKA_yorp_walk_1 };
+vk_obj_ani VKA_yorp_walk_1 = { 4, 6, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_walk_2 };
+vk_obj_ani VKA_yorp_walk_2 = { 5, 7, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_walk_1 };
 
-vk_obj_ani VKA_yorp_hit_1 = { 8, 8, VK_2_FRAMES, &VKA_yorp_hit_2 };
-vk_obj_ani VKA_yorp_hit_2 = { 9, 9, VK_2_FRAMES, &VKA_yorp_hit_1 };
+vk_obj_ani VKA_yorp_hit_1 = { 8, 8, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_hit_2 };
+vk_obj_ani VKA_yorp_hit_2 = { 9, 9, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_hit_1 };
 
-vk_obj_ani VKA_yorp_die_1 = { 10, 10, VK_2_FRAMES, &VKA_yorp_die_2 };
-vk_obj_ani VKA_yorp_die_2 = { 11, 11, VK_2_FRAMES, &VKA_yorp_die_2 };
+vk_obj_ani VKA_yorp_die_1 = { 10, 10, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_die_2 };
+vk_obj_ani VKA_yorp_die_2 = { 11, 11, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_die_2 };
+
 
 /*
 
@@ -137,11 +441,11 @@ int VKF_yorp_think(vk_object *obj){
 		if(obj->var2==0){
 			// Yorp needs to move toward keen
 			if(vk_keen_obj->pos_x < obj->pos_x){
-				obj->vel_x = -0x1;
+				obj->vel_x = -0x80;
 				obj->facing = 0;
 			}
 			if(vk_keen_obj->pos_x > obj->pos_x){
-				obj->vel_x = 0x1;
+				obj->vel_x = 0x80;
 				obj->facing = 1;
 			}
 			// Count down to next look animation
@@ -159,7 +463,7 @@ int VKF_yorp_think(vk_object *obj){
 		(obj->animation == &VKA_yorp_walk_2)){
 		if(obj->var3 == 0){
 			// Make the yorp jump
-			obj->vel_y = -(VK_GetRNG()&0x3); // Max jump height of 17?
+			obj->vel_y = -(VK_GetRNG()&0x3)<<4; // Max jump height of 17?
 			// Set next jump time
 			obj->var3 = VK_GetRNG();
 		}
@@ -187,12 +491,20 @@ int VKF_yorp_think(vk_object *obj){
 	obj->pos_x += obj->vel_x;
 	obj->pos_y += obj->vel_y;
 	
-	obj->vel_y += 0x1;
-	
-	if(obj->pos_y > 80){
-		obj->pos_y = 80;
-		obj->vel_y = 0;
+	if(obj->vel_x>0x80){
+		obj->vel_x = 0x80;
 	}
+	if(obj->vel_x<-0x80){
+		obj->vel_x = -0x80;
+	}
+	
+	obj->vel_y += 0x10;
+	
+	/*
+	if(obj->pos_y > 80<<8){
+		obj->pos_y = 80<<8;
+		obj->vel_y = 0;
+	}*/
 	
 	return 0;
 };

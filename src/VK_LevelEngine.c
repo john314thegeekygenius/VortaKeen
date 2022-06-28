@@ -76,7 +76,7 @@
 
 uint16_t clear_tile_offset = 0;
 
-GBA_IN_EWRAM unsigned short vk_level_data[128*128];
+GBA_IN_EWRAM unsigned short vk_level_data[256*256];
 unsigned short *vk_level_map;
 GBA_IN_EWRAM unsigned char vk_tileanimations[256];
 
@@ -384,11 +384,11 @@ void VK_LoadLevel(uint16_t levelid){
 			}
 			
 			if( (*sprite)>=1&&(*sprite)<=10 ){
-				vk_object * obj = VK_CreateObject(*sprite,(i*16),(e*16));
+				vk_object * obj = VK_CreateObject(*sprite,(i<<12),(e<<12));
 			}
 			if( (*sprite)==255) {
-				temp_keen_obj->pos_x = (i*16);
-				temp_keen_obj->pos_y = (e*16);
+				temp_keen_obj->pos_x = (i<<12);
+				temp_keen_obj->pos_y = (e<<12);
 			}
 			
 			tile ++; // Move the pointer

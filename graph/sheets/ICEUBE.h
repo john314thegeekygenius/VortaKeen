@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short ICEUBE_spr_width = 16;
+const unsigned short ICEUBE_spr_height = 16;
 const unsigned short ICEUBE_width = 16;
 const unsigned short ICEUBE_height = 16;
 const unsigned short ICEUBE_size = 256;

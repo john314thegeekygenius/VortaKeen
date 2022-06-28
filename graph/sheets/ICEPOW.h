@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short ICEPOW_spr_width = 8;
+const unsigned short ICEPOW_spr_height = 8;
 const unsigned short ICEPOW_width = 8;
 const unsigned short ICEPOW_height = 8;
 const unsigned short ICEPOW_size = 64;

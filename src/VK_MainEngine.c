@@ -72,7 +72,7 @@ void VK_DoGameLoop(){
 	// Load the world map
 	vk_engine_gstate.level_to_load = 80;
 	
-	uint16_t KEENX = 0, KEENY = 0, LEVEL_ON = 0;
+	uint16_t LEVEL_ON = 0;
 	
 	while(vk_engine_gstate.in_game){
 		
@@ -85,18 +85,6 @@ void VK_DoGameLoop(){
 
 		VK_UpdateInput();
 		
-		if(VK_CheckButton(GBA_BUTTON_RIGHT)){
-			KEENX += 1;
-		}
-		if(VK_CheckButton(GBA_BUTTON_LEFT)){
-			KEENX -= 1;
-		}
-		if(VK_CheckButton(GBA_BUTTON_DOWN)){
-			KEENY += 1;
-		}
-		if(VK_CheckButton(GBA_BUTTON_UP)){
-			KEENY -= 1;
-		}
 		uint16_t button_up = VK_ButtonUp();
 		if(button_up==GBA_BUTTON_START){
 			// Spawn status bar
@@ -109,9 +97,7 @@ void VK_DoGameLoop(){
 				return;
 			}
 		}
-		if(button_up==GBA_BUTTON_A){
-			KEENX = 0;
-			KEENY = 0;
+		if(button_up==GBA_BUTTON_RSHOLDER){
 			if(vk_engine_gstate.level_to_load == 80){
 				vk_engine_gstate.level_to_load = 1;
 			}else{
@@ -135,10 +121,11 @@ void VK_DoGameLoop(){
 
 		// Position the level
 		VK_UnLockCamera();
-		VK_PositionLevel(KEENX>>4,KEENY>>4);
-		VK_PositionCamera(KEENX&0xF,KEENY&0xF);
+		VK_PositionLevel((vk_keen_obj->pos_x>>12)-8,(vk_keen_obj->pos_y>>12)-6);
+		VK_PositionCamera((vk_keen_obj->pos_x>>8)&0xF,(vk_keen_obj->pos_y>>8)&0xF);
 		
 		VK_UpdateLevel();
+		VKF_keen_input(vk_keen_obj);
 		VK_RenderLevel();
 		
 		VK_RenderObjects();
@@ -165,74 +152,7 @@ void VK_DoGameLoop(){
 };
 
 void VK_MainEngine(){
-		/*
-	VK_ClearSprites();
 	
-	vk_sprite *yorp = VK_CreateSprite(1);
-	if(yorp==NULL){
-		// Uh oh!
-		GBA_ASM_MemSet16(GBA_SPRGFX_START,0x110,256);
-		while(1);
-	}
-
-	vk_sprite *keen = VK_CreateSprite(255);
-	if(keen==NULL){
-		// Uh oh!
-		GBA_ASM_MemSet16(GBA_SPRGFX_START,0x204,256);
-		while(1);
-	}
-
-	vk_sprite *vort = VK_CreateSprite(3);
-	if(vort==NULL){
-		// Uh oh!
-		GBA_ASM_MemSet16(GBA_SPRGFX_START,0x50A,256);
-		while(1);
-	}
-	
-	uint16_t sprani = 0;
-	keen->x = 100;
-	keen->y = 64;
-	
-	vort->x = 50;
-	vort->y = 64-8;
-	
-	yorp->x = 60;
-	yorp->y = 64;
-	
-	
-	// Test out sprites
-	while(1){
-
-		yorp->s.spr_gfx_ani = sprani;
-		keen->s.spr_gfx_ani = sprani;
-		vort->s.spr_gfx_ani = sprani+4;
-
-		vort->x += 0x4;
-		if(vort->x > 240){
-			vort->x = -32;
-		}
-		
-		keen->x += 0x4;
-		if(keen->x > 240){
-			keen->x = -32;
-		}
-	
-		VK_SetSpriteGraphics(yorp);
-		VK_SetSpriteGraphics(keen);
-		VK_SetSpriteGraphics(vort);
-		
-
-		sprani += 1;
-		if(sprani>=4){
-			sprani = 0;
-		}
-
-		VK_RenderSprites();
-
-		VK_WaitVRB();
-		GBA_Delay(250);
-	}*/
-
 	while(1){
 		// Run the demos
 		switch(vk_engine_demo){

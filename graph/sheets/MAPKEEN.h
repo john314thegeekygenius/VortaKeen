@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short MAPKEEN_spr_width = 16;
+const unsigned short MAPKEEN_spr_height = 16;
 const unsigned short MAPKEEN_width = 256;
 const unsigned short MAPKEEN_height = 16;
 const unsigned short MAPKEEN_size = 4096;

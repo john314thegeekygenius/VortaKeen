@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short CHAIN_spr_width = 16;
+const unsigned short CHAIN_spr_height = 16;
 const unsigned short CHAIN_width = 16;
 const unsigned short CHAIN_height = 16;
 const unsigned short CHAIN_size = 256;

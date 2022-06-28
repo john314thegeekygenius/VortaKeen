@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short GARG_spr_width = 24;
+const unsigned short GARG_spr_height = 32;
 const unsigned short GARG_width = 240;
 const unsigned short GARG_height = 32;
 const unsigned short GARG_size = 7680;

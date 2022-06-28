@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short SHIP_spr_width = 16;
+const unsigned short SHIP_spr_height = 8;
 const unsigned short SHIP_width = 32;
 const unsigned short SHIP_height = 8;
 const unsigned short SHIP_size = 256;

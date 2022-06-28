@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short ZAPZOT_spr_width = 16;
+const unsigned short ZAPZOT_spr_height = 16;
 const unsigned short ZAPZOT_width = 32;
 const unsigned short ZAPZOT_height = 16;
 const unsigned short ZAPZOT_size = 512;

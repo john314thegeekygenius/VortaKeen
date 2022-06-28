@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short LAZER_spr_width = 16;
+const unsigned short LAZER_spr_height = 8;
 const unsigned short LAZER_width = 32;
 const unsigned short LAZER_height = 8;
 const unsigned short LAZER_size = 256;

@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short TANK_spr_width = 16;
+const unsigned short TANK_spr_height = 24;
 const unsigned short TANK_width = 160;
 const unsigned short TANK_height = 24;
 const unsigned short TANK_size = 3840;

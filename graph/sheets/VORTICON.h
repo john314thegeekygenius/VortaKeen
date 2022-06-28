@@ -1,4 +1,6 @@
 // Bitmap exported by vkmake
+const unsigned short VORTICON_spr_width = 24;
+const unsigned short VORTICON_spr_height = 32;
 const unsigned short VORTICON_width = 432;
 const unsigned short VORTICON_height = 32;
 const unsigned short VORTICON_size = 13824;

@@ -80,6 +80,7 @@ volatile unsigned short vk_sound_play_loc = 0;
 volatile unsigned short vk_sound_play_len = 0;
 volatile unsigned short vk_sound_delay_tick = 0;
 unsigned short vk_sound_priority = 0;
+short vk_cur_sound_id = -1;
 
 
 GBA_ARM void VK_SoundHandler(){
@@ -117,6 +118,10 @@ GBA_ARM void VK_SoundHandler(){
 			vk_sound_play_loc = 0;
 			
 			vk_sound_play_int_data = (unsigned short*)NULL;
+			vk_cur_sound_id = -1;
+			vk_sound_priority = 0;
+			
+			
 			//disable sound 1 to left and right
 			*(volatile uint16_t*)GBA_SOUNDCNT_L &= ~(GBA_SND_1L | GBA_SND_1R);
 		}
@@ -147,7 +152,8 @@ void VK_SetupSound(){
 	*(volatile unsigned short*)GBA_TIMER2_DATA = 0xFF8C;
 	*(volatile unsigned short*)GBA_TIMER2_CONTROL = GBA_TIMER_ENABLE | GBA_TIMER_FREQ_256 | GBA_TIMER_INTERUPT;
 
-
+	vk_cur_sound_id = -1;
+	vk_sound_priority = 0;
 };
 
 
@@ -173,6 +179,11 @@ void VK_PlaySound(unsigned short soundid){
 	unsigned short *sndptr = NULL;
 	unsigned short sndlen = 0;
 	unsigned short sndprio = 0;
+
+	// Don't play the same sound again?
+	if(vk_cur_sound_id == soundid)
+		return;
+			
 	switch(soundid){
 		case 0:
 			sndptr = VK_SOUND_00_data;
@@ -475,6 +486,11 @@ void VK_PlaySound(unsigned short soundid){
 			sndprio = VK_SOUND_59_PRIO;
 		break;
 	}
+
+	if(vk_sound_priority > sndprio) 
+		return;
+
+	vk_cur_sound_id = soundid;
 	
 	VK_PlaySoundIRQ(sndptr, sndlen, sndprio);
 };
