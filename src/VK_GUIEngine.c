@@ -433,10 +433,14 @@ void VK_DrawHighScores(){
 		VK_RenderLevel();
 
 		// Write the names
-		VK_TextX = 1;
 		VK_TextY = 8;
 		for(i = 0; i < 6; i++){
+			char *scrstr = VK_Iota(vk_thekeenest[i].score);
+			VK_TextX = 1;
 			VK_Print2(vk_thekeenest[i].name);
+			VK_TextX = 20-strlen(scrstr);
+			VK_Print2(scrstr);
+			
 			VK_TextY += 2;
 		}
 		
@@ -717,6 +721,7 @@ void VK_MainMenu(){
 				case 0:
 				// Start a new game
 				VK_FadeOut();
+				VK_NewGame();
 				vk_engine_demo = VK_DEMO_GAME;
 				return;
 				case 8:

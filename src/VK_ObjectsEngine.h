@@ -31,6 +31,14 @@ typedef struct vk_obj_ani {
 	struct vk_obj_ani *next;
 }vk_obj_ani;
 
+typedef enum {
+	vko_none 	= 0,
+	vko_keen 	= 1,
+	vko_yorp 	= 2,
+	vko_garg 	= 3,
+	vko_vorticon = 4,
+}vk_obj_type;
+
 
 typedef struct vk_object {
 	int32_t pos_x;
@@ -39,6 +47,7 @@ typedef struct vk_object {
 	int16_t vel_y;
 	uint8_t facing; // 0 - left  1 - right
 	uint8_t hit_left, hit_right, hit_top, hit_bottom; // Which side of keen hit
+	uint8_t hitmap; // 0 - none  1 - all
 	
 	uint8_t on_ground; 
 						/*
@@ -52,6 +61,8 @@ typedef struct vk_object {
 	uint16_t var2;
 	uint16_t var3;
 	uint16_t var4;
+	
+	vk_obj_type type; // What kind of object is it
 	
 	// Animation Stuff
 	uint16_t gfx_needs_update;

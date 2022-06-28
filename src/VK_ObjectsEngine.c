@@ -23,151 +23,133 @@ uint16_t vk_oupdate_tick = 0;
 #include "VK_Animations.h"
 
 
+void VK_KeenCollectPoint(uint16_t amount){
+	// Add the score
+	vk_engine_gstate.score += amount;
+	if(vk_engine_gstate.score >= vk_engine_gstate.next_1up){
+		vk_engine_gstate.next_1up <<= 1; // Multiply by 2
+		// Play the sound
+		VK_PlaySound(VKS_HISCORESND);
+	}else{
+		// Play the sound
+		VK_PlaySound(VKS_GOTITEMSND);
+	}
+};
+
 // Advanced collistion code for keen vs level
 int VK_CollideKeenWLevel(vk_object *obj){
 	if(obj->animation==NULL){
 		return 0;
 	}
-	int16_t leftTile = (obj->pos_x+obj->animation->cbox.left)>>12;
-	int16_t rightTile = (obj->pos_x+obj->animation->cbox.right)>>12;
-	int16_t topTile = (obj->pos_y+obj->animation->cbox.top)>>12;
-	int16_t bottomTile = (obj->pos_y+obj->animation->cbox.bottom)>>12;
+
+	int32_t kleft = (obj->pos_x+obj->animation->cbox.left)>>8;
+	int32_t kright = (obj->pos_x+obj->animation->cbox.right)>>8;
+	int32_t ktop = (obj->pos_y+obj->animation->cbox.top)>>8;
+	int32_t kbottom = (obj->pos_y+obj->animation->cbox.bottom)>>8;
+
+	int32_t leftTile = kleft>>4;
+	int32_t rightTile = kright>>4;
+	int32_t topTile = ktop>>4;
+	int32_t bottomTile = kbottom>>4;
 
 	int16_t tileY,tileX,tile;
-	uint16_t * info;
-    
+	
     for(tileY = topTile-1; tileY <= bottomTile; tileY++){
         for(tileX = leftTile-1; tileX <= rightTile; tileX++){
             tile = (tileY*vk_level_width)+tileX;
-
             if(tileX<0||tileY<0||tileX>=vk_level_width||tileY>=vk_level_height){
                 continue;
             }
-            // Grab behavoir 
-			info = vk_level_tileinfo[(vk_level_data[tile]*6)+1];
-			if(*info){
-				/*
+			if(kright > (tileX<<4)){
+				if(kleft < (tileX<<4)+(16)){
+					if(kbottom > (tileY<<4)){
+						if(ktop < (tileY<<4)+16){
+							// Collide with tile
+							switch(vk_level_tileinfo[(vk_level_data[tile]*6)+1]){
+								case 1:
+									// Kill keen
+									VKF_keen_die(obj);
+								break;
+								case 6:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the score
+									VK_KeenCollectPoint(500);
+									break;
+								case 7:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the score
+									VK_KeenCollectPoint(100);
+									break;
+								case 8:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the score
+									VK_KeenCollectPoint(200);
+									break;
+								case 9:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the score
+									VK_KeenCollectPoint(1000);
+									break;
+								case 10:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the score
+									VK_KeenCollectPoint(5000);
+									break;
+								/*
 
--2 	Masked 	14 	Whiskey
--1 	Foreground 	15 	Raygun
-0 	Nothing 	16 	Pogo
-1 	Kills 	17 	Exit
-2 	Door 1 	18 	Key 1
-3 	Door 2 	19 	Key 2
-4 	Door 3 	20 	Key 3
-5 	Door 4 	21 	Key 4
-6 	500 points 	22 	Message box pop-up
-7 	100 points 	23 	Light switch
-8 	200 points 	24 	Teleporter
-9 	1000 points 	25 	Switch on
-10 	5000 points 	26 	Switch off
-11 	Joystick 	27 	Ankh (Keen 3)
-12 	Battery 	28 	Ammo clip (Keen 3)
-13 	Vacuum 		
-* 
-				*/
+				-2 	Masked 	14 	Whiskey
+				-1 	Foreground 	15 	Raygun
+				0 	Nothing 	16 	Pogo
+				1 	Kills 	17 	Exit
+				2 	Door 1 	18 	Key 1
+				3 	Door 2 	19 	Key 2
+				4 	Door 3 	20 	Key 3
+				5 	Door 4 	21 	Key 4
+				6 	500 points 	22 	Message box pop-up
+				7 	100 points 	23 	Light switch
+				8 	200 points 	24 	Teleporter
+				9 	1000 points 	25 	Switch on
+				10 	5000 points 	26 	Switch off
+				11 	Joystick 	27 	Ankh (Keen 3)
+				12 	Battery 	28 	Ammo clip (Keen 3)
+				13 	Vacuum 		
+				* 
+								*/
+							}
+						}
+					}
+				}
 			}
 		}
 	}
+	if(kleft < 32){
+		obj->pos_x = (32<<8) - obj->animation->cbox.left;
+		obj->vel_x = 0;
+	}
+	if(kright > (vk_level_width<<4)-32){
+		obj->pos_x = (((vk_level_width<<4)-48)<<8) + obj->animation->cbox.right;
+		obj->vel_x = 0;
+	}
+	if(ktop < 32){
+		obj->pos_y = (32<<8) - obj->animation->cbox.top;
+		obj->vel_y = 0;
+	}
+	if(kbottom > (vk_level_height<<4)){
+		// Kill keen
+		VKF_keen_die(obj);
+	}
 };
 
-/*
-
-    var kleft = (keen.pos_x+keen.box.left)>>8;
-    var kright = (keen.pos_x+keen.box.right)>>8;
-    var ktop = (keen.pos_y+keen.box.top)>>8;
-    var kbottom = (keen.pos_y+keen.box.bottom)>>8;
-
-    var leftT = kleft>>4;
-    var rightT = kright>>4;
-    var topT = ktop>>4;
-    var bottomT = kbottom>>4;
-    
-    for(var e = topT-1; e <= bottomT; e++){
-        for(var i = leftT-1; i <= rightT; i++){
-            var tile = (e*levelW)+i;
-            rect(i*16,e*16,16,16);
-
-            if(i>=levelW||e>=levelH){
-                continue;
-            }
-            if(tile>=0&&tile<levelW*levelH){
-                // Top of tile
-                fill(255, 238, 0);
-                if(level[tile]==='x'||level[tile]==='t'){
-                    fill(255, 0, 0);
-                    // Top of tile
-                    if(kright > (i<<4)){
-                        if(kleft < (i<<4)+(16)){
-                            if(kbottom >= (e<<4)){
-                                if(kbottom <= (e<<4)+2){
-                                    if(keen.vel_y>0){
-                                        keen.pos_y = (e<<12)-(keen.box.bottom);
-                                        keen.vel_y = 0;
-                                        keen.onground = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                if(level[tile]==='x'){
-                    // Right of tile
-                    
-                    if(kleft < (i<<4)+2){
-                        if(kright >= (i<<4)){
-                            fill(34, 255, 0);
-                            if(ktop < (e<<4)+(16)){
-                                fill(0, 43, 255);
-                                if(kbottom > (e<<4)){
-                                    fill(255, 128, 0);
-                                    if(keen.vel_x>0){
-                                        keen.pos_x = ((i<<12)-(16<<8))+(keen.box.left);
-                                        keen.vel_x = 0;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Bottom of tile
-                    
-                    if(kright > (i<<4)){
-                        if(kleft < (i<<4)+(16)){
-                            if(kbottom > (e<<4)+(16)){
-                                if(ktop <= (e<<4)+(16)){
-                                    if(keen.vel_y<0){
-                                        keen.pos_y = (e<<12)+(16<<8)-(keen.box.top);
-                                        keen.vel_y = 0;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Left of tile
-                    if(kright > (i<<4)+(16)-2){
-                        if(kleft <= (i<<4)+(16)){
-                            fill(34, 255, 0);
-                            if(ktop <  (e<<4)+(16)){
-                                fill(0, 43, 255);
-                                if(kbottom > (e<<4)){
-                                    fill(255, 128, 0);
-                                    if(keen.vel_x<0){
-                                        keen.pos_x = (i<<12)+keen.box.right;
-                                        keen.vel_x = 0;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            rect(i*16,e*16,16,16);
-        }
-    }
-
-*/
 
 // Basic collistion code for object vs level
 int VK_CollideObjWLevel(vk_object *obj){
@@ -187,84 +169,94 @@ int VK_CollideObjWLevel(vk_object *obj){
 
 
 	int16_t tileY,tileX,tile;
-	
+	/*
 	obj->hit_bottom = 0;
 	obj->hit_top = 0;
 	obj->hit_right = 0;
 	obj->hit_left = 0;
+	*/
 	obj->on_ground = 0;
     
     for(tileY = topTile-1; tileY <= bottomTile; tileY++){
         for(tileX = leftTile-1; tileX <= rightTile; tileX++){
             tile = (tileY*vk_level_width)+tileX;
-
-            if(tile>=0&&tile<(vk_level_width*vk_level_height)){
-			
-				// Collide with top
-				if(vk_level_tileinfo[(vk_level_data[tile]*6)+2]){
-					if(kright > (tileX<<4)){
-						if(kleft < (tileX<<4)+(16)){
-							if(kbottom >= (tileY<<4)){
-								if(kbottom <= (tileY<<4)+(2)){//+obj->vel_y
-									if(obj->vel_y > 0){
-										obj->pos_y = (tileY<<12)-(obj->animation->cbox.bottom);
-										obj->vel_y = 0;
-										obj->on_ground = vk_level_tileinfo[(vk_level_data[tile]*6)+2];
-										obj->hit_bottom = 1;
-									}
+            if(tileX<0||tileY<0||tileX>=vk_level_width||tileY>=vk_level_height){
+                continue;
+            }
+		
+			// Collide with top
+			if(vk_level_tileinfo[(vk_level_data[tile]*6)+2]){
+				if(kright > (tileX<<4)){
+					if(kleft < (tileX<<4)+(16)){
+						if(kbottom >= (tileY<<4)){
+							if(kbottom <= (tileY<<4)+(obj->vel_y>>8)){
+								if(obj->vel_y > 0){
+									obj->pos_y = (tileY<<12)-(obj->animation->cbox.bottom);
+									obj->vel_y = 0;
+									obj->on_ground = vk_level_tileinfo[(vk_level_data[tile]*6)+2];
+									obj->hit_bottom = 1;
+									// Reset the variables
+									ktop = (obj->pos_y+obj->animation->cbox.top)>>8;
+									kbottom = (obj->pos_y+obj->animation->cbox.bottom)>>8;
 								}
 							}
 						}
 					}
 				}
-				// Collide with right
-				if(vk_level_tileinfo[(vk_level_data[tile]*6)+3]){
-					 if(kleft < (tileX<<4)+2){
-						if(kright >= (tileX<<4)){
-							if(ktop < (tileY<<4)+(16)){
-								if(kbottom >(tileY<<4)){
-									if(obj->vel_x > 0){
-										obj->pos_x = ((tileX<<12)-(16<<8))+obj->animation->cbox.left;
-										obj->vel_x = 0;
-										obj->hit_left = 1;
-									}
+			}
+			// Collide with right
+			if(vk_level_tileinfo[(vk_level_data[tile]*6)+3]){
+				 if(kleft < (tileX<<4)+2){
+					if(kright >= (tileX<<4)){
+						if(ktop < (tileY<<4)+(16)){
+							if(kbottom >(tileY<<4)){
+								if(obj->vel_x > 0){
+									obj->pos_x = ((tileX<<12)-(16<<8))+obj->animation->cbox.left;
+									obj->vel_x = 0;
+									obj->hit_left = 1;
+									// Reset the variables
+									kleft = (obj->pos_x+obj->animation->cbox.left)>>8;
+									kright = (obj->pos_x+obj->animation->cbox.right)>>8;
 								}
 							}
 						}
 					}
 				}
-				// Collide with bottom
-				if(vk_level_tileinfo[(vk_level_data[tile]*6)+4]){
-					if(kright > (tileX<<4)){
-						if(kleft < (tileX<<4)+(16)){
-							if(ktop >= (tileY<<4)+(16)-2){
-								if(ktop <= (tileY<<4)+(16)){
-									if(obj->vel_y < 0){
-										obj->pos_y = ((tileY<<12)+(16<<8))-obj->animation->cbox.top;
-										obj->vel_y = 0;
-										obj->hit_top = 1;
-									}
+			}
+			// Collide with bottom
+			if(vk_level_tileinfo[(vk_level_data[tile]*6)+4]){
+				if(kright > (tileX<<4)){
+					if(kleft < (tileX<<4)+(16)){
+						if(ktop >= (tileY<<4)+(16)+(obj->vel_y>>8)){
+							if(ktop <= (tileY<<4)+(16)){
+								if(obj->vel_y < 0){
+									obj->pos_y = ((tileY<<12)+(16<<8))-obj->animation->cbox.top;
+									obj->vel_y = 0;
+									obj->hit_top = 1;
+									// Reset the variables
+									ktop = (obj->pos_y+obj->animation->cbox.top)>>8;
+									kbottom = (obj->pos_y+obj->animation->cbox.bottom)>>8;
 								}
 							}
 						}
 					}
 				}
-				  // Collide with left
-				if(vk_level_tileinfo[(vk_level_data[tile]*6)+5]){
-					if(kright > (tileX<<4)+(16)-2){
-						if(kleft <= (tileX<<4)+(16)){
-							if(ktop < (tileY<<4)+(16)){
-								if(kbottom > (tileY<<4)){
-									if(obj->vel_x < 0){
-										obj->pos_x = (tileX<<12)+obj->animation->cbox.right;
-										obj->vel_x = 0;
-										obj->hit_right = 1;
-									}
+			}
+			  // Collide with left
+			if(vk_level_tileinfo[(vk_level_data[tile]*6)+5]){
+				if(kright > (tileX<<4)+(16)-2){
+					if(kleft <= (tileX<<4)+(16)){
+						if(ktop < (tileY<<4)+(16)){
+							if(kbottom > (tileY<<4)){
+								if(obj->vel_x < 0){
+									obj->pos_x = (tileX<<12)+obj->animation->cbox.right;
+									obj->vel_x = 0;
+									obj->hit_right = 1;
 								}
 							}
 						}
 					}
-				} 
+				}
 			}
         }
     }
@@ -293,6 +285,8 @@ vk_object *VK_CreateObject(uint16_t sprite_id, uint32_t x, uint32_t y){
 			obj->animation = &VKA_yorp_idle_1;
 			obj->collide = &VKF_yorp_collide;
 			obj->think = &VKF_yorp_think;
+			obj->type = vko_yorp;
+			obj->hitmap = 1;
 			VKF_yorp_init(obj);
 			break;
 		case 2:
@@ -330,6 +324,8 @@ vk_object *VK_CreateObject(uint16_t sprite_id, uint32_t x, uint32_t y){
 			obj->animation = &VKA_keen_idle;
 			obj->collide = &VKF_keen_collide;
 			obj->think = &VKF_keen_think;
+			obj->type = vko_keen;
+			obj->hitmap = 1;
 			VKF_keen_init(obj);
 		break;
 	};
@@ -382,7 +378,12 @@ void VK_RenderObjects(){
 			if(obj->collide!=NULL){
 				obj->collide(obj);
 			}
-			VK_CollideObjWLevel(obj);
+			if(obj->hitmap){
+				VK_CollideObjWLevel(obj);
+				if(obj->type==vko_keen){
+					VK_CollideKeenWLevel(obj);
+				}
+			}
 
 			if(obj->think!=NULL){
 				obj->think(obj);
@@ -407,13 +408,26 @@ void VK_RenderObjects(){
 	VK_TextX = 2;
 	VK_TextY = 2;
 	VK_Print("X:");
+	VK_TextX = 4;
+	VK_Print(VK_Iota16(vk_keen_obj->pos_x));
+
+	VK_TextX = 2;
 	VK_TextY = 3;
 	VK_Print("Y:");
 	VK_TextX = 4;
-	VK_TextY = 2;
-	VK_Print(VK_Iota16(vk_keen_obj->pos_x));
-	VK_TextY = 3;
 	VK_Print(VK_Iota16(vk_keen_obj->pos_y));
+
+	VK_TextX = 2;
+	VK_TextY = 4;
+	VK_Print("V1:");
+	VK_TextX = 6;
+	VK_Print(VK_Iota16(vk_keen_obj->var1));
+
+	VK_TextX = 2;
+	VK_TextY = 5;
+	VK_Print("V3:");
+	VK_TextX = 6;
+	VK_Print(VK_Iota16(vk_keen_obj->var3));
 
 	if(vk_oupdate_tick >= 0x4){
 		vk_oupdate_tick = 0;

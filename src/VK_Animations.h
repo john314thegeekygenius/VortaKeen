@@ -94,16 +94,38 @@ vk_obj_ani VKA_keen_ice_break = {31, 31, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8
 int VKF_keen_init(vk_object *obj){
 	// Set is jumping
 	obj->var1 = 0x00;
+	// Death counter
+	obj->var2 = 0x00;
 	// Set jump time
 	obj->var3 = 0x00;
 	return 0;
 };
 
-int VKF_keen_collide(vk_object *obj){
+int VKF_keen_collide(vk_object *obj, vk_object *cobj){
+	return 0;
+};
+
+int VKF_keen_die(vk_object *obj){
+	if(obj->var2==0){
+		obj->animation = &VKA_keen_die_1;
+		// Set timer
+		obj->var2 = 0x40;
+		// Set position
+		obj->var3 = 0x40;
+		// Don't collide with the map any more
+		obj->hitmap = 0;
+		// Play sound
+		VK_PlaySound(VKS_KEENDIESND);
+	}
+
 	return 0;
 };
 
 int VKF_keen_input(vk_object *obj){
+	if(obj->animation == &VKA_keen_die_1 || obj->animation == &VKA_keen_die_2){
+		return 0;
+	}
+	
 	// Grab the input :D
 	
 	if(VK_CheckButton(GBA_BUTTON_RIGHT)){
@@ -159,11 +181,13 @@ int VKF_keen_input(vk_object *obj){
 		// Pogo
 		if(obj->animation==&VKA_keen_pogo_1 || obj->animation==&VKA_keen_pogo_2){
 			VK_SetObjAnimation(obj,&VKA_keen_fall);
+			obj->var1 = 0; // Reset this to 0
 		}else{
 			if(obj->on_ground){
 				if(obj->var1==0){
 					VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
 					obj->var1 = 1;
+					VK_PlaySound(VKS_KEENPOGOSND);
 				}
 			}else{
 				VK_SetObjAnimation(obj,&VKA_keen_pogo_2);
@@ -174,18 +198,19 @@ int VKF_keen_input(vk_object *obj){
 		if(obj->var1){
 			obj->var1 = 0;
 			obj->var3 = 0x08;
-			obj->vel_y = -0x180;
+			obj->vel_y = -0x280;
 			if(VK_CheckButton(GBA_BUTTON_A)){
-				obj->vel_y -= 0x100;
+				obj->vel_y -= 0x20;
 			}
 			// Play jump sound
-			VK_PlaySound(5);
+			VK_PlaySound(VKS_POGOJUMPSND);
 		}else{
 			// Only bounce if we land on ground
 			if(obj->on_ground){
 				if(obj->var1==0){
 					VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
 					obj->var1 = 1;
+					VK_PlaySound(VKS_KEENPOGOSND);
 				}
 			}
 		}
@@ -200,7 +225,7 @@ int VKF_keen_input(vk_object *obj){
 				obj->vel_y -= 0x100;
 			}
 			// Play jump sound
-			VK_PlaySound(5);
+			VK_PlaySound(VKS_KEENJUMPSND);
 		}
 	}
 	if(obj->var3>0){
@@ -213,6 +238,23 @@ int VKF_keen_input(vk_object *obj){
 };
 
 int VKF_keen_think(vk_object *obj){
+	if(obj->animation == &VKA_keen_die_1 || obj->animation == &VKA_keen_die_2){
+		if(obj->var2==1){
+			// Fly away
+			if(obj->var3){
+				obj->pos_x -= 0x400;
+				obj->pos_y -= 0x400;
+				obj->var3 -= 0x1;
+			}else{
+				// Go back to world map
+				VK_ReturnToWorldmap();
+			}
+		}else{
+			obj->var2 -= 1;
+		}
+		return 0;
+	}
+	
 	// vk_keen_obj is defined in VK_ObjectsEngine.c
 	if(obj->hit_left||obj->hit_right){
 		if(obj->animation == &VKA_keen_walk_1 ||
@@ -220,14 +262,16 @@ int VKF_keen_think(vk_object *obj){
 			obj->animation == &VKA_keen_walk_3 ||
 			obj->animation == &VKA_keen_walk_4 ){
 			// Play the block sound
-			VK_PlaySound(4);
+			if(obj->animation == &VKA_keen_walk_1){
+				VK_PlaySound(VKS_KEENBLOKSND);
+			}
 			VK_SetObjAnimation(obj,&VKA_keen_idle);
 		}
 	}
-	if(obj->hit_bottom){
+	if(obj->hit_bottom || obj->on_ground){
 		if(obj->animation == &VKA_keen_fall){
 			VK_SetObjAnimation(obj,&VKA_keen_idle);		
-			VK_PlaySound(6); // play land sound
+			VK_PlaySound(VKS_KEENLANDSND); // play land sound
 		}
 	}else{
 		if(obj->animation == &VKA_keen_idle ||
@@ -237,17 +281,17 @@ int VKF_keen_think(vk_object *obj){
 			obj->animation == &VKA_keen_walk_4 ){
 			
 			VK_SetObjAnimation(obj,&VKA_keen_fall);		
-			VK_PlaySound(26); // play fall sound
+			VK_PlaySound(VKS_PLUMMETSND); // play fall sound
 		}
 	}
 	
 	if(obj->animation == &VKA_keen_walk_1 ){
 		// Play the walk sound
-		VK_PlaySound(3);
+		VK_PlaySound(VKS_KEENWALKSND);
 	}
 	if(obj->animation == &VKA_keen_walk_3){
 		// Play the walk sound
-		VK_PlaySound(4);
+		VK_PlaySound(VKS_KEENBLOKSND);
 	}
 
 	// Move keen
@@ -270,18 +314,18 @@ int VKF_keen_think(vk_object *obj){
 		}
 		
 		if(obj->animation == &VKA_keen_pogo_1 || obj->animation == &VKA_keen_pogo_2){
-			if(obj->vel_x>0x200){
-				obj->vel_x -= 0x200;
+			if(obj->vel_x>0x40){
+				obj->vel_x -= 0x10;
 				// Stop the velocity from going too far
-				if(obj->vel_x<0x200){
-					obj->vel_x = 0x200;
+				if(obj->vel_x<0x40){
+					obj->vel_x = 0x40;
 				}
 			}
-			if(obj->vel_x<-0x200){
-				obj->vel_x += 0x200;
+			if(obj->vel_x<-0x40){
+				obj->vel_x += 0x10;
 				// Stop the velocity from going too far
-				if(obj->vel_x>-0x200){
-					obj->vel_x = -0x200;
+				if(obj->vel_x>-0x40){
+					obj->vel_x = -0x40;
 				}
 			}
 		}else{
@@ -319,13 +363,12 @@ int VKF_keen_think(vk_object *obj){
 			}
 		}
 	}
-	// Kill keen if out of level
-	/*
-	if(obj->pos_y > 80<<8){
-		obj->pos_y = 80<<8;
-		obj->vel_y = 0;
-	}*/
 	
+	obj->hit_bottom = 0;
+	obj->hit_top = 0;
+	obj->hit_right = 0;
+	obj->hit_left = 0;
+
 	return 0;
 };
 
@@ -408,13 +451,18 @@ int VKF_yorp_init(vk_object *obj){
 	return 0;
 };
 
-int VKF_yorp_collide(vk_object *obj){
+int VKF_yorp_collide(vk_object *obj, vk_object *cobj){
 	return 0;
 };
 
 int VKF_yorp_think(vk_object *obj){
 	// vk_keen_obj is defined in VK_ObjectsEngine.c
 
+	if(obj->hit_left||obj->hit_right){
+		// Make yorp think
+		obj->var1 = 0;
+	}
+	
 	if(obj->var1 == 0){
 		if( (obj->animation == &VKA_yorp_walk_1) ||
 			(obj->animation == &VKA_yorp_walk_2)){
@@ -435,24 +483,41 @@ int VKF_yorp_think(vk_object *obj){
 		obj->var1 -= 1;
 	}
 	
+	
 	// Wait for animation to be correct
 	if( (obj->animation == &VKA_yorp_idle_1)){
 		// Wait for look timer to run out
 		if(obj->var2==0){
 			// Yorp needs to move toward keen
 			if(vk_keen_obj->pos_x < obj->pos_x){
-				obj->vel_x = -0x80;
-				obj->facing = 0;
+				// Yorp can't move toward keen, so go opposite direction
+				if(obj->hit_right){
+					obj->vel_x = 0x80;
+					obj->facing = 1;
+				}else{
+					obj->vel_x = -0x80;
+					obj->facing = 0;
+				}
 			}
 			if(vk_keen_obj->pos_x > obj->pos_x){
-				obj->vel_x = 0x80;
-				obj->facing = 1;
+				// Yorp can't move toward keen, so go opposite direction
+				if(obj->hit_left){
+					obj->vel_x = -0x80;
+					obj->facing = 0;
+				}else{
+					obj->vel_x = 0x80;
+					obj->facing = 1;
+				}
 			}
 			// Count down to next look animation
 			obj->var1 = VK_GetRNG();
 
 			// Set animation to walking
 			VK_SetObjAnimation(obj,&VKA_yorp_walk_1);
+
+			obj->hit_right = 0;
+			obj->hit_left = 0;
+
 		}else{
 			obj->var2 -= 1;
 		}
@@ -463,7 +528,7 @@ int VKF_yorp_think(vk_object *obj){
 		(obj->animation == &VKA_yorp_walk_2)){
 		if(obj->var3 == 0){
 			// Make the yorp jump
-			obj->vel_y = -(VK_GetRNG()&0x3)<<4; // Max jump height of 17?
+			obj->vel_y = -(VK_GetRNG()+0x40); // Max jump height of 1 block?
 			// Set next jump time
 			obj->var3 = VK_GetRNG();
 		}

@@ -514,17 +514,6 @@ void VK_PositionCamera(uint16_t offsetx,uint16_t offsety){
 	vk_map_offsetx = offsetx;
 	vk_map_offsety = offsety;
 	
-	// Clamp the camera
-	/*if(vk_level_offsetx==2){
-		if(vk_map_offsetx>0){
-			vk_map_offsetx = 0; // We don't scroll
-		}
-	}
-	if(vk_level_offsetx==vk_level_width-2){
-		if(vk_map_offsetx>0){
-			vk_map_offsetx = 0; // We don't scroll
-		}
-	}*/
 };
 
 
@@ -535,14 +524,34 @@ void VK_PositionLevel(uint16_t offsetx,uint16_t offsety){
 	}
 	vk_level_offsetx = offsetx;
 	vk_level_offsety = offsety;
-	/*
+
+	// Clamp the camera
+	if(vk_level_offsetx<2){
+		vk_map_offsetx = 0;
+	}
+	if(vk_level_offsety<2){
+		vk_map_offsety = 0;
+	}
+	if(vk_level_offsetx>=vk_level_width-17){
+		vk_map_offsetx = 0; // We don't scroll
+	}
+	if(vk_level_offsety>=vk_level_height-12){
+		vk_map_offsety = 0; // We don't scroll
+	}
+	
 	// Clamp the offset to the map size
 	if(vk_level_offsetx<2){
 		vk_level_offsetx = 2;
 	}
-	if(vk_level_offsetx>vk_level_width-2){
-		vk_level_offsetx = vk_level_width-2;
-	}*/
+	if(vk_level_offsety<2){
+		vk_level_offsety = 2;
+	}
+	if(vk_level_offsetx>vk_level_width-17){
+		vk_level_offsetx = vk_level_width-17;
+	}
+	if(vk_level_offsety>vk_level_height-12){
+		vk_level_offsety = vk_level_height-12;
+	}
 };
 
 // Lock the camera

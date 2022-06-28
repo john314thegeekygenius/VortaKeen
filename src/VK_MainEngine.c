@@ -22,7 +22,7 @@ vk_game_state vk_engine_gstate;
 void VK_QuitGame(){
 	uint16_t i,e, gameovertimer;
 	// Play the gameover sound
-	VK_PlaySound(15);
+	VK_PlaySound(VKS_GAMEOVERSND);
 	
 	// Load the GameOver bitmap
 	GBA_DMA_Copy32(VK_GBA_BG_Tiles3,GAME_OVER_data,GAME_OVER_size>>2);
@@ -62,15 +62,35 @@ void VK_QuitGame(){
 	vk_engine_demo = VK_DEMO_HIGHSCORES;
 };
 
-void VK_DoGameLoop(){
-
-	vk_engine_gstate.in_game = 1;
+void VK_NewGame(){
+	// Setup stuff for a new game
+	
+	vk_engine_gstate.next_1up = 20000;
 
 	// We faded out, so fade in
 	vk_engine_gstate.faded = 1;
 	
+	VK_ReturnToWorldmap();
+};
+
+void VK_ReturnToWorldmap(){
 	// Load the world map
 	vk_engine_gstate.level_to_load = 80;
+	
+	// Fix the map (cover up levels completed)
+	
+	
+	// Fade out if we need to
+	if(vk_engine_gstate.faded == 0){
+		VK_FadeOut();
+		vk_engine_gstate.faded = 1;
+	}
+};
+
+void VK_DoGameLoop(){
+
+	vk_engine_gstate.in_game = 1;
+	
 	
 	uint16_t LEVEL_ON = 0;
 	
@@ -120,9 +140,11 @@ void VK_DoGameLoop(){
 		}
 
 		// Position the level
-		VK_UnLockCamera();
-		VK_PositionLevel((vk_keen_obj->pos_x>>12)-8,(vk_keen_obj->pos_y>>12)-6);
-		VK_PositionCamera((vk_keen_obj->pos_x>>8)&0xF,(vk_keen_obj->pos_y>>8)&0xF);
+		if(vk_keen_obj->hitmap){
+			VK_UnLockCamera();
+			VK_PositionCamera((vk_keen_obj->pos_x>>8)&0xF,(vk_keen_obj->pos_y>>8)&0xF);
+			VK_PositionLevel((vk_keen_obj->pos_x>>12)-8,(vk_keen_obj->pos_y>>12)-6);
+		}
 		
 		VK_UpdateLevel();
 		VKF_keen_input(vk_keen_obj);

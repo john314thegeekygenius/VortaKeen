@@ -29,6 +29,7 @@ typedef struct vk_game_state {
 	uint16_t level_to_load; // What level needs loaded
 	uint16_t in_game; // Is keen in the game
 	uint8_t faded; // Has the screen faded at all 0-no 1-out 2-in
+	uint16_t next_1up; // Next score to get to
 	
 	// Keen stuff
 	uint16_t num_of_done; // Number of levels completed
@@ -56,7 +57,9 @@ typedef struct vk_game_state {
 extern vk_game_state vk_engine_gstate;
 extern uint16_t vk_engine_demo;
 
+void VK_ReturnToWorldmap();
 void VK_WaitAMoment();
+void VK_NewGame();
 void VK_MainEngine();
 
 

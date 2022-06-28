@@ -14,6 +14,7 @@
 #ifndef __VK_SOUND_ENG__
 #define __VK_SOUND_ENG__
 
+#include "../sound/VK_SOUNDS.h"
 
 GBA_ARM void VK_SoundHandler();
 void VK_SetupSound();

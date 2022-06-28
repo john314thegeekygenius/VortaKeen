@@ -181,8 +181,8 @@ void VK_PlaySound(unsigned short soundid){
 	unsigned short sndprio = 0;
 
 	// Don't play the same sound again?
-	if(vk_cur_sound_id == soundid)
-		return;
+	//if(vk_cur_sound_id == soundid)
+	//	return;
 			
 	switch(soundid){
 		case 0:

@@ -128,6 +128,11 @@ char vk_iota_str[256];
 
 char * VK_Iota16(int32_t val){
 	int16_t i = 0, e = 0;
+	if(val==0){
+		vk_iota_str[0] = '0';
+		vk_iota_str[1] = 0;
+		return vk_iota_str;
+	}
 	if(val < 0){
 		val = -val;
 		vk_iota_str[i++] = '-';
@@ -152,6 +157,32 @@ char * VK_Iota16(int32_t val){
 	return vk_iota_str;
 };
 
+
+char * VK_Iota(int32_t val){
+	int16_t i = 0, e = 0;
+	if(val==0){
+		vk_iota_str[0] = '0';
+		vk_iota_str[1] = 0;
+		return vk_iota_str;
+	}
+	if(val < 0){
+		val = -val;
+		vk_iota_str[i++] = '-';
+	}
+	i = 0;
+	while(val){
+		char decv = '0'+(val%10);
+		
+		for(e = i; e >=1; e--)
+			vk_iota_str[e] = vk_iota_str[e-1];
+		i ++;
+		vk_iota_str[0] = decv;
+		val /= 10;
+	}
+	// End the string
+	vk_iota_str[i] = 0;
+	return vk_iota_str;
+};
 
 
 

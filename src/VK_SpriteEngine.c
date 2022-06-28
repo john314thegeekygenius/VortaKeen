@@ -249,11 +249,11 @@ void VK_RenderSprite(vk_sprite *ptr){
 	uint16_t e;
 	for(e = 0; e < 4; e++){
 		if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
-			if(ptr->x >= -0x40 && ptr->y >= -0x40 && ptr->x < 0x100 && ptr->y < 0x100){
+			if(ptr->x >= -0x40 && ptr->y >= -0x40 && ptr->x < 0x100 && ptr->y < 0xB0){
 				GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],ptr->x+ptr->s.spr_off[e][0],ptr->y+ptr->s.spr_off[e][1]);
 			}else{
 				// Hide the sprite
-				GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],0xF0,0xF0);
+				GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],0xF0,0xB0);
 			}
 			GBA_UPDATE_SPRITE(ptr->s.spr_indx[e]);
 		}
