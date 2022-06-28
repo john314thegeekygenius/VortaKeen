@@ -5,3 +5,9 @@ A port of Commander Keen Invasion of the Vorticons for the Gameboy Advance.
 
 As of right now, this is not a completed port.
 
+# Controls
+A Button - Jump
+B Button - Shoot
+Left Trigger - Pogo
+Start - Open status
+Select - Quit to menu
