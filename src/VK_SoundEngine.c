@@ -494,3 +494,16 @@ void VK_PlaySound(unsigned short soundid){
 	
 	VK_PlaySoundIRQ(sndptr, sndlen, sndprio);
 };
+
+
+void VK_StopSound(){
+	vk_sound_play_loc = 0;
+	
+	vk_sound_play_int_data = (unsigned short*)NULL;
+	vk_cur_sound_id = -1;
+	vk_sound_priority = 0;
+	
+	
+	//disable sound 1 to left and right
+	*(volatile uint16_t*)GBA_SOUNDCNT_L &= ~(GBA_SND_1L | GBA_SND_1R);
+};

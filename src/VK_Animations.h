@@ -35,6 +35,202 @@ const uint16_t VK_8_FRAMES = 0x8;
 
 //        Keen =====================================
 
+vk_obj_ani VKA_mapkeen_idle_h,
+			VKA_mapkeen_idle_v;
+
+vk_obj_ani VKA_mapkeen_walk_h1,
+			VKA_mapkeen_walk_h2,
+			VKA_mapkeen_walk_h3,
+			VKA_mapkeen_walk_h4,
+			VKA_mapkeen_walk_v1,
+			VKA_mapkeen_walk_v2,
+			VKA_mapkeen_walk_v3,
+			VKA_mapkeen_walk_v4;
+
+vk_obj_ani VKA_mapkeen_idle_h = { 0, 8, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_idle_h };
+vk_obj_ani VKA_mapkeen_idle_v = { 4, 12, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_idle_v };
+
+// Right / Left
+vk_obj_ani VKA_mapkeen_walk_h1 = { 1, 9, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h2 };
+vk_obj_ani VKA_mapkeen_walk_h2 = { 2, 10, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h3 };
+vk_obj_ani VKA_mapkeen_walk_h3 = { 3, 11, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h4 };
+vk_obj_ani VKA_mapkeen_walk_h4 = { 2, 10, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h1 };
+// Up / Down
+vk_obj_ani VKA_mapkeen_walk_v1 = { 5, 13, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v2 };
+vk_obj_ani VKA_mapkeen_walk_v2 = { 6, 14, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v3 };
+vk_obj_ani VKA_mapkeen_walk_v3 = { 7, 15, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v4 };
+vk_obj_ani VKA_mapkeen_walk_v4 = { 6, 14, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v1 };
+
+
+
+int VKF_mapkeen_init(vk_object *obj){
+	// current tile
+	obj->var1 = 0;
+
+	return 0;
+};
+
+int VKF_mapkeen_collide(vk_object *obj, vk_object *cobj){
+	return 0;
+};
+
+int VKF_mapkeen_input(vk_object *obj){
+	
+	// Grab the input :D
+			
+	if(VK_CheckButton(GBA_BUTTON_RIGHT)){
+		// Move right
+		obj->vel_x = 0x200;
+		obj->facing = 1;
+		if(!(VK_CheckButton(GBA_BUTTON_UP)) && !(VK_CheckButton(GBA_BUTTON_DOWN))){
+			if(obj->animation == &VKA_mapkeen_walk_v1||obj->animation == &VKA_mapkeen_walk_v2){
+				VK_SetObjAnimation(obj,&VKA_mapkeen_walk_h1);
+			}
+			if(obj->animation == &VKA_mapkeen_idle_v||obj->animation == &VKA_mapkeen_idle_h){
+				VK_SetObjAnimation(obj,&VKA_mapkeen_walk_h1);
+			}
+		}
+
+	}else if(VK_CheckButton(GBA_BUTTON_LEFT)){
+		// Move left
+		obj->vel_x = -0x200;
+		obj->facing = 0;
+
+		if(!(VK_CheckButton(GBA_BUTTON_UP)) && !(VK_CheckButton(GBA_BUTTON_DOWN))){
+			if(obj->animation == &VKA_mapkeen_walk_v1||obj->animation == &VKA_mapkeen_walk_v2){
+				VK_SetObjAnimation(obj,&VKA_mapkeen_walk_h1);
+			}
+			if(obj->animation == &VKA_mapkeen_idle_v||obj->animation == &VKA_mapkeen_idle_h){
+				VK_SetObjAnimation(obj,&VKA_mapkeen_walk_h1);
+			}
+		}
+
+	}else{
+		if(obj->animation == &VKA_mapkeen_walk_h1||obj->animation == &VKA_mapkeen_walk_h2){
+			VK_SetObjAnimation(obj,&VKA_mapkeen_idle_h);
+		}
+	}
+
+	if(VK_CheckButton(GBA_BUTTON_DOWN)){
+		// Move down
+		obj->vel_y = 0x200;
+		obj->facing = 1;
+		if(obj->animation == &VKA_mapkeen_walk_h1||obj->animation == &VKA_mapkeen_walk_h2){
+			VK_SetObjAnimation(obj,&VKA_mapkeen_walk_v1);
+		}
+		if(obj->animation == &VKA_mapkeen_idle_v||obj->animation == &VKA_mapkeen_idle_h){
+			VK_SetObjAnimation(obj,&VKA_mapkeen_walk_v1);
+		}
+
+	}else if(VK_CheckButton(GBA_BUTTON_UP)){
+		// Move up
+		obj->vel_y = -0x200;
+		obj->facing = 0;
+
+		if(obj->animation == &VKA_mapkeen_walk_h1||obj->animation == &VKA_mapkeen_walk_h2){
+			VK_SetObjAnimation(obj,&VKA_mapkeen_walk_v1);
+		}
+		if(obj->animation == &VKA_mapkeen_idle_v||obj->animation == &VKA_mapkeen_idle_h){
+			VK_SetObjAnimation(obj,&VKA_mapkeen_walk_v1);
+		}
+	}else{
+		if(obj->animation == &VKA_mapkeen_walk_v1||obj->animation == &VKA_mapkeen_walk_v2){
+			VK_SetObjAnimation(obj,&VKA_mapkeen_idle_v);
+		}
+	}
+
+	
+	if(VK_CheckButton(GBA_BUTTON_A)){
+		if(obj->var1 > 0 && obj->var1 <= 16){
+			// Store current position
+			vk_engine_gstate.posX = obj->pos_x>>8;
+			vk_engine_gstate.posY = obj->pos_y>>8;
+			vk_engine_gstate.viewportX = vk_viewport_x>>8;
+			vk_engine_gstate.viewportY = vk_viewport_y>>8;
+			// Enter level
+			vk_engine_gstate.level_to_load = obj->var1;
+			VK_PlaySound(2);
+			VK_FadeOut();
+			// We just faded out
+			vk_engine_gstate.faded = 1;
+			while(VK_SoundDone()==0);
+		}
+	}
+	return 0;
+};
+
+int VKF_mapkeen_think(vk_object *obj){
+	
+	if(obj->hit_left||obj->hit_right||obj->hit_top||obj->hit_bottom){
+		// Play the block sound
+		if(obj->animation == &VKA_mapkeen_walk_h2||obj->animation == &VKA_mapkeen_walk_h4 ||
+		obj->animation == &VKA_mapkeen_walk_v2||obj->animation == &VKA_mapkeen_walk_v4){
+			VK_PlaySound(VKS_WLDBLOCKSND);
+		}
+	}else{
+		if(obj->animation == &VKA_mapkeen_walk_h1|| obj->animation == &VKA_mapkeen_walk_h3||
+			obj->animation == &VKA_mapkeen_walk_v1 || obj->animation == &VKA_mapkeen_walk_v3){
+			// Play the walk sound
+			VK_PlaySound(VKS_WLDWALKSND);
+		}
+	}
+
+	// Move keen
+	
+	// Stop keen from going crazy
+	if(obj->vel_y < -0x200){
+		obj->vel_y = -0x200;
+	}
+	if(obj->vel_y > 0x200){
+		obj->vel_y = 0x200;
+	}
+	if(obj->vel_x>0x200){
+		obj->vel_x = 0x200;
+	}
+	if(obj->vel_x<-0x200){
+		obj->vel_x = -0x200;
+	}
+
+	obj->pos_x += obj->vel_x;
+	obj->pos_y += obj->vel_y;
+	
+	if(obj->vel_x>0){
+		obj->vel_x -= 0x80;
+		if(obj->vel_x<0){
+			obj->vel_x = 0;
+		}
+	}
+	if(obj->vel_x<0){
+		obj->vel_x += 0x80;
+		if(obj->vel_x>0){
+			obj->vel_x = 0;
+		}
+	}
+	if(obj->vel_y>0){
+		obj->vel_y -= 0x80;
+		if(obj->vel_y<0){
+			obj->vel_y = 0;
+		}
+	}
+	if(obj->vel_y<0){
+		obj->vel_y += 0x80;
+		if(obj->vel_y>0){
+			obj->vel_y = 0;
+		}
+	}
+	
+		
+	obj->hit_bottom = 0;
+	obj->hit_top = 0;
+	obj->hit_right = 0;
+	obj->hit_left = 0;
+
+	return 0;
+};
+
+
+//        Keen =====================================
+
 vk_obj_ani VKA_keen_idle;
 
 vk_obj_ani VKA_keen_walk_1,
@@ -130,7 +326,12 @@ int VKF_keen_input(vk_object *obj){
 	
 	if(VK_CheckButton(GBA_BUTTON_RIGHT)){
 		// Move right
-		obj->vel_x += 0x40;
+		
+		if(obj->on_ground==0){
+			obj->vel_x += 0x20;
+		}else{
+			obj->vel_x += 0x40;
+		}
 		if(obj->vel_x>0){
 			obj->facing = 1;
 		}
@@ -141,7 +342,11 @@ int VKF_keen_input(vk_object *obj){
 		}
 	}else if(VK_CheckButton(GBA_BUTTON_LEFT)){
 		// Move left
-		obj->vel_x -= 0x40;
+		if(obj->on_ground==0){
+			obj->vel_x -= 0x20;
+		}else{
+			obj->vel_x -= 0x40;
+		}
 		if(obj->vel_x<0){
 			obj->facing = 0;
 		}
@@ -155,7 +360,9 @@ int VKF_keen_input(vk_object *obj){
 			obj->animation == &VKA_keen_walk_2 ||
 			obj->animation == &VKA_keen_walk_3 ||
 			obj->animation == &VKA_keen_walk_4 ){
-			VK_SetObjAnimation(obj,&VKA_keen_idle);
+				if(obj->vel_x==0x00){
+					VK_SetObjAnimation(obj,&VKA_keen_idle);
+				}
 		}
 	}
 	if(VK_CheckButton(GBA_BUTTON_A)){
@@ -177,30 +384,37 @@ int VKF_keen_input(vk_object *obj){
 			}
 		}
 	}
+	
 	if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
-		// Pogo
-		if(obj->animation==&VKA_keen_pogo_1 || obj->animation==&VKA_keen_pogo_2){
-			VK_SetObjAnimation(obj,&VKA_keen_fall);
-			obj->var1 = 0; // Reset this to 0
-		}else{
-			if(obj->on_ground){
-				if(obj->var1==0){
-					VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
-					obj->var1 = 1;
-					VK_PlaySound(VKS_KEENPOGOSND);
-				}
+		if(vk_engine_gstate.gotJoystick ){
+			// Pogo
+			if(obj->animation==&VKA_keen_pogo_1 || obj->animation==&VKA_keen_pogo_2){
+				VK_SetObjAnimation(obj,&VKA_keen_fall);
+				obj->var1 = 0; // Reset this to 0
 			}else{
-				VK_SetObjAnimation(obj,&VKA_keen_pogo_2);
+				if(obj->on_ground){
+					if(obj->var1==0){
+						VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
+						obj->var1 = 1;
+						VK_PlaySound(VKS_KEENPOGOSND);
+					}
+				}else{
+					VK_SetObjAnimation(obj,&VKA_keen_pogo_2);
+				}
 			}
+		}else{
+			// Bug?
+			obj->vel_x = 0x00;
 		}
 	}
+	
 	if(obj->animation == &VKA_keen_pogo_2){
 		if(obj->var1){
 			obj->var1 = 0;
-			obj->var3 = 0x08;
-			obj->vel_y = -0x280;
+			obj->var3 = 0x0A;
+			obj->vel_y = -0x380;
 			if(VK_CheckButton(GBA_BUTTON_A)){
-				obj->vel_y -= 0x20;
+				obj->vel_y -= 0x80;
 			}
 			// Play jump sound
 			VK_PlaySound(VKS_POGOJUMPSND);
@@ -222,7 +436,7 @@ int VKF_keen_input(vk_object *obj){
 			obj->var3 = 0x08;
 			obj->vel_y = -0x80;
 			if(VK_CheckButton(GBA_BUTTON_A)){
-				obj->vel_y -= 0x100;
+				obj->vel_y -= 0x140;
 			}
 			// Play jump sound
 			VK_PlaySound(VKS_KEENJUMPSND);
@@ -230,7 +444,7 @@ int VKF_keen_input(vk_object *obj){
 	}
 	if(obj->var3>0){
 		if(VK_CheckButton(GBA_BUTTON_A)){
-			obj->vel_y -= 0x20;
+			obj->vel_y -= 0x40;
 		}
 		obj->var3 -= 1;
 	}
@@ -262,7 +476,7 @@ int VKF_keen_think(vk_object *obj){
 			obj->animation == &VKA_keen_walk_3 ||
 			obj->animation == &VKA_keen_walk_4 ){
 			// Play the block sound
-			if(obj->animation == &VKA_keen_walk_1){
+			if(obj->animation == &VKA_keen_walk_2||obj->animation == &VKA_keen_walk_3||obj->animation == &VKA_keen_walk_4){
 				VK_PlaySound(VKS_KEENBLOKSND);
 			}
 			VK_SetObjAnimation(obj,&VKA_keen_idle);
@@ -285,33 +499,33 @@ int VKF_keen_think(vk_object *obj){
 		}
 	}
 	
-	if(obj->animation == &VKA_keen_walk_1 ){
+	if(obj->animation == &VKA_keen_walk_1 || obj->animation == &VKA_keen_walk_3 ){
 		// Play the walk sound
 		VK_PlaySound(VKS_KEENWALKSND);
-	}
-	if(obj->animation == &VKA_keen_walk_3){
-		// Play the walk sound
-		VK_PlaySound(VKS_KEENBLOKSND);
 	}
 
 	// Move keen
 	if(obj->var1==0){
-		obj->pos_x += obj->vel_x;
-		obj->pos_y += obj->vel_y;
 		
+		// Stop keen from going crazy
+		if(obj->vel_y < -0x400){
+			obj->vel_y = -0x400;
+		}
+		if(obj->vel_y > 0x400){
+			obj->vel_y = 0x400;
+		}
 		if(obj->vel_x>0x200){
 			obj->vel_x = 0x200;
 		}
 		if(obj->vel_x<-0x200){
 			obj->vel_x = -0x200;
 		}
+
+		obj->pos_x += obj->vel_x;
+		obj->pos_y += obj->vel_y;
 		
-		obj->vel_y += 0x10;
 		
-		// Stop keen from going crazy
-		if(obj->vel_y > 0x400){
-			obj->vel_y = 0x400;
-		}
+		obj->vel_y += 0x20;
 		
 		if(obj->animation == &VKA_keen_pogo_1 || obj->animation == &VKA_keen_pogo_2){
 			if(obj->vel_x>0x40){
@@ -346,19 +560,62 @@ int VKF_keen_think(vk_object *obj){
 				}
 			}
 			if(obj->on_ground==1){
-				if(obj->vel_x>0){
-					obj->vel_x -= 0x30;
-					// Stop the velocity from going too far
+				// Bug?
+				if(VK_CheckButton(GBA_BUTTON_DOWN)){
+					// Act like ice
+					if(obj->vel_x>0x40){
+						obj->vel_x -= 0x40;
+						// Stop the velocity from going too far
+						if(obj->vel_x<0x40){
+							obj->vel_x = 0x40;
+						}
+					}
+					if(obj->vel_x<-0x40){
+						obj->vel_x += 0x40;
+						// Stop the velocity from going too far
+						if(obj->vel_x>-0x40){
+							obj->vel_x = -0x40;
+						}
+					}
+				}else{
+					if(obj->vel_x>0){
+						obj->vel_x -= 0x30;
+						// Stop the velocity from going too far
+						if(obj->vel_x<0){
+							obj->vel_x = 0;
+						}
+					}
 					if(obj->vel_x<0){
-						obj->vel_x = 0;
+						obj->vel_x += 0x30;
+						// Stop the velocity from going too far
+						if(obj->vel_x>0){
+							obj->vel_x = 0;
+						}
 					}
 				}
-				if(obj->vel_x<0){
-					obj->vel_x += 0x30;
+			}
+			if(obj->on_ground==2){
+				if(obj->vel_x>0x40){
+					obj->vel_x -= 0x40;
 					// Stop the velocity from going too far
-					if(obj->vel_x>0){
-						obj->vel_x = 0;
+					if(obj->vel_x<0x40){
+						obj->vel_x = 0x40;
 					}
+				}
+				if(obj->vel_x<-0x40){
+					obj->vel_x += 0x40;
+					// Stop the velocity from going too far
+					if(obj->vel_x>-0x40){
+						obj->vel_x = -0x40;
+					}
+				}
+			}
+			if(obj->on_ground==3){
+				if(obj->vel_x > 0 ){
+					obj->vel_x = 0x200;
+				}
+				if(obj->vel_x < 0){
+					obj->vel_x = -0x200;
 				}
 			}
 		}
@@ -405,45 +662,6 @@ vk_obj_ani VKA_yorp_die_1 = { 10, 10, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, 
 vk_obj_ani VKA_yorp_die_2 = { 11, 11, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_die_2 };
 
 
-/*
-
-void CVort1_think_yorp_walk() {
-    if (!temp_sprite.velY) {
-        if ((unsigned)(CVort_get_random()) < sprite_sync)
-            temp_sprite.velY = -CVort_calc_jump_height(0x80);
-        else if ((unsigned)(CVort_get_random()) < sprite_sync) {
-            temp_sprite.think = &CVort1_think_yorp_look;
-            temp_sprite.time = 0;
-        }
-    }
-    if (temp_sprite.velX > 0)
-        temp_sprite.frame = 0x34;
-    else
-        temp_sprite.frame = 0x36;
-    temp_sprite.frame += (CVort_ptr_engine_getTicks() >> 4)&1;
-    CVort_do_fall();
-    int16_t currDelta = CVort_compute_sprite_delta();
-    if (currDelta & 4)
-        temp_sprite.velX = -0x3C;
-    if (currDelta & 1)
-        temp_sprite.velX = 0x3C;
-}
-
-void CVort1_think_yorp_look() {
-    temp_sprite.velX = 0;
-    temp_sprite.frame = ((CVort_ptr_engine_getTicks() >> 5)&3) + 0x30;
-    temp_sprite.time += sprite_sync;
-    if (temp_sprite.time >= 200) {
-        if (temp_sprite.posX < sprites[0].posX)
-            temp_sprite.velX = 0x3C;
-        else
-            temp_sprite.velX = -0x3C;
-        temp_sprite.think = &CVort1_think_yorp_walk;
-    }
-    CVort_do_fall();
-    CVort_compute_sprite_delta();
-}
-*/
 
 int VKF_yorp_init(vk_object *obj){
 	// Set next jump time
@@ -468,7 +686,7 @@ int VKF_yorp_think(vk_object *obj){
 			(obj->animation == &VKA_yorp_walk_2)){
 
 			// Set look delay
-			obj->var2 = (VK_2_FRAMES * 2);
+			obj->var2 = (VK_2_FRAMES )<<2;
 			
 			// Start the animation on a custom frame depending on direction
 			if(obj->facing == 0){

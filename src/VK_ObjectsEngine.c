@@ -27,17 +27,147 @@ void VK_KeenCollectPoint(uint16_t amount){
 	// Add the score
 	vk_engine_gstate.score += amount;
 	if(vk_engine_gstate.score >= vk_engine_gstate.next_1up){
-		vk_engine_gstate.next_1up <<= 1; // Multiply by 2
+		vk_engine_gstate.next_1up += 20000;
 		// Play the sound
-		VK_PlaySound(VKS_HISCORESND);
+		VK_PlaySound(VKS_EXTRAMANSND);
 	}else{
 		// Play the sound
-		VK_PlaySound(VKS_GOTITEMSND);
+		VK_PlaySound(VKS_GOTBONUSSND);
+	}
+};
+
+void VK_KeenCollectPart(){
+	// Add the score
+	vk_engine_gstate.score += 10000;
+	if(vk_engine_gstate.score >= vk_engine_gstate.next_1up){
+		vk_engine_gstate.next_1up += 20000;
+	}
+	// Play the sound
+	VK_PlaySound(VKS_GOTPARTSND);
+};
+
+
+// Advanced collistion code for keen vs level
+int VK_CollideMapKeenWLevel(vk_object *obj){
+	if(obj->animation==NULL){
+		return 0;
+	}
+
+	int32_t kleft = (obj->pos_x+obj->animation->cbox.left)>>8;
+	int32_t kright = (obj->pos_x+obj->animation->cbox.right)>>8;
+	int32_t ktop = (obj->pos_y+obj->animation->cbox.top)>>8;
+	int32_t kbottom = (obj->pos_y+obj->animation->cbox.bottom)>>8;
+
+	int32_t leftTile = kleft>>4;
+	int32_t rightTile = kright>>4;
+	int32_t topTile = ktop>>4;
+	int32_t bottomTile = kbottom>>4;
+
+	int16_t tileY,tileX,tile;
+	
+	obj->var1 = 0;
+	
+    for(tileY = topTile-1; tileY <= bottomTile; tileY++){
+        for(tileX = leftTile-1; tileX <= rightTile; tileX++){
+            tile = (tileY*vk_level_width)+tileX;
+            if(tileX<0||tileY<0||tileX>=vk_level_width||tileY>=vk_level_height){
+                continue;
+            }
+            tile += (vk_level_width*vk_level_height);
+			
+			// We don't care about that sprite tile
+			if(vk_sprite_data[(tileY*(vk_level_width>>3))+(tileX>>3)] & vk_bithash[tileX%8]){
+				continue;
+			}
+            
+            if(vk_level_map[tile]&0x8000){
+				// Stop keen
+				
+				// Collide with top
+				if(kright > (tileX<<4)){
+					if(kleft < (tileX<<4)+(16)){
+						if(kbottom >= (tileY<<4)){
+							if(kbottom <= (tileY<<4)+(obj->vel_y>>8)){
+								if(obj->vel_y > 0){
+									obj->pos_y = (tileY<<12)-(obj->animation->cbox.bottom);
+									obj->vel_y = 0;
+									obj->on_ground = vk_level_tileinfo[(vk_level_data[tile]*6)+2];
+									obj->hit_bottom = 1;
+									// Reset the variables
+									ktop = (obj->pos_y+obj->animation->cbox.top)>>8;
+									kbottom = (obj->pos_y+obj->animation->cbox.bottom)>>8;
+								}
+							}
+						}
+					}
+				}
+				// Collide with right
+				 if(kleft < (tileX<<4)+2){
+					if(kright >= (tileX<<4)){
+						if(ktop < (tileY<<4)+(16)){
+							if(kbottom >(tileY<<4)){
+								if(obj->vel_x > 0){
+									obj->pos_x = (tileX<<12)-obj->animation->cbox.right;
+									obj->vel_x = 0;
+									obj->hit_left = 1;
+									// Reset the variables
+									kleft = (obj->pos_x+obj->animation->cbox.left)>>8;
+									kright = (obj->pos_x+obj->animation->cbox.right)>>8;
+								}
+							}
+						}
+					}
+				}
+				// Collide with bottom
+				if(kright > (tileX<<4)){
+					if(kleft < (tileX<<4)+(16)){
+						if(ktop >= (tileY<<4)+(16)+(obj->vel_y>>8)){
+							if(ktop <= (tileY<<4)+(16)){
+								if(obj->vel_y < 0){
+									obj->pos_y = ((tileY<<12)+(16<<8))-obj->animation->cbox.top;
+									obj->vel_y = 0;
+									obj->hit_top = 1;
+									// Reset the variables
+									ktop = (obj->pos_y+obj->animation->cbox.top)>>8;
+									kbottom = (obj->pos_y+obj->animation->cbox.bottom)>>8;
+								}
+							}
+						}
+					}
+				}
+				  // Collide with left
+				if(kright > (tileX<<4)){
+					if(kleft <= (tileX<<4)+(16)){
+						if(ktop < (tileY<<4)+(16)){
+							if(kbottom > (tileY<<4)){
+								if(obj->vel_x < 0){
+									obj->pos_x = (tileX<<12)+(16<<8)-obj->animation->cbox.left;
+									obj->vel_x = 0;
+									obj->hit_right = 1;
+								}
+							}
+						}
+					}
+				}
+			}else
+			if(vk_level_map[tile]&&vk_level_map[tile]!=255){
+				if(kright > (tileX<<4)){
+					if(kleft < (tileX<<4)+(16)){
+						if(kbottom > (tileY<<4)){
+							if(ktop < (tileY<<4)+16){
+								obj->var1 = vk_level_map[tile];
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 };
 
 // Advanced collistion code for keen vs level
 int VK_CollideKeenWLevel(vk_object *obj){
+	int i;
 	if(obj->animation==NULL){
 		return 0;
 	}
@@ -69,6 +199,18 @@ int VK_CollideKeenWLevel(vk_object *obj){
 								case 1:
 									// Kill keen
 									VKF_keen_die(obj);
+								break;
+								case 2:
+								case 3:
+								case 4:
+								case 5:
+									// Door
+									obj->pos_x &= 0xFFFFFF00;
+									if(kleft < (tileX<<4)){
+										obj->vel_x = -0x10;
+									}else{
+										obj->vel_x = 0x10;
+									}
 								break;
 								case 6:
 									// Remove the tile
@@ -105,26 +247,171 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									// Add the score
 									VK_KeenCollectPoint(5000);
 									break;
-								/*
+								case 11:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the joystick
+									vk_engine_gstate.gotJoystick = 1;
+									VK_KeenCollectPart();
+									break;
+								case 12:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the battery
+									vk_engine_gstate.gotBattery = 1;
+									VK_KeenCollectPart();
+									break;
+								case 13:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the vacuum
+									vk_engine_gstate.gotVacuum = 1;
+									VK_KeenCollectPart();
+									break;
+								case 14:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add the whiskey
+									vk_engine_gstate.gotWhiskey = 1;
+									VK_KeenCollectPart();
+									break;
+								case 15:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add ammo
+									vk_engine_gstate.ammo += 5;
+									// Play the sound
+									VK_PlaySound(VKS_GOTITEMSND);
+									break;
+								case 16:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add ammo
+									vk_engine_gstate.gotJoystick = 1;
+									// Play the sound
+									VK_PlaySound(VKS_GOTITEMSND);
+									break;
+								case 17:
+									// Exit the level
+									
+									// Place some tiles
+									//vk_level_data[tile] = 0;
+									//VK_ForceLevelUpdate();
+									if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+										vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+									}
+									VK_PlaySound(14);
+									while(VK_SoundDone()!=0);
+									VK_ReturnToWorldmap();
+									break;
+								case 18:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add keycard
+									vk_engine_gstate.gotKeycardR = 1;
+									// Play the sound
+									VK_PlaySound(VKS_GOTITEMSND);
+									break;
+								case 19:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add keycard
+									vk_engine_gstate.gotKeycardG = 1;
+									// Play the sound
+									VK_PlaySound(VKS_GOTITEMSND);
+									break;
+								case 20:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add keycard
+									vk_engine_gstate.gotKeycardB = 1;
+									// Play the sound
+									VK_PlaySound(VKS_GOTITEMSND);
+									break;
+								case 21:
+									// Remove the tile
+									vk_level_data[tile] = 0;
+									VK_ForceLevelUpdate();
+									// Add keycard
+									vk_engine_gstate.gotKeycardY = 1;
+									// Play the sound
+									VK_PlaySound(VKS_GOTITEMSND);
+									break;
+								case 22:
+									// Fix tile
+									vk_level_data[tile] -= ((vk_tileanimations[vk_level_data[tile]]>>4)&0xF);
 
-				-2 	Masked 	14 	Whiskey
-				-1 	Foreground 	15 	Raygun
-				0 	Nothing 	16 	Pogo
-				1 	Kills 	17 	Exit
-				2 	Door 1 	18 	Key 1
-				3 	Door 2 	19 	Key 2
-				4 	Door 3 	20 	Key 3
-				5 	Door 4 	21 	Key 4
-				6 	500 points 	22 	Message box pop-up
-				7 	100 points 	23 	Light switch
-				8 	200 points 	24 	Teleporter
-				9 	1000 points 	25 	Switch on
-				10 	5000 points 	26 	Switch off
-				11 	Joystick 	27 	Ankh (Keen 3)
-				12 	Battery 	28 	Ammo clip (Keen 3)
-				13 	Vacuum 		
-				* 
-								*/
+									// Remove the animation
+									for(i = 0; i < ck_number_of_updates; i++){
+										if(ck_update_positions[i][0] == tileX){
+											if(ck_update_positions[i][1] == tileY){
+												ck_update_positions[i][0] = 0;
+												ck_update_positions[i][1] = 0;
+											}
+										}
+									}
+									
+									VK_ForceLevelUpdate();
+									// Stop all sound
+									VK_StopSound();
+
+									// Display message
+									break;
+								case 23:
+									if(VK_ButtonUp()==GBA_BUTTON_LSHOLDER){
+										// Change the tile
+										//vk_level_data[tile] = 0;
+										VK_ForceLevelUpdate();
+										// Turn the lights out / on
+										// VK_ToggleLights();
+										// Play the sound
+										VK_PlaySound(VKS_CLICKSND);
+									}
+									break;
+								case 24:
+									// Teleport Keen to secret area
+									// Play the sound
+									//VK_PlaySound(VKS_CLICKSND);
+									break;
+								case 25:
+									if(VK_ButtonUp()==GBA_BUTTON_LSHOLDER){
+										// Change the tile
+										//vk_level_data[tile] = 0;
+										VK_ForceLevelUpdate();
+										// Spawn bridge
+										// VK_SummonBridge(x,y);
+										// Play the sound
+										VK_PlaySound(VKS_CLICKSND);
+									}
+									break;
+								case 26:
+									if(VK_ButtonUp()==GBA_BUTTON_LSHOLDER){
+										// Change the tile
+										//vk_level_data[tile] = 0;
+										VK_ForceLevelUpdate();
+										// Remove bridge
+										// VK_EatBridge(x,y);
+										// Play the sound
+										VK_PlaySound(VKS_CLICKSND);
+									}
+									break;
+#ifdef VK_KEEN3
+								case 27:
+									// Give Keen an Ankh
+									break;
+								case 28:
+									// Ammo clip (+n shots)
+									break;
+#endif
 							}
 						}
 					}
@@ -211,7 +498,7 @@ int VK_CollideObjWLevel(vk_object *obj){
 						if(ktop < (tileY<<4)+(16)){
 							if(kbottom >(tileY<<4)){
 								if(obj->vel_x > 0){
-									obj->pos_x = ((tileX<<12)-(16<<8))+obj->animation->cbox.left;
+									obj->pos_x = (tileX<<12)-obj->animation->cbox.right;
 									obj->vel_x = 0;
 									obj->hit_left = 1;
 									// Reset the variables
@@ -244,12 +531,12 @@ int VK_CollideObjWLevel(vk_object *obj){
 			}
 			  // Collide with left
 			if(vk_level_tileinfo[(vk_level_data[tile]*6)+5]){
-				if(kright > (tileX<<4)+(16)-2){
+				if(kright > (tileX<<4)){
 					if(kleft <= (tileX<<4)+(16)){
 						if(ktop < (tileY<<4)+(16)){
 							if(kbottom > (tileY<<4)){
 								if(obj->vel_x < 0){
-									obj->pos_x = (tileX<<12)+obj->animation->cbox.right;
+									obj->pos_x = (tileX<<12)+(16<<8)-obj->animation->cbox.left;
 									obj->vel_x = 0;
 									obj->hit_right = 1;
 								}
@@ -316,6 +603,18 @@ vk_object *VK_CreateObject(uint16_t sprite_id, uint32_t x, uint32_t y){
 		case 10:
 			// Chain
 		break;
+		case 254:
+			// World Map Commander Keen
+			obj->s = VK_CreateSprite(254);
+			// WARNING: This makes it so that only one keen sprite is playable
+			vk_keen_obj = obj;
+			obj->animation = &VKA_mapkeen_idle_v;
+			obj->collide = &VKF_mapkeen_collide;
+			obj->think = &VKF_mapkeen_think;
+			obj->type = vko_mapkeen;
+			obj->hitmap = 1;
+			VKF_mapkeen_init(obj);
+		break;
 		case 255:
 			// Commander Keen
 			obj->s = VK_CreateSprite(255);
@@ -331,6 +630,7 @@ vk_object *VK_CreateObject(uint16_t sprite_id, uint32_t x, uint32_t y){
 	};
 	obj->pos_x = x;
 	obj->pos_y = y;
+
 	obj->gfx_needs_update = 1;
 	obj->frame_count = 0;
 
@@ -383,6 +683,9 @@ void VK_RenderObjects(){
 				if(obj->type==vko_keen){
 					VK_CollideKeenWLevel(obj);
 				}
+				if(obj->type==vko_mapkeen){
+					VK_CollideMapKeenWLevel(obj);
+				}
 			}
 
 			if(obj->think!=NULL){
@@ -405,6 +708,7 @@ void VK_RenderObjects(){
 			VK_RenderSprite(obj->s);
 		}
 	}
+	/*
 	VK_TextX = 2;
 	VK_TextY = 2;
 	VK_Print("X:");
@@ -428,7 +732,7 @@ void VK_RenderObjects(){
 	VK_Print("V3:");
 	VK_TextX = 6;
 	VK_Print(VK_Iota16(vk_keen_obj->var3));
-
+*/
 	if(vk_oupdate_tick >= 0x4){
 		vk_oupdate_tick = 0;
 	}

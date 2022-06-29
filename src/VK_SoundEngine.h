@@ -20,6 +20,7 @@ GBA_ARM void VK_SoundHandler();
 void VK_SetupSound();
 void VK_PlaySoundIRQ(unsigned short *data,unsigned short len, unsigned short priority);
 void VK_PlaySound(unsigned short soundid);
+void VK_StopSound();
 int VK_SoundDone();
 
 #endif

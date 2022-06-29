@@ -14,6 +14,7 @@
 #ifndef __VK_OBJECTS_ENGINE__
 #define __VK_OBJECTS_ENGINE__
 
+// Normal keen can't seem to handle more than 64
 #define VK_MAX_OBJECTS 128
 
 typedef struct vk_box {
@@ -33,10 +34,11 @@ typedef struct vk_obj_ani {
 
 typedef enum {
 	vko_none 	= 0,
-	vko_keen 	= 1,
-	vko_yorp 	= 2,
-	vko_garg 	= 3,
-	vko_vorticon = 4,
+	vko_mapkeen = 1,
+	vko_keen 	= 2,
+	vko_yorp 	= 3,
+	vko_garg 	= 4,
+	vko_vorticon = 5,
 }vk_obj_type;
 
 

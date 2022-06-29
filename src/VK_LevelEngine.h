@@ -22,8 +22,20 @@ extern unsigned short vk_num_of_tiles;
 extern unsigned short vk_level_width;
 extern unsigned short vk_level_height;
 
+extern unsigned short *vk_level_map;
+
 extern GBA_IN_EWRAM unsigned short vk_level_data[256*256];
+extern GBA_IN_EWRAM unsigned char vk_sprite_data[32*256];
 extern unsigned short *vk_level_tileinfo;
+
+extern GBA_IN_EWRAM unsigned short ck_update_positions[0x1000][2];
+extern GBA_IN_EWRAM unsigned short ck_update_locations[1024][2];
+extern unsigned short ck_number_of_updates;
+extern unsigned short ck_number_of_ulocations ;
+extern GBA_IN_EWRAM unsigned char vk_tileanimations[0xFFF];
+
+
+extern const uint8_t vk_bithash[];
 
 extern signed short vk_level_offsetx ;
 extern signed short vk_level_offsety ;
@@ -34,8 +46,14 @@ extern signed short vk_map_offsety ;
 extern unsigned char vk_level_needs_update;
 extern unsigned short vk_level_update_tick;
 
+extern uint32_t vk_viewport_x;
+extern uint32_t vk_viewport_y;
+
+
 // Clear GBA Map 1
 void VK_ClearTopLayer();
+
+void VK_ClearWorldMap();
 
 void VK_LoadLevel(uint16_t levelid);
 

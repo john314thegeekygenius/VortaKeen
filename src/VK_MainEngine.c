@@ -63,28 +63,63 @@ void VK_QuitGame(){
 };
 
 void VK_NewGame(){
+	int i;
 	// Setup stuff for a new game
 	
 	vk_engine_gstate.next_1up = 20000;
+	
+	vk_engine_gstate.num_of_done = 0;
+	vk_engine_gstate.gotBattery = 0;
+	vk_engine_gstate.gotVacuum = 0;
+	vk_engine_gstate.gotJoystick = 0;
+	vk_engine_gstate.gotPogo = 0;
+	vk_engine_gstate.gotWhiskey = 0;
+	vk_engine_gstate.gotKeycardR = 0;
+	vk_engine_gstate.gotKeycardG = 0;
+	vk_engine_gstate.gotKeycardB = 0;
+	vk_engine_gstate.gotKeycardY = 0;
+	for(i=0;i<16;i++)
+		vk_engine_gstate.levelDone[i] = 0;
+	vk_engine_gstate.numLives = 5;
+	vk_engine_gstate.ammo = 0;
+	vk_engine_gstate.score = 0;
+	vk_engine_gstate.posX = 0;
+	vk_engine_gstate.posY = 0;
+	vk_engine_gstate.viewportX = 0;
+	vk_engine_gstate.viewportY = 0;
+	for(i=0;i<9;i++)
+		vk_engine_gstate.cities[i] = 0;
 
 	// We faded out, so fade in
 	vk_engine_gstate.faded = 1;
-	
+		
 	VK_ReturnToWorldmap();
 };
 
 void VK_ReturnToWorldmap(){
-	// Load the world map
-	vk_engine_gstate.level_to_load = 80;
-	
-	// Fix the map (cover up levels completed)
-	
-	
+
 	// Fade out if we need to
 	if(vk_engine_gstate.faded == 0){
 		VK_FadeOut();
 		vk_engine_gstate.faded = 1;
 	}
+
+	// Load the world map
+	VK_LoadLevel(80);
+	vk_engine_gstate.in_game = 80;
+	vk_engine_gstate.level_to_load = 0;
+
+	if(vk_engine_gstate.posX>0&&vk_engine_gstate.posY>0){
+		vk_keen_obj->pos_x = (uint32_t)vk_engine_gstate.posX<<8;
+		vk_keen_obj->pos_y = (uint32_t)vk_engine_gstate.posY<<8;
+		
+		vk_viewport_x = (uint32_t)vk_engine_gstate.viewportX<<8;
+		vk_viewport_y = (uint32_t)vk_engine_gstate.viewportY<<8;
+	}
+	
+	// Fix the map (cover up levels completed)
+	VK_ClearWorldMap();
+	
 };
 
 void VK_DoGameLoop(){
@@ -118,36 +153,57 @@ void VK_DoGameLoop(){
 			}
 		}
 		if(button_up==GBA_BUTTON_RSHOLDER){
-			if(vk_engine_gstate.level_to_load == 80){
-				vk_engine_gstate.level_to_load = 1;
-			}else{
-				LEVEL_ON += 1;
-				if(LEVEL_ON>16)
-					LEVEL_ON = 80;
-				vk_engine_gstate.level_to_load = LEVEL_ON;
-			}
-			vk_engine_gstate.faded = 1;
-			if(vk_engine_gstate.in_game==80){
-				VK_PlaySound(2);
-				VK_FadeOut();
-				while(VK_SoundDone()==0);
-			}else{
+			if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+				vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+
 				VK_PlaySound(14);
-				while(VK_SoundDone()==0);
-				VK_FadeOut();
-			}
-			
+				while(VK_SoundDone()!=0);
+				VK_ReturnToWorldmap();
+
+			}	
 		}
 
 		// Position the level
 		if(vk_keen_obj->hitmap){
+			
+			if(vk_keen_obj->pos_x > (vk_viewport_x + (8<<12))){//
+				vk_viewport_x += 0x200;
+				if(vk_keen_obj->pos_x < (vk_viewport_x + (8<<12))){//
+					vk_viewport_x = (vk_keen_obj->pos_x-(8<<12));
+				}
+			}
+			if(vk_keen_obj->pos_x < (vk_viewport_x+(6<<12))){//
+				vk_viewport_x -= 0x200;
+				if(vk_keen_obj->pos_x > (vk_viewport_x + (6<<12))){//
+					vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
+				}
+			}
+			if(vk_keen_obj->pos_y > (vk_viewport_y + (7<<12))){//
+				vk_viewport_y += 0x400;
+				if(vk_keen_obj->pos_y < (vk_viewport_y + (7<<12))){//
+					vk_viewport_y = (vk_keen_obj->pos_y-(7<<12));
+				}
+			}
+			if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
+				vk_viewport_y -= 0x400;
+				if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
+					vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
+				}
+			}
+			//vk_viewport_x = vk_keen_obj->pos_y-(8<<12);
+			//vk_viewport_y = vk_keen_obj->pos_y-(6<<12);
+
 			VK_UnLockCamera();
-			VK_PositionCamera((vk_keen_obj->pos_x>>8)&0xF,(vk_keen_obj->pos_y>>8)&0xF);
-			VK_PositionLevel((vk_keen_obj->pos_x>>12)-8,(vk_keen_obj->pos_y>>12)-6);
+			VK_PositionCamera((vk_viewport_x>>8)&0xF,(vk_viewport_y>>8)&0xF);
+			VK_PositionLevel((vk_viewport_x>>12),(vk_viewport_y>>12));
 		}
 		
 		VK_UpdateLevel();
-		VKF_keen_input(vk_keen_obj);
+		if(vk_keen_obj->type==vko_keen){
+			VKF_keen_input(vk_keen_obj);
+		}else{
+			VKF_mapkeen_input(vk_keen_obj);
+		}
 		VK_RenderLevel();
 		
 		VK_RenderObjects();

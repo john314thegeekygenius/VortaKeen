@@ -77,14 +77,18 @@
 uint16_t clear_tile_offset = 0;
 
 GBA_IN_EWRAM unsigned short vk_level_data[256*256];
+GBA_IN_EWRAM unsigned char vk_sprite_data[32*256];
 unsigned short *vk_level_map;
-GBA_IN_EWRAM unsigned char vk_tileanimations[256];
+GBA_IN_EWRAM unsigned char vk_tileanimations[0xFFF];
+
+const uint8_t vk_bithash[] = { 0x80, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1};
 
 GBA_IN_EWRAM unsigned short ck_update_positions[0x1000][2];
 GBA_IN_EWRAM unsigned short ck_update_locations[1024][2];
 unsigned short ck_number_of_updates = 0;
 unsigned short ck_number_of_ulocations = 0;
 
+unsigned short vk_level_id = 0;
 unsigned short *vk_level_tileinfo = NULL;
 
 unsigned short vk_num_of_tiles = 0;
@@ -97,6 +101,9 @@ signed short vk_level_offsety = 0;
 
 signed short vk_map_offsetx = 0;
 signed short vk_map_offsety = 0;
+
+uint32_t vk_viewport_x = 0;
+uint32_t vk_viewport_y = 0;
 
 unsigned char vk_level_needs_update = 0;
 unsigned char vk_level_lock_cam = 0;
@@ -115,13 +122,52 @@ void VK_ClearTopLayer(){
 	
 };
 
+void VK_ClearWorldMap(){
+	int i,e;
+	uint8_t fixedlevel[16];
+	for(i=0;i<16;i++){
+		fixedlevel[i] = 0;
+	}
+	for(i=0;i<32*256;i++){
+		vk_sprite_data[i] = 0x00;
+	}
+	 uint16_t *tile = vk_level_map+(vk_level_width*vk_level_height);
+	for(e=0;e<vk_level_height;e++){
+		for(i=0;i<vk_level_width;i++){
+			 if( ((*tile)&0xFF) >= 1 && ((*tile)&0xFF) <= 16){
+				 // It's a level, so check it
+				 if(vk_engine_gstate.levelDone[((*tile)&0xFF)-1]){
+					 vk_sprite_data[(e*(vk_level_width>>3))+(i>>3)] |= vk_bithash[i%8];
+
+					 if(fixedlevel[(*tile)&0xFF]==0){
+						 // Add DONE sign
+						 if( ((*(tile+1)) &0xFF) == 0){
+							 // Make it a small sign
+							 vk_level_data[(e*vk_level_width)+i] = vk_num_of_tiles-13;
+						 }else{
+							 // Make it a big sign
+							 vk_level_data[(e*vk_level_width)+i] = vk_num_of_tiles-12;
+							 vk_level_data[(e*vk_level_width)+i+1] = vk_num_of_tiles-11;
+							 vk_level_data[((e+1)*vk_level_width)+i] = vk_num_of_tiles-10;
+							 vk_level_data[((e+1)*vk_level_width)+i+1] = vk_num_of_tiles-9;
+						 }
+						 fixedlevel[(*tile)&0xFF] = 1;
+					 }
+
+				 }
+			 }
+			 tile += 1;
+		}
+	}
+};
+
 // Load the level and tileset
 void VK_LoadLevel(uint16_t levelid){	
 	int i,e;
 	// Setup the tileset
 	unsigned char *TILESET_data = NULL;
 	unsigned short TILESET_size = 0;
-
+	
 	switch(levelid){
 		case 1:
 			 TILESET_size = level01_tileset_size;
@@ -318,11 +364,9 @@ void VK_LoadLevel(uint16_t levelid){
 		break;
 	}
 
-	clear_tile_offset = vk_num_of_tiles;
+	vk_level_id = levelid;
 
-	if(levelid==80){
-		clear_tile_offset += 13; // Make space for world map tiles
-	}
+	clear_tile_offset = vk_num_of_tiles;
 
 	if(TILESET_data==NULL || vk_level_tileinfo == NULL)
 		return ; // Uh oh!
@@ -367,7 +411,12 @@ void VK_LoadLevel(uint16_t levelid){
 	ck_number_of_updates = 0;
 
 	// Spawn a dummy keen
-	vk_object * temp_keen_obj = VK_CreateObject(255,0,0);
+	vk_object * temp_keen_obj = NULL;
+	if(vk_level_id==80){
+		temp_keen_obj = VK_CreateObject(254,0,0);
+	}else{
+		temp_keen_obj = VK_CreateObject(255,0,0);
+	}
 	
 	// In case somthing goes wrong, we have an object to link to
 	vk_keen_obj = temp_keen_obj;
@@ -383,12 +432,24 @@ void VK_LoadLevel(uint16_t levelid){
 				}
 			}
 			
-			if( (*sprite)>=1&&(*sprite)<=10 ){
-				vk_object * obj = VK_CreateObject(*sprite,(i<<12),(e<<12));
+			if(vk_level_id<=16){
+				if( (*sprite)>=1&&(*sprite)<=10 ){
+					vk_object * obj = VK_CreateObject(*sprite,(i<<12),(e<<12));
+				}
 			}
 			if( (*sprite)==255) {
-				temp_keen_obj->pos_x = (i<<12);
-				temp_keen_obj->pos_y = (e<<12);
+				
+				if(vk_level_id==80){
+					temp_keen_obj->pos_x = (i<<12);
+					temp_keen_obj->pos_y = (e<<12);
+				}else{
+					temp_keen_obj->pos_x = (i<<12);
+					temp_keen_obj->pos_y = (e<<12)+(32<<8)-(temp_keen_obj->animation->cbox.bottom);
+					temp_keen_obj->on_ground = 1; // Assume we are on the ground
+				}
+				// Set the viewport
+				vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
+				vk_viewport_y = (vk_keen_obj->pos_y-(5<<12));
 			}
 			
 			tile ++; // Move the pointer
@@ -423,11 +484,23 @@ void VK_RenderLevel(){
 			for(i = 0; i < 16; i++){
 				uint16_t lvlt = vk_level_data[((e+vk_level_offsety)*vk_level_width)+i+vk_level_offsetx];
 				uint16_t tile = ((lvlt%8)<<1) + ((lvlt>>3)<<5);
+				
+				if(vk_level_tileinfo[(lvlt*6)+1]==0xffff){
+					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)] = tile;
+					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)+1] = tile+1;
+					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)] = tile+16;
+					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)+1] = tile+17;
+				}else{
+					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)] = VK_CLEAR_TILE;
+					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)+1] = VK_CLEAR_TILE;
+					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)] = VK_CLEAR_TILE;
+					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)+1] = VK_CLEAR_TILE;
 
-				VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)] = tile;
-				VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)+1] = tile+1;
-				VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)] = tile+16;
-				VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)+1] = tile+17;
+					VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)] = tile;
+					VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)+1] = tile+1;
+					VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)] = tile+16;
+					VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)+1] = tile+17;
+				}
 			}
 		}
 	}
