@@ -20,7 +20,33 @@ vk_object *vk_keen_obj = NULL;
 
 uint16_t vk_oupdate_tick = 0;
 
-#include "VK_Animations.h"
+
+
+
+// Exported from EXE via Chocolate Keen
+// All 3 episodes use the same RNG table
+const unsigned char vk_rng_table[256] = {
+	0, 8, 109, 220, 222, 241, 149, 107, 75, 248, 254, 140, 16, 66, 74, 21, 211, 47, 80, 242, 154, 27, 205, 128, 161, 89, 77, 36, 95, 110, 85, 48, 212, 140, 211, 249, 22, 79, 200, 50, 28, 188, 52, 140, 202, 120, 68, 145, 62, 70, 184, 190, 91, 197, 152, 224, 149, 104, 25, 178, 252, 182, 202, 182, 141, 197, 4, 81, 181, 242, 145, 42, 39, 227, 156, 198, 225, 193, 219, 93, 122, 175, 249, 0, 175, 143, 70, 239, 46, 246, 163, 53, 163, 109, 168, 135, 2, 235, 25, 92, 20, 145, 138, 77, 69, 166, 78, 176, 173, 212, 166, 113, 94, 161, 41, 50, 239, 49, 111, 164, 70, 60, 2, 37, 171, 75, 136, 156, 11, 56, 42, 146, 138, 229, 73, 146, 77, 61, 98, 196, 135, 106, 63, 197, 195, 86, 96, 203, 113, 101, 170, 247, 181, 113, 80, 250, 108, 7, 255, 237, 129, 226, 79, 107, 112, 166, 103, 241, 24, 223, 239, 120, 198, 58, 60, 82, 128, 3, 184, 66, 143, 224, 145, 224, 81, 206, 163, 45, 63, 90, 168, 114, 59, 33, 159, 95, 28, 139, 123, 98, 125, 196, 15, 70, 194, 253, 54, 14, 109, 226, 71, 17, 161, 93, 186, 87, 244, 138, 20, 52, 123, 251, 26, 36, 17, 46, 52, 231, 232, 76, 31, 221, 84, 37, 216, 165, 212, 106, 197, 242, 98, 43, 39, 175, 254, 145, 190, 84, 118, 222, 187, 136, 120, 163, 236
+};
+
+unsigned char rng_count = 0;
+
+unsigned char VK_GetRNG() {
+	rng_count++;
+	return vk_rng_table[rng_count];
+};
+
+
+const uint16_t VK_1_FRAMES = 0x1;
+const uint16_t VK_2_FRAMES = 0x2;
+const uint16_t VK_4_FRAMES = 0x4;
+const uint16_t VK_8_FRAMES = 0x8;
+
+
+#include "actions/VKA_MapKeen.h"
+#include "actions/VKA_Keen.h"
+#include "actions/VKA_Yorp.h"
+
 
 
 void VK_KeenCollectPoint(uint16_t amount){
@@ -80,8 +106,12 @@ int VK_CollideMapKeenWLevel(vk_object *obj){
 				continue;
 			}
             
+
             if(vk_level_map[tile]&0x8000){
 				// Stop keen
+				if(VK_CheckButton( GBA_BUTTON_RSHOLDER|GBA_BUTTON_LSHOLDER)==(GBA_BUTTON_RSHOLDER|GBA_BUTTON_LSHOLDER)){
+					continue;
+				}
 				
 				// Collide with top
 				if(kright > (tileX<<4)){
@@ -155,7 +185,7 @@ int VK_CollideMapKeenWLevel(vk_object *obj){
 					if(kleft < (tileX<<4)+(16)){
 						if(kbottom > (tileY<<4)){
 							if(ktop < (tileY<<4)+16){
-								obj->var1 = vk_level_map[tile];
+								obj->var1 = tile;
 							}
 						}
 					}
@@ -201,16 +231,74 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									VKF_keen_die(obj);
 								break;
 								case 2:
+									if(vk_engine_gstate.gotKeycardY){
+										vk_engine_gstate.gotKeycardY -= 1;
+										// Set tile to door tile???
+										vk_level_data[tile] = 0;
+										vk_level_data[tile+vk_level_width] = 0;
+										// Play the sound
+										VK_PlaySound(VKS_DOOROPENSND);
+									}else{
+										obj->pos_x &= 0xFFFFFF00;
+										if(kleft < (tileX<<4)){
+											obj->vel_x = -0x10;
+										}else{
+											obj->vel_x = 0x10;
+										}
+									}
+									break;
 								case 3:
+									if(vk_engine_gstate.gotKeycardR){
+										vk_engine_gstate.gotKeycardR -= 1;
+										// Set tile to door tile???
+										vk_level_data[tile] = 0;
+										vk_level_data[tile+vk_level_width] = 0;
+										// Play the sound
+										VK_PlaySound(VKS_DOOROPENSND);
+									}else{
+										obj->pos_x &= 0xFFFFFF00;
+										if(kleft < (tileX<<4)){
+											obj->vel_x = -0x10;
+										}else{
+											obj->vel_x = 0x10;
+										}
+									}
+									break;
 								case 4:
+									if(vk_engine_gstate.gotKeycardG){
+										vk_engine_gstate.gotKeycardG -= 1;
+										// Set tile to door tile???
+										vk_level_data[tile] = 0;
+										vk_level_data[tile+vk_level_width] = 0;
+										// Play the sound
+										VK_PlaySound(VKS_DOOROPENSND);
+									}else{
+										obj->pos_x &= 0xFFFFFF00;
+										if(kleft < (tileX<<4)){
+											obj->vel_x = -0x10;
+										}else{
+											obj->vel_x = 0x10;
+										}
+									}
+									break;
 								case 5:
 									// Door
-									obj->pos_x &= 0xFFFFFF00;
-									if(kleft < (tileX<<4)){
-										obj->vel_x = -0x10;
+									if(vk_engine_gstate.gotKeycardB){
+										vk_engine_gstate.gotKeycardB -= 1;
+										// Set tile to door tile???
+										vk_level_data[tile] = 0;
+										vk_level_data[tile+vk_level_width] = 0;
+										// Play the sound
+										VK_PlaySound(VKS_DOOROPENSND);
 									}else{
-										obj->vel_x = 0x10;
+										obj->pos_x &= 0xFFFFFF00;
+										if(kleft < (tileX<<4)){
+											obj->vel_x = -0x10;
+										}else{
+											obj->vel_x = 0x10;
+										}
 									}
+									break;
 								break;
 								case 6:
 									// Remove the tile
@@ -299,52 +387,68 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									break;
 								case 17:
 									// Exit the level
-									
-									// Place some tiles
-									//vk_level_data[tile] = 0;
-									//VK_ForceLevelUpdate();
-									if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
-										vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+									if(obj->vel_y==0&&obj->on_ground){
+										// Kindof cheaty
+										if(obj->animation == &VKA_keen_idle ||
+											obj->animation == &VKA_keen_walk_1 ||
+											obj->animation == &VKA_keen_walk_2 ||
+											obj->animation == &VKA_keen_walk_3 ||
+											obj->animation == &VKA_keen_walk_4 ){
+											if(vk_engine_gstate.finished_level==0){
+											
+												// Place some tiles
+												VK_RenderTile(tileX+2,tileY,vk_level_data[tile+2],1);
+												VK_RenderTile(tileX+2,tileY+1,vk_level_data[tile+2+vk_level_width],1);
+												VK_RenderTile(tileX+3,tileY,vk_level_data[tile+3],1);
+												VK_RenderTile(tileX+3,tileY+1,vk_level_data[tile+3+vk_level_width],1);
+												VK_RenderTile(tileX+4,tileY,vk_level_data[tile+4],1);
+												VK_RenderTile(tileX+4,tileY+1,vk_level_data[tile+4+vk_level_width],1);
+
+												if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+													vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+												}
+												VK_PlaySound(14);
+
+												vk_engine_gstate.finished_level = 1;
+											}
+										}
 									}
-									VK_PlaySound(14);
-									while(VK_SoundDone()!=0);
-									VK_ReturnToWorldmap();
 									break;
 								case 18:
 									// Remove the tile
 									vk_level_data[tile] = 0;
 									VK_ForceLevelUpdate();
 									// Add keycard
-									vk_engine_gstate.gotKeycardR = 1;
+									vk_engine_gstate.gotKeycardY += 1; // HACK: Make it so we can collect more than 1 keycard at a time
 									// Play the sound
-									VK_PlaySound(VKS_GOTITEMSND);
+									VK_PlaySound(VKS_GETCARDSND);
 									break;
 								case 19:
 									// Remove the tile
 									vk_level_data[tile] = 0;
 									VK_ForceLevelUpdate();
 									// Add keycard
-									vk_engine_gstate.gotKeycardG = 1;
+									vk_engine_gstate.gotKeycardR += 1; // HACK: Make it so we can collect more than 1 keycard at a time
 									// Play the sound
-									VK_PlaySound(VKS_GOTITEMSND);
+									VK_PlaySound(VKS_GETCARDSND);
 									break;
 								case 20:
 									// Remove the tile
 									vk_level_data[tile] = 0;
 									VK_ForceLevelUpdate();
 									// Add keycard
-									vk_engine_gstate.gotKeycardB = 1;
+									vk_engine_gstate.gotKeycardG += 1; // HACK: Make it so we can collect more than 1 keycard at a time
 									// Play the sound
-									VK_PlaySound(VKS_GOTITEMSND);
+									VK_PlaySound(VKS_GETCARDSND);
 									break;
 								case 21:
 									// Remove the tile
 									vk_level_data[tile] = 0;
 									VK_ForceLevelUpdate();
 									// Add keycard
-									vk_engine_gstate.gotKeycardY = 1;
+									vk_engine_gstate.gotKeycardB += 1; // HACK: Make it so we can collect more than 1 keycard at a time
 									// Play the sound
-									VK_PlaySound(VKS_GOTITEMSND);
+									VK_PlaySound(VKS_GETCARDSND);
 									break;
 								case 22:
 									// Fix tile
@@ -422,10 +526,12 @@ int VK_CollideKeenWLevel(vk_object *obj){
 	if(kleft < 32){
 		obj->pos_x = (32<<8) - obj->animation->cbox.left;
 		obj->vel_x = 0;
+		obj->hit_left = 1;
 	}
 	if(kright > (vk_level_width<<4)-32){
-		obj->pos_x = (((vk_level_width<<4)-48)<<8) + obj->animation->cbox.right;
+		obj->pos_x = (((vk_level_width<<4)-32)<<8)-obj->animation->cbox.right;
 		obj->vel_x = 0;
+		obj->hit_right = 1;
 	}
 	if(ktop < 32){
 		obj->pos_y = (32<<8) - obj->animation->cbox.top;
@@ -655,6 +761,22 @@ void VK_SetObjAnimation(vk_object *obj,vk_obj_ani *animation){
 	obj->gfx_needs_update = 1;
 };
 
+int VK_ObjInObj(vk_object *o1,vk_object *o2){
+	if(o1->animation==NULL || o2->animation == NULL){
+		return 0; // Bad animation so no collision
+	}
+	if(o2->pos_x + o2->animation->cbox.right > o1->pos_x + o1->animation->cbox.left){
+		if(o2->pos_x + o2->animation->cbox.left < o1->pos_x + o1->animation->cbox.right){
+			if(o2->pos_y + o2->animation->cbox.bottom > o1->pos_y + o1->animation->cbox.top){
+				if(o2->pos_y + o2->animation->cbox.top < o1->pos_y + o1->animation->cbox.bottom){
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+};
+
 void VK_RenderObjects(){
 	int i, cx, cy;
 
@@ -675,9 +797,6 @@ void VK_RenderObjects(){
 				}
 			}
 
-			if(obj->collide!=NULL){
-				obj->collide(obj);
-			}
 			if(obj->hitmap){
 				VK_CollideObjWLevel(obj);
 				if(obj->type==vko_keen){
@@ -685,6 +804,11 @@ void VK_RenderObjects(){
 				}
 				if(obj->type==vko_mapkeen){
 					VK_CollideMapKeenWLevel(obj);
+				}
+			}
+			if(obj->collide!=NULL){
+				if(VK_ObjInObj(obj,vk_keen_obj)){
+					obj->collide(obj,vk_keen_obj);
 				}
 			}
 
@@ -723,16 +847,18 @@ void VK_RenderObjects(){
 
 	VK_TextX = 2;
 	VK_TextY = 4;
-	VK_Print("V1:");
+	VK_Print("WX:");
 	VK_TextX = 6;
-	VK_Print(VK_Iota16(vk_keen_obj->var1));
+	VK_Print(VK_Iota16(vk_engine_gstate.posX));
 
 	VK_TextX = 2;
 	VK_TextY = 5;
-	VK_Print("V3:");
+	VK_Print("WY:");
 	VK_TextX = 6;
-	VK_Print(VK_Iota16(vk_keen_obj->var3));
-*/
+	VK_Print(VK_Iota16(vk_engine_gstate.posY));
+	*/
+	
+
 	if(vk_oupdate_tick >= 0x4){
 		vk_oupdate_tick = 0;
 	}

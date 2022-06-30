@@ -463,8 +463,8 @@ void GBA_RemakeSprite(GBA_SpriteIndex_t index, int x, int y, GBA_SpriteSizes siz
 
 #define GBA_SET_SPRITE_CLEAR(index) \
 	if((index)>=0&&(index)<128){\
-	GBA_SpriteList[(index)].a0 = GBA_SCREEN_WIDTH+32; \
-	GBA_SpriteList[(index)].a1 = GBA_SCREEN_HEIGHT+32; \
+	GBA_SpriteList[(index)].a0 = 0xF0; \
+	GBA_SpriteList[(index)].a1 = 0xA0; \
 	GBA_SpriteList[(index)].a2 = 0; \
 	GBA_SpriteList[(index)].a3 = 0; \
 	}

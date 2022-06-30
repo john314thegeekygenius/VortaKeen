@@ -20,20 +20,195 @@ vk_game_state vk_engine_gstate;
 
 
 void VK_QuitGame(){
-	uint16_t i,e, gameovertimer;
-	// Play the gameover sound
-	VK_PlaySound(VKS_GAMEOVERSND);
+	uint16_t i,e, gameovertimer, is_highscore;
+	uint16_t name_offset = 0;
+	char name[18];
 	
 	// Load the GameOver bitmap
 	GBA_DMA_Copy32(VK_GBA_BG_Tiles3,GAME_OVER_data,GAME_OVER_size>>2);
 
 	// Depending on player score, output gameover, or congrats
-	if(1==0){
-	}else{
-		// TODO:
-		// Make this based off keens actual location
+	is_highscore = 0;
+	for(e = 0; e < 6; e++){
+		if(vk_engine_gstate.score > vk_engine_gstate.thekeenest[e].score){
+			is_highscore = 1+e;
+			break;
+		}
+	}
+	if(is_highscore){
+
+		// Play the gameover sound
+		VK_PlaySound(VKS_HISCORESND);
+
+
 		VK_UnLockCamera();
-		VK_PositionLevel(2,2);
+		VK_PositionCamera(0,0);
+		
+		VK_UpdateLevel();
+		VK_RenderLevel();
+		
+		VK_ClearTopLayer();
+		
+				
+		VK_SpawnBox(14,9,29,15);
+		
+		// Render the GAME OVER bitmap
+		for(e = 0; e < (GAME_OVER_height>>3); e++){
+			for(i = 0; i < (GAME_OVER_width>>3); i++){
+				VK_GBA_BG_MAPB[((e+4)<<5)+i+8] = (e*(GAME_OVER_width>>3))+i+(VK_GBA_TILES3_OFF);
+			}
+		}
+		
+		VK_TextX = 9;
+		VK_TextY = 8;
+		VK_Print("SCORE:");
+		VK_TextX += 6;
+		VK_Print(VK_Iota(vk_engine_gstate.score));
+		VK_TextY += 4;
+		VK_TextX = 7;
+		VK_Print("CONGRATULATIONS!");
+		VK_TextY += 1;
+		VK_TextX -= 2;
+		VK_Print("You got");
+		VK_TextX += 8;
+		if(is_highscore==1){
+			VK_Print("First Place!");
+		}
+		if(is_highscore==2){
+			VK_Print("Second Place!");
+		}
+		if(is_highscore==3){
+			VK_Print("Third Place!");
+		}
+		if(is_highscore==4){
+			VK_Print("Fourth Place!");
+		}
+		if(is_highscore==5){
+			VK_Print("Fifth Place!");
+		}
+		if(is_highscore==6){
+			VK_Print("Last Place!");
+		}
+
+		VK_TextX = 1;
+		VK_TextY = 14;
+		VK_Print("Enter Name:");
+		VK_TextX = 4;
+		VK_TextY = 16;
+		VK_Print("Press Select to finish");
+
+		// Draw the items
+		if(vk_engine_gstate.gotJoystick){
+			VK_DrawTile(10,9,(vk_special_items+10));
+		}
+		if(vk_engine_gstate.gotBattery){
+			VK_DrawTile(12,9,(vk_special_items+11));
+		}
+		if(vk_engine_gstate.gotVacuum){
+			VK_DrawTile(14,9,(vk_special_items+12));
+		}
+		if(vk_engine_gstate.gotWhiskey){
+			VK_DrawTile(16,9,(vk_special_items+13));
+		}
+
+		
+		memset(&name,0,18);
+		
+		
+		uint16_t cursor_animation = 0;
+		uint16_t cursor_ani_tick = 0;
+		
+		// Set the first character to A
+		name[0] = 'A';
+		name_offset = 0;
+	
+		while(1){
+			
+			VK_UpdateInput();
+			
+			if(VK_ButtonUp()==GBA_BUTTON_UP){
+				if(name[name_offset]==0){
+					name[name_offset] = 'A';
+				}else if(name[name_offset]<'z'+4){
+					name[name_offset] += 1;
+				}
+			}
+			if(VK_ButtonUp()==GBA_BUTTON_DOWN){
+				if(name[name_offset]<=' '){
+					name[name_offset] = 'z'+4;
+				}else{
+					name[name_offset] -= 1;
+				}
+			}
+
+			if(VK_ButtonUp()==GBA_BUTTON_B){
+				VK_GBA_BG_MAPA[((14)<<5)+name_offset+13] = 0x2E0;
+				name[name_offset] = 0;
+				if(name_offset>0){
+					name_offset -= 1;
+				}
+			}
+			if(VK_ButtonUp()==GBA_BUTTON_A){
+				VK_GBA_BG_MAPA[((14)<<5)+name_offset+13] = 0x2E0;
+
+				if(name[name_offset]!=0){
+					name_offset += 1;
+				}
+
+				if(name_offset>11){
+					name_offset = 11;
+				}
+			}
+			if(VK_ButtonUp()==GBA_BUTTON_SELECT){
+				break;
+			}
+
+			cursor_ani_tick++;
+			if(cursor_ani_tick>0x2){
+				cursor_ani_tick = 0;
+				cursor_animation += 1;
+				if(cursor_animation>5){
+					cursor_animation = 0;
+				}
+			}
+
+			// Write the name
+			for(i = 0; i < 16; i++){
+				if(name[i]==0){
+					VK_GBA_BG_MAPA[((14)<<5)+i+12] = 0x2E0;
+					break;
+				}
+				VK_GBA_BG_MAPA[((14)<<5)+i+12] = 0x2E0+name[i]-32;
+			}
+
+			// Draw selector
+			VK_GBA_BG_MAPA[((14)<<5)+name_offset+13] = 0x2C9+cursor_animation;
+			
+			VK_WaitVRB();
+			
+		}
+		
+
+		for(e = 5; e >= is_highscore; e--){
+			memcpy(&vk_engine_gstate.thekeenest[e].score,&vk_engine_gstate.thekeenest[e-1].score,4);
+			memcpy(&vk_engine_gstate.thekeenest[e].items,&vk_engine_gstate.thekeenest[e-1].items,4);
+			memcpy(&vk_engine_gstate.thekeenest[e].citys,&vk_engine_gstate.thekeenest[e-1].citys,7);
+			memcpy(&vk_engine_gstate.thekeenest[e].name,&vk_engine_gstate.thekeenest[e-1].name,16);
+		}
+		vk_engine_gstate.thekeenest[is_highscore-1].score = vk_engine_gstate.score;
+		memcpy(vk_engine_gstate.thekeenest[is_highscore-1].name,name,16);
+		
+		vk_engine_gstate.thekeenest[is_highscore-1].items[0] = vk_engine_gstate.gotJoystick;
+		vk_engine_gstate.thekeenest[is_highscore-1].items[1] = vk_engine_gstate.gotBattery;
+		vk_engine_gstate.thekeenest[is_highscore-1].items[2] = vk_engine_gstate.gotVacuum;
+		vk_engine_gstate.thekeenest[is_highscore-1].items[3] = vk_engine_gstate.gotWhiskey;
+		
+		// Save the new high scores
+		VK_SaveHighScores();
+
+	}else{
+
+		VK_UnLockCamera();
 		VK_PositionCamera(0,0);
 		
 		VK_UpdateLevel();
@@ -48,14 +223,18 @@ void VK_QuitGame(){
 			}
 		}
 		
-		gameovertimer = 0x100;
-
-		while(gameovertimer){
-			gameovertimer --;
-			VK_WaitVRB();
-		}
 	}
 
+	// Play the gameover sound
+	VK_PlaySound(VKS_GAMEOVERSND);
+
+	gameovertimer = 0xA0;
+
+	while(gameovertimer){
+		gameovertimer --;
+		VK_WaitVRB();
+	}
+	
 	VK_FadeOut();
 	vk_engine_gstate.in_game = 0;
 	
@@ -80,11 +259,11 @@ void VK_NewGame(){
 	vk_engine_gstate.gotKeycardY = 0;
 	for(i=0;i<16;i++)
 		vk_engine_gstate.levelDone[i] = 0;
-	vk_engine_gstate.numLives = 5;
+	vk_engine_gstate.numLives = 4;
 	vk_engine_gstate.ammo = 0;
 	vk_engine_gstate.score = 0;
-	vk_engine_gstate.posX = 0;
-	vk_engine_gstate.posY = 0;
+	vk_engine_gstate.posX = 0xFFFF;
+	vk_engine_gstate.posY = 0xFFFF;
 	vk_engine_gstate.viewportX = 0;
 	vk_engine_gstate.viewportY = 0;
 	for(i=0;i<9;i++)
@@ -109,9 +288,12 @@ void VK_ReturnToWorldmap(){
 	vk_engine_gstate.in_game = 80;
 	vk_engine_gstate.level_to_load = 0;
 
-	if(vk_engine_gstate.posX>0&&vk_engine_gstate.posY>0){
-		vk_keen_obj->pos_x = (uint32_t)vk_engine_gstate.posX<<8;
-		vk_keen_obj->pos_y = (uint32_t)vk_engine_gstate.posY<<8;
+	if((vk_engine_gstate.posX != 0xFFFF)&& (vk_engine_gstate.posY != 0xFFFF)){
+		vk_keen_obj->pos_x = vk_engine_gstate.posX<<8;
+		vk_keen_obj->pos_y = vk_engine_gstate.posY<<8;
+		
+		vk_engine_gstate.posX = 0xFFFF;
+		vk_engine_gstate.posY = 0xFFFF;
 		
 		vk_viewport_x = (uint32_t)vk_engine_gstate.viewportX<<8;
 		vk_viewport_y = (uint32_t)vk_engine_gstate.viewportY<<8;
@@ -119,19 +301,25 @@ void VK_ReturnToWorldmap(){
 	
 	// Fix the map (cover up levels completed)
 	VK_ClearWorldMap();
+	VK_ForceLevelUpdate();
+
+	VK_UnLockCamera();
+	VK_PositionCamera((vk_viewport_x>>8)&0xF,(vk_viewport_y>>8)&0xF);
+	VK_PositionLevel((vk_viewport_x>>12),(vk_viewport_y>>12));
+
+	VK_RenderLevel();
 	
 };
 
 void VK_DoGameLoop(){
 
-	vk_engine_gstate.in_game = 1;
-	
-	
-	uint16_t LEVEL_ON = 0;
+	if(vk_engine_gstate.in_game==0){
+		vk_engine_gstate.in_game = 1;
+	}
 	
 	while(vk_engine_gstate.in_game){
 		
-		if(vk_engine_gstate.level_to_load!=0){		
+		if(vk_engine_gstate.level_to_load!=0){
 			VK_LoadLevel(vk_engine_gstate.level_to_load);
 			vk_engine_gstate.in_game = vk_engine_gstate.level_to_load;
 			vk_engine_gstate.level_to_load = 0;
@@ -141,30 +329,32 @@ void VK_DoGameLoop(){
 		VK_UpdateInput();
 		
 		uint16_t button_up = VK_ButtonUp();
-		if(button_up==GBA_BUTTON_START){
-			// Spawn status bar
-			VK_StatusBar();
-		}
-		if(button_up==GBA_BUTTON_SELECT){
-			// Spawn exit dialog
-			if(VK_QuitDialog()){
-				VK_QuitGame();
-				return;
-			}
-		}
-		if(button_up==GBA_BUTTON_RSHOLDER){
-			if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
-				vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
-
-				VK_PlaySound(14);
-				while(VK_SoundDone()!=0);
-				VK_ReturnToWorldmap();
-
-			}	
-		}
 
 		// Position the level
 		if(vk_keen_obj->hitmap){
+			
+			if(button_up==GBA_BUTTON_START){
+				// Spawn status bar
+				VK_StatusBar();
+			}
+			if(button_up==GBA_BUTTON_SELECT){
+				// Spawn exit dialog
+				if(VK_QuitDialog()){
+					VK_QuitGame();
+					return;
+				}
+			}
+			/*
+			if(button_up==GBA_BUTTON_RSHOLDER){
+				if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+					vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+
+					VK_PlaySound(14);
+					while(VK_SoundDone());
+					VK_ReturnToWorldmap();
+
+				}	
+			}*/
 			
 			if(vk_keen_obj->pos_x > (vk_viewport_x + (8<<12))){//
 				vk_viewport_x += 0x200;
@@ -207,16 +397,15 @@ void VK_DoGameLoop(){
 		VK_RenderLevel();
 		
 		VK_RenderObjects();
-		
+
 		if(vk_engine_gstate.level_to_load==0){
 			if(vk_engine_gstate.faded==1){
 				vk_engine_gstate.faded = 0;
 				
-				if(vk_engine_gstate.in_game==80){
-					VK_PlaySound(40);
-				}
-				
 				VK_FadeIn();
+				if(vk_engine_gstate.in_game==80){
+					VK_KeensLeft();
+				}
 			}
 			if(vk_engine_gstate.faded==2){
 				vk_engine_gstate.faded = 0;
@@ -230,7 +419,9 @@ void VK_DoGameLoop(){
 };
 
 void VK_MainEngine(){
-	
+
+	VK_LoadHighScores();
+
 	while(1){
 		// Run the demos
 		switch(vk_engine_demo){

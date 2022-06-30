@@ -72,7 +72,7 @@ typedef struct vk_object {
 	vk_obj_ani *animation;
 	
 	// Logic stuff
-	 int (*collide)(struct vk_object*obj);
+	 int (*collide)(struct vk_object*obj,struct vk_object*cobj);
 	 int (*think)(struct vk_object*obj);
 
 	// Sprite stuff

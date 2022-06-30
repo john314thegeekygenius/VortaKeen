@@ -44,6 +44,21 @@ GBA_SpriteSizes SPR_SIZE_TABLE[6][6] = {
 
 vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 	vk_sprite * ptr = &VK_GameSprites[VK_NumOfSprites];
+	int i;
+
+	
+	for(i = 0; i < VK_NumOfSprites; i++){
+		if(VK_GameSprites[i].active==0){
+			ptr = &VK_GameSprites[i];
+			VK_NumOfSprites -= 1;
+			break;
+		}
+	}
+
+	VK_NumOfSprites += 1;
+	if(VK_NumOfSprites >= VK_MAX_SPRITES){
+		VK_NumOfSprites = VK_MAX_SPRITES-1;
+	}
 
 	// Use the standered Keen Vorticons sprite id layout
 	switch(sprite_id){
@@ -175,37 +190,52 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 	ptr->s.spr_indx[3] = 0xFF;
 	
 	unsigned short setoff = 0;
-	uint16_t i;
+
+	ptr->s.num_sprs = 0;
+
 	for(i = 0; i < 4; i++){
 		ptr->s.spr_off[i][2] = VK_GBA_SGC+setoff;
 		
 		if(ptr->s.spr_cw[i]>0&&ptr->s.spr_ch[i]>0){
 			ptr->s.spr_indx[i] = GBA_CreateSprite(0xF0,0xF0,SPR_SIZE_TABLE[ptr->s.spr_ch[i]>>3][ptr->s.spr_cw[i]>>3],ptr->s.spr_off[i][2]>>5,GBA_SPRITE_ZFRONT,-1);
 			setoff += (ptr->s.spr_cw[i]*ptr->s.spr_ch[i]);
+			ptr->s.num_sprs += 1;
 		}
 	}
 	VK_GBA_SGC += (ptr->s.spr_width*ptr->s.spr_height);
 	
 	ptr->s.spr_gfx_ani = 0;
 
-	VK_NumOfSprites += 1;
-	if(VK_NumOfSprites >= VK_MAX_SPRITES){
-		VK_NumOfSprites = VK_MAX_SPRITES-1;
-	}
+	ptr->active = 1;
+	
 	return ptr;
 };
 
 void VK_ClearSprites(){
-//	uint16_t i;
+	uint16_t i;
 	GBA_ResetSprites();
-//	for(i = 0; i < VK_MAX_SPRITES; i++){
-//		VK_GameSprites[i].w = 0;
-//		VK_GameSprites[i].h = 0;
-//	}
+	for(i = 0; i < VK_MAX_SPRITES; i++){
+		VK_GameSprites[i].active = 0;
+	}
 	VK_NumOfSprites = 0;
 	VK_GBA_SGC = 0;
 	
 	GBA_UPDATE_SPRITES();
+};
+
+void VK_RemoveSprite(vk_sprite *ptr){
+	int e;
+	if(ptr!=NULL){
+		ptr->active = 0;
+		// Reset the position
+		for(e = 0; e < 4; e++){
+			if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
+				GBA_SET_SPRITE_CLEAR(ptr->s.spr_indx[e]);
+			}
+		}		
+		
+		GBA_UPDATE_SPRITES();
+	}
 };
 
 void VK_SetSpriteGraphics(vk_sprite * ptr){
@@ -260,5 +290,6 @@ void VK_RenderSprite(vk_sprite *ptr){
 	}
 	
 };
+
 
 

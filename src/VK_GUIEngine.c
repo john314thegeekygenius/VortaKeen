@@ -13,6 +13,9 @@
 
 #include "VK_Headers.h"
 
+// Include the texts
+#include "../text/VK_TEXTS.h"
+
 // Intro
 #include "../graph/bitmaps/ONE_MOMENT.h"
 #include "../graph/bitmaps/INT_APOGEE.h"
@@ -68,6 +71,39 @@ void VK_ReadInfo(uint32_t block,VK_DATA_BLOCK *data){
 	}
 	return data;
 };
+
+
+
+void VK_FormatROM(){
+	unsigned int i;
+	for(i = 0; i < (64<<10); i++){
+		GBA_PakRam[i] = 0xFF;
+	}
+
+	vk_engine_gstate.sound_enabled = 0;
+	vk_engine_gstate.music_enabled = 0;
+	vk_engine_gstate.gba_palette = 0;
+	
+	/*
+	VK_DATA_BLOCK ClearData;
+
+	// Clear the data
+	memset(&ClearData,0,sizeof(VK_DATA_BLOCK));
+
+	// Clear the high scores
+	VK_WriteInfo(0,ClearData);
+
+	// Clear the options
+	VK_WriteInfo(1,ClearData);
+
+	// Delete all the saves
+	for(i = 0; i < 9; i++){
+		VK_WriteInfo(2+i,ClearData);
+	}
+	*/
+};
+
+
 
 
 
@@ -307,27 +343,9 @@ void VK_SpawnBox(uint16_t spawnx, uint16_t spawny, uint16_t width, uint16_t heig
 	// 0x2C1
 };
 
-uint8_t *high_score_names[3] = {
-	"Yorpy",
-	"Gargile",
-	"Zzapp!",
-};
 
-void VK_DrawHighScores(){
+void VK_LoadHighScores(){
 	int i,e;
-	unsigned int bmptileoff = 0;
-	
-	vk_highscore vk_thekeenest[6];
-
-	
-	// These need to be reloaded in case they were overwritten
-
-	// Load the level and tileset
-	VK_LoadLevel(90);
-	// Load the font bitmap
-	GBA_DMA_Copy32((VK_GBA_BG_TilesEnd-ck_font_size),ck_font_data,ck_font_size>>2);
-	
-	
 	// Load the high scores
 	VK_DATA_BLOCK scores;
 
@@ -336,17 +354,17 @@ void VK_DrawHighScores(){
 
 	// Copy if ok
 	if(scores.errorcode==0){
-		GBA_DMA_Copy32( &vk_thekeenest, &scores.data, sizeof(vk_highscore)>>2);
+		GBA_DMA_Copy32( &vk_engine_gstate.thekeenest, &scores.data, sizeof(vk_highscore)>>2);
 	}else{
 		for(i = 0; i < 6; i++){
-			vk_thekeenest[i].score = 100;
+			vk_engine_gstate.thekeenest[i].score = 100;
 			for(e = 0; e < 4; e++)
-				vk_thekeenest[i].items[e] = 0;
+				vk_engine_gstate.thekeenest[i].items[e] = 0;
 			for(e = 0; e < 7; e++)
-				vk_thekeenest[i].citys[e] = 0;
-			memcpy(vk_thekeenest[i].name, high_score_names[i%3], strlen(high_score_names[i%3]) );
+				vk_engine_gstate.thekeenest[i].citys[e] = 0;
+			memcpy(vk_engine_gstate.thekeenest[i].name, HIGH_SCORE_NAMES[i%3], strlen(HIGH_SCORE_NAMES[i%3]) );
 		}
-		GBA_DMA_Copy32(&scores.data, &vk_thekeenest, sizeof(vk_thekeenest)>>2);
+		GBA_DMA_Copy32(&scores.data, &vk_engine_gstate.thekeenest, sizeof(vk_engine_gstate.thekeenest)>>2);
 
 		// Write the data
 		VK_WriteInfo(0,&scores);
@@ -355,13 +373,40 @@ void VK_DrawHighScores(){
 	// Sort the scores (bubble)
 	for(i = 0; i < 6; i++){
 		for(e = 0; e < 5; e++){
-			if(vk_thekeenest[e].score > vk_thekeenest[e+1].score){
-				vk_highscore tmp = vk_thekeenest[e+1];
-				vk_thekeenest[e+1] = vk_thekeenest[e];
-				vk_thekeenest[e] = tmp;
+			if(vk_engine_gstate.thekeenest[e].score > vk_engine_gstate.thekeenest[e+1].score){
+				vk_highscore tmp = vk_engine_gstate.thekeenest[e+1];
+				vk_engine_gstate.thekeenest[e+1] = vk_engine_gstate.thekeenest[e];
+				vk_engine_gstate.thekeenest[e] = tmp;
 			}
 		}
 	}
+};
+
+void VK_SaveHighScores(){
+	int i,e;
+	// Save the high scores
+	VK_DATA_BLOCK scores;
+
+	// Copy the data
+	GBA_DMA_Copy32( &scores.data, &vk_engine_gstate.thekeenest, sizeof(vk_highscore)>>2);
+
+	// Save the data
+	VK_WriteInfo(0,&scores);
+};
+
+
+void VK_DrawHighScores(){
+	int i,e;
+	unsigned int bmptileoff = 0;
+	
+	// These need to be reloaded in case they were overwritten
+
+	// Load the level and tileset
+	VK_LoadLevel(90);
+	// Load the font bitmap
+	GBA_DMA_Copy32((VK_GBA_BG_TilesEnd-ck_font_size),ck_font_data,ck_font_size>>2);
+	
+	//VK_LoadHighScores();
 	
 	// Load the graphics
 	bmptileoff = 0;
@@ -425,6 +470,9 @@ void VK_DrawHighScores(){
 	// Fade in the level
 	VK_FadeIn();
 	
+	uint16_t item_animation = 0;
+	uint16_t item_tick = 0;
+	
 	while(1){
 
 		// Render the level
@@ -435,13 +483,33 @@ void VK_DrawHighScores(){
 		// Write the names
 		VK_TextY = 8;
 		for(i = 0; i < 6; i++){
-			char *scrstr = VK_Iota(vk_thekeenest[i].score);
+			char *scrstr = VK_Iota(vk_engine_gstate.thekeenest[i].score);
 			VK_TextX = 1;
-			VK_Print2(vk_thekeenest[i].name);
+			VK_Print2(vk_engine_gstate.thekeenest[i].name);
 			VK_TextX = 20-strlen(scrstr);
 			VK_Print2(scrstr);
+			if(vk_engine_gstate.thekeenest[i].items[0]){
+				VK_DrawTile(22,7+(i<<1),(vk_num_of_tiles-16)+item_animation);
+			}
+			if(vk_engine_gstate.thekeenest[i].items[1]){
+				VK_DrawTile(24,7+(i<<1),(vk_num_of_tiles-12)+item_animation);
+			}
+			if(vk_engine_gstate.thekeenest[i].items[2]){
+				VK_DrawTile(26,7+(i<<1),(vk_num_of_tiles-8)+item_animation);
+			}
+			if(vk_engine_gstate.thekeenest[i].items[3]){
+				VK_DrawTile(28,7+(i<<1),(vk_num_of_tiles-4)+item_animation);
+			}
 			
 			VK_TextY += 2;
+		}
+		item_tick += 1;
+		if(item_tick > 0x8){
+			item_tick = 0;
+			item_animation += 1;
+			if(item_animation>3){
+				item_animation = 0;
+			}
 		}
 		
 		VK_WaitVRB();
@@ -589,7 +657,7 @@ uint16_t VK_LoadMenu(){
 					VK_UpdateInput();
 					
 					cursor_ani_tick++;
-					if(cursor_ani_tick>0x80){
+					if(cursor_ani_tick>0x2){
 						cursor_ani_tick = 0;
 						cursor_animation += 1;
 						if(cursor_animation>5){
@@ -664,9 +732,168 @@ uint16_t VK_LoadMenu(){
 	return 0;
 };
 
+
+void VK_DrawOptions(){
+
+	VK_SpawnBox(15,10,26,8);
+	
+	// Write the text on the dialog box
+	VK_TextX = 8;
+	VK_TextY = 7;
+	VK_Print("Sound  On  Off");
+	VK_TextY += 1;
+	VK_Print("Music  On  Off");
+	VK_TextY += 1;
+	VK_Print("Palette  N  GB  GR");
+	VK_TextY += 1;
+	VK_Print("Reset ROM");
+	VK_TextY += 1;
+	VK_Print("Return to Main Menu");
+	VK_TextY += 2;
+	VK_TextX -= 3;
+	VK_Print("Use The D-Pad");
+	
+};
+
+void VK_OptionsMenu(){
+
+	// Draw the menu
+	VK_DrawOptions();
+	
+	uint16_t cursor_animation = 0;
+	uint16_t cursor_ani_tick = 0;
+	uint16_t cursor_y = 0;
+	uint16_t cursor_to_y = 0;
+	uint16_t cursor_slide_tick = 0;
+
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
+	
+	while(1){
+		
+		VK_UpdateInput();
+		
+		// Do Menu Logic
+		if(VK_ButtonUp()==GBA_BUTTON_A){
+			switch(cursor_y){
+				case 0:
+				// Toggle Sound
+				vk_engine_gstate.sound_enabled = !vk_engine_gstate.sound_enabled;
+				break;
+				case 8:
+				// Toggle Music
+				vk_engine_gstate.music_enabled = !vk_engine_gstate.music_enabled;
+				break;
+				case 16:
+				// Toggle Palette
+				vk_engine_gstate.gba_palette += 1;
+				if(vk_engine_gstate.gba_palette>2){
+					vk_engine_gstate.gba_palette = 0;
+				}
+				VK_SetPalette();
+				break;
+				case 24:
+				// Reset the ROM
+				VK_FormatROM();
+				return;
+				break;
+
+				default:
+				// Quit
+				return;
+				break;
+			}
+		}
+		
+		// Move the cursor
+		if(cursor_y == cursor_to_y){
+
+			if(VK_ButtonUp()==GBA_BUTTON_UP){
+				
+				if(cursor_y==0){
+					cursor_y = (4<<3);
+					cursor_to_y = (4<<3);
+				}else{
+					cursor_to_y = cursor_y - 8;
+				}
+			}
+			if(VK_ButtonUp()==GBA_BUTTON_DOWN){
+				if(cursor_y==(4<<3)){
+					cursor_y = 0;
+					cursor_to_y = 0;
+				}else{
+					cursor_to_y = cursor_y + 8;
+				}
+			}
+		}
+		cursor_ani_tick++;
+		if(cursor_ani_tick>0x2){
+			cursor_ani_tick = 0;
+			cursor_animation += 1;
+			if(cursor_animation>5){
+				cursor_animation = 0;
+			}
+		}
+		
+		cursor_slide_tick ++;
+		if(cursor_slide_tick>0x0){
+			cursor_slide_tick = 0;
+			// Move the cursor
+			if(cursor_y < cursor_to_y){
+				cursor_y += 1;
+			}
+			if(cursor_y > cursor_to_y){
+				cursor_y -= 1;
+			}
+		}
+
+		if(vk_engine_gstate.sound_enabled){
+			VK_GBA_BG_MAPA[(7<<5)+14] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(7<<5)+18] = 0x2E0;
+		}else{
+			VK_GBA_BG_MAPA[(7<<5)+14] = 0x2E0;
+			VK_GBA_BG_MAPA[(7<<5)+18] = 0x2C9+cursor_animation;
+		}
+
+		if(vk_engine_gstate.music_enabled){
+			VK_GBA_BG_MAPA[(8<<5)+14] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(8<<5)+18] = 0x2E0;
+		}else{
+			VK_GBA_BG_MAPA[(8<<5)+14] = 0x2E0;
+			VK_GBA_BG_MAPA[(8<<5)+18] = 0x2C9+cursor_animation;
+		}
+		
+		if(vk_engine_gstate.gba_palette==0){
+			VK_GBA_BG_MAPA[(9<<5)+16] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(9<<5)+19] = 0x2E0;
+			VK_GBA_BG_MAPA[(9<<5)+23] = 0x2E0;
+		}
+		if(vk_engine_gstate.gba_palette==1){
+			VK_GBA_BG_MAPA[(9<<5)+16] = 0x2E0;
+			VK_GBA_BG_MAPA[(9<<5)+19] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(9<<5)+23] = 0x2E0;
+		}
+		if(vk_engine_gstate.gba_palette==2){
+			VK_GBA_BG_MAPA[(9<<5)+16] = 0x2E0;
+			VK_GBA_BG_MAPA[(9<<5)+19] = 0x2E0;
+			VK_GBA_BG_MAPA[(9<<5)+23] = 0x2C9+cursor_animation;
+		}
+
+		// Draw the cursor
+		VK_GBA_BG_MAPB[0] = 0x2C9+cursor_animation;
+		
+		*(volatile uint16_t*)GBA_REG_BG1HOFS = -0x30;
+		*(volatile uint16_t*)GBA_REG_BG1VOFS = -0x38-cursor_y;
+		
+		VK_WaitVRB();
+	}
+};
+
+
+
 void VK_DrawMainMenu(){
 
-	VK_SpawnBox(15,10,20,8);
+	VK_SpawnBox(15,10,20,9);
 	
 	// Write the text on the dialog box
 	VK_TextX = 10;
@@ -678,6 +905,8 @@ void VK_DrawMainMenu(){
 	VK_Print("Story");
 	VK_TextY += 1;
 	VK_Print("High Scores");
+	VK_TextY += 1;
+	VK_Print("Options");
 	VK_TextY += 1;
 	VK_Print("Restart Demo");
 	VK_TextY += 2;
@@ -751,6 +980,15 @@ void VK_MainMenu(){
 				vk_engine_demo = VK_DEMO_HIGHSCORES;
 				return;
 				case 32:
+				VK_OptionsMenu();
+				// Redraw the main menu
+				VK_DrawTitleScreen();
+				VK_DrawMainMenu();
+				cursor_y = 0;
+				cursor_to_y = 0;
+				cursor_slide_tick = 0;
+				break;
+				case 40:
 				// Restart Demo
 				VK_FadeOut();
 				vk_engine_demo = VK_DEMO_MAINMENU;
@@ -765,14 +1003,14 @@ void VK_MainMenu(){
 			if(VK_ButtonUp()==GBA_BUTTON_UP){
 				
 				if(cursor_y==0){
-					cursor_y = (8*4);
-					cursor_to_y = (8*4);
+					cursor_y = (5<<3);
+					cursor_to_y = (5<<3);
 				}else{
 					cursor_to_y = cursor_y - 8;
 				}
 			}
 			if(VK_ButtonUp()==GBA_BUTTON_DOWN){
-				if(cursor_y==(8*4)){
+				if(cursor_y==(5<<3)){
 					cursor_y = 0;
 					cursor_to_y = 0;
 				}else{
@@ -822,35 +1060,51 @@ void VK_StatusBar(){
 	
 	VK_ClearTopLayer();
 	
-	VK_SpawnBox(14+(vk_map_offsetx/8),10+(vk_map_offsety/8),29,14);
+	VK_SpawnBox(14+(vk_map_offsetx>>3),10+(vk_map_offsety>>3),29,14);
 	
 	// Write the text on the status bar
-	VK_TextX = 1+(vk_map_offsetx/8);
-	VK_TextY = 4+(vk_map_offsety/8);
+	VK_TextX = 1+(vk_map_offsetx>>3);
+	VK_TextY = 4+(vk_map_offsety>>3);
 	VK_Print2("    SCORE     EXTRA KEEN AT ");
-	VK_TextY += 2;
+	VK_TextY += 1;
+	char *strptr = VK_Iota(vk_engine_gstate.score);
+	VK_TextX += 9 - strlen(strptr);
+	VK_Print(strptr);
+	VK_TextX -= 9 - strlen(strptr);
+	
+	strptr = VK_Iota(vk_engine_gstate.next_1up);
+	VK_TextX += 0x19 - strlen(strptr);
+	VK_Print(strptr);
+	VK_TextX -= 0x19 - strlen(strptr);
+
+	VK_TextY += 1;
 	VK_Print2("    KEENS       SHIP PARTS  ");
 	VK_TextY += 4;
 	VK_Print2(" RAYGUN   POGO    KEYCARDS  ");
 	VK_TextY += 4;
 	VK_Print2(" CHARGE ");
-	VK_TextY += 2;
+	VK_TextY += 1;
+	strptr = VK_Iota(vk_engine_gstate.ammo);
+	VK_TextX += 0x5 - strlen(strptr);
+	VK_Print(strptr);
+	VK_TextX -= 0x5 - strlen(strptr);
+	VK_TextY += 1;
 	VK_Print2("    PLEASE PRESS A BUTTON   ");
 	// Line 1
-	VK_TextX = 13+(vk_map_offsetx/8);
-	VK_TextY = 5+(vk_map_offsety/8);
+	VK_TextX = 13+(vk_map_offsetx>>3);
+	VK_TextY = 5+(vk_map_offsety>>3);
 	VK_Print2(" ");
 	// Line 2
-	VK_TextX = 15+(vk_map_offsetx/8);
-	VK_TextY = 7+(vk_map_offsety/8);
+	VK_TextX = 15+(vk_map_offsetx>>3);
+	VK_TextY = 7+(vk_map_offsety>>3);
 	VK_Print2(" ");
 	VK_TextY += 1;
 	VK_Print2(" ");
 	VK_TextY += 1;
 	VK_Print2(" ");
 	// Line 3
-	VK_TextX = 9+(vk_map_offsetx/8);
-	VK_TextY = 10+(vk_map_offsety/8);
+	VK_TextX = 9+(vk_map_offsetx>>3);
+	VK_TextY = 10+(vk_map_offsety>>3);
 	VK_Print2(" ");
 	VK_TextY += 1;
 	VK_Print2(" ");
@@ -863,8 +1117,8 @@ void VK_StatusBar(){
 	VK_TextY += 1;
 	VK_Print2(" ");
 	// Line 4
-	VK_TextX = 16+(vk_map_offsetx/8);
-	VK_TextY = 10+(vk_map_offsety/8);
+	VK_TextX = 16+(vk_map_offsetx>>3);
+	VK_TextY = 10+(vk_map_offsety>>3);
 	VK_Print2(" ");
 	VK_TextY += 1;
 	VK_Print2(" ");
@@ -876,6 +1130,58 @@ void VK_StatusBar(){
 	VK_Print2(" ");
 	VK_TextY += 1;
 	VK_Print2(" ");
+
+	// Draw ship parts
+	if(vk_engine_gstate.gotJoystick){
+		VK_DrawTile(0x11+(vk_map_offsetx>>3),8+(vk_map_offsety>>3),(vk_special_items+10));
+	}
+	if(vk_engine_gstate.gotBattery){
+		VK_DrawTile(0x13+(vk_map_offsetx>>3),8+(vk_map_offsety>>3),(vk_special_items+11));
+	}
+	if(vk_engine_gstate.gotVacuum){
+		VK_DrawTile(0x15+(vk_map_offsetx>>3),8+(vk_map_offsety>>3),(vk_special_items+12));
+	}
+	if(vk_engine_gstate.gotWhiskey){
+		VK_DrawTile(0x17+(vk_map_offsetx>>3),8+(vk_map_offsety>>3),(vk_special_items+13));
+	}
+	
+	// Draw keycards
+	if(vk_engine_gstate.gotKeycardY){
+		VK_DrawTile(0x13+(vk_map_offsetx>>3),0xB+(vk_map_offsety>>3),(vk_special_items+2));
+	}
+	if(vk_engine_gstate.gotKeycardR){
+		VK_DrawTile(0x18+(vk_map_offsetx>>3),0xB+(vk_map_offsety>>3),(vk_special_items+3));
+	}
+	if(vk_engine_gstate.gotKeycardG){
+		VK_DrawTile(0x13+(vk_map_offsetx>>3),0xE +(vk_map_offsety>>3),(vk_special_items+4));
+	}
+	if(vk_engine_gstate.gotKeycardB){
+		VK_DrawTile(0x18+(vk_map_offsetx>>3),0xE +(vk_map_offsety>>3),(vk_special_items+5));
+	}
+
+	// Draw raygun
+//	if(vk_engine_gstate.gotRaygun){
+	VK_DrawTile(0x4+(vk_map_offsetx>>3),0xB+(vk_map_offsety>>3),(vk_special_items));
+//	}
+
+	// Draw pogo
+	if(vk_engine_gstate.gotPogo){
+		VK_DrawTile(0xC+(vk_map_offsetx>>3),0xC+(vk_map_offsety>>3),(vk_special_items+1));
+	}
+
+	// Draw sprites
+	vk_sprite *keens[8];
+	int i;
+	for(i=0;(i<6)&&(i<vk_engine_gstate.numLives);i++){
+		keens[i] = VK_CreateSprite(255);
+		keens[i]->x = 16+(i*16);
+		keens[i]->y = 56;
+		keens[i]->s.spr_gfx_ani = 0;
+		VK_SetSpriteGraphics(keens[i]);
+		// Render the sprite
+		VK_RenderSprite(keens[i]);
+	}
+
 	
 	while(1){
 		VK_UpdateInput();
@@ -888,6 +1194,14 @@ void VK_StatusBar(){
 			break;
 		}
 		VK_WaitVRB();
+	}
+
+	// Remove it
+	for(i=0;(i<6)&&(i<vk_engine_gstate.numLives);i++){
+		// Sort of a hack
+		// Because we delete the sprites right away, we can do this
+		GBA_SpriteIndex -= keens[i]->s.num_sprs;
+		VK_RemoveSprite(keens[i]);
 	}
 	
 	VK_ForceLevelUpdate();
@@ -956,8 +1270,72 @@ uint16_t VK_QuitDialog(){
 	}
 	
 	VK_GBA_BG_MAPB[308] = VK_CLEAR_TILE;
+
 	VK_ForceLevelUpdate();
 	
 	return outputv;
+};
+
+
+void VK_KeensLeft(){
+	uint16_t waitticks = 0xC0;
+
+	// Reposition the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = (vk_map_offsetx>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = (vk_map_offsety>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = (vk_map_offsetx>>3)<<3;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = (vk_map_offsety>>3)<<3;
+
+	VK_ClearTopLayer();
+	
+	// Draw Keens Left box
+	VK_DrawBox(5,8,17,5);
+
+	VK_TextX = 9;
+	VK_TextY = 9;
+	VK_Print("Keens Left");
+
+	VK_PlaySound(VKS_KEENSLEFT);
+	
+	// Draw sprites
+	vk_sprite *keens[8];
+
+	int i;
+	for(i=0;(i<8)&&(i<vk_engine_gstate.numLives);i++){
+		keens[i] = VK_CreateSprite(254);
+		keens[i]->x = 50+(i*16)-(vk_map_offsetx>>3);
+		keens[i]->y = 84-(vk_map_offsety>>3);
+		keens[i]->s.spr_gfx_ani = 4;
+		VK_SetSpriteGraphics(keens[i]);
+		// Render the sprite
+		VK_RenderSprite(keens[i]);
+	}
+	
+
+	while(waitticks){
+		VK_UpdateInput();
+		uint16_t button = VK_ButtonUp();
+		
+		if(button == (GBA_BUTTON_START) ||
+			button == (GBA_BUTTON_SELECT) ||
+			button == (GBA_BUTTON_A) ||
+			button == (GBA_BUTTON_B) ){
+			waitticks = 1;
+		}
+		waitticks -= 1;
+		VK_WaitVRB();
+	}
+
+	// Remove it
+	for(i=0;(i<8)&&(i<vk_engine_gstate.numLives);i++){
+		// Sort of a hack
+		// Because we delete the sprites right away, we can do this
+		GBA_SpriteIndex -= keens[i]->s.num_sprs;
+
+		VK_RemoveSprite(keens[i]);
+	}
+
+	VK_ForceLevelUpdate();
+
 };
 

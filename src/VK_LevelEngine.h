@@ -15,9 +15,14 @@
 #define __VK_LEVEL_ENGINE__
 
 
+extern const uint32_t VK_TELEPORT_DEST[];
+
+
+
 extern unsigned short VK_CLEAR_TILE;
 
 extern unsigned short vk_num_of_tiles;
+extern unsigned short vk_special_items;
 
 extern unsigned short vk_level_width;
 extern unsigned short vk_level_height;
@@ -56,6 +61,11 @@ void VK_ClearTopLayer();
 void VK_ClearWorldMap();
 
 void VK_LoadLevel(uint16_t levelid);
+
+void VK_DrawTile(uint16_t x, uint16_t y, uint16_t lvlt);
+
+// Render a tile
+void VK_RenderTile(uint16_t offx, uint16_t offy, uint16_t lvlt, uint8_t plane);
 
 // Render the level
 void VK_RenderLevel();

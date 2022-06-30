@@ -23,6 +23,7 @@ typedef struct vk_gba_spr{
 	unsigned short sheet_height;
 	unsigned char *spr_data;
 
+	unsigned short num_sprs;
 	unsigned short spr_indx[4];
 	unsigned short spr_cw[4];
 	unsigned short spr_ch[4];
@@ -34,10 +35,13 @@ typedef struct vk_gba_spr{
 typedef struct vk_sprite {
 	int16_t x;
 	int16_t y;
+	int8_t active;
 	vk_gba_spr s;
 }vk_sprite;
 
 vk_sprite *VK_CreateSprite(uint16_t sprite_id);
+void VK_RemoveSprite(vk_sprite *ptr);
+
 void VK_ClearSprites();
 void VK_RenderSprites();
 void VK_RenderSprite(vk_sprite *spr);

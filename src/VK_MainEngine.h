@@ -23,6 +23,14 @@ enum {
 	VK_DEMO_HIGHSCORES = 4,
 };
 
+// Size : 40 bytes
+typedef struct vk_highscore {
+	uint32_t score;
+	uint8_t items[4];
+	uint8_t citys[7];
+	uint8_t name[14];
+}vk_highscore;
+
 
 typedef struct vk_game_state {
 	// Engine stuff
@@ -30,6 +38,13 @@ typedef struct vk_game_state {
 	uint16_t in_game; // Is keen in the game
 	uint8_t faded; // Has the screen faded at all 0-no 1-out 2-in
 	uint16_t next_1up; // Next score to get to
+	uint8_t finished_level; // Has keen finished the level
+	vk_highscore thekeenest[6];
+	
+	// Options
+	uint8_t sound_enabled; // Is the sound enabled
+	uint8_t music_enabled; // Is the music enabled
+	uint8_t gba_palette; // What palette to use
 	
 	// Keen stuff
 	uint16_t num_of_done; // Number of levels completed

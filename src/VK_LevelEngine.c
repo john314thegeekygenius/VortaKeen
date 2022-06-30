@@ -73,6 +73,18 @@
 #include "../level/LEVEL90_INFO.h"
 #include "../graph/tilesets/LEVEL90_TILESET.h"
 
+#include "../graph/bitmaps/SPECIAL_TILES.h"
+
+
+const uint32_t VK_TELEPORT_DEST[] = {
+	// Location 1 (left side of planet: 28,6)
+	28<<12, 6<<12,
+	// Location 2 (right side of planet: 36, 5)
+	36<<12, 5<<12,
+	// Location 3 (secret level: 62,37)
+	62<<12, 37<<12,
+};
+
 
 uint16_t clear_tile_offset = 0;
 
@@ -92,6 +104,7 @@ unsigned short vk_level_id = 0;
 unsigned short *vk_level_tileinfo = NULL;
 
 unsigned short vk_num_of_tiles = 0;
+unsigned short vk_special_items = 0;
 
 unsigned short vk_level_width = 0;
 unsigned short vk_level_height = 0;
@@ -116,10 +129,13 @@ void VK_ClearTopLayer(){
 	uint16_t i;
 	// Clear the maps
 	for(i = 0; i < 32*32; i++){
+		if(VK_GBA_BG_MAPB[i] != VK_CLEAR_TILE){
+			VK_GBA_BG_MAPA[i] = VK_GBA_BG_MAPB[i];
+		}
 		VK_GBA_BG_MAPB[i] = VK_CLEAR_TILE;
 	}
 	// Hide all sprites
-	
+	GBA_HideSprites();
 };
 
 void VK_ClearWorldMap(){
@@ -383,6 +399,15 @@ void VK_LoadLevel(uint16_t levelid){
 	
 	// Copy the tileset
 	GBA_DMA_Copy32(VK_GBA_BG_Tiles,TILESET_data,TILESET_size>>2);
+
+	// Add the special tiles
+	if((clear_tile_offset%8)==0){
+		vk_special_items = (TILESET_size+(128<<4))>>8;
+		GBA_DMA_Copy32(VK_GBA_BG_Tiles+(TILESET_size+(128<<4)),SPECIAL_TILES_data,SPECIAL_TILES_size>>2);
+	}else{
+		vk_special_items = TILESET_size>>8;
+		GBA_DMA_Copy32(VK_GBA_BG_Tiles+(TILESET_size),SPECIAL_TILES_data,SPECIAL_TILES_size>>2);
+	}
 	
 	// Clear tile at the end of the tiles
 	uint16_t cleartof = ((clear_tile_offset%8)<<7) + ((clear_tile_offset>>3)<<11);
@@ -395,6 +420,7 @@ void VK_LoadLevel(uint16_t levelid){
 	}
 	
 	VK_CLEAR_TILE = ((clear_tile_offset%8)<<1) + ((clear_tile_offset>>3)<<5);
+	
 	// Clear the maps
 	for(i = 0; i < 32*32; i++){
 		VK_GBA_BG_MAPA[i] = 0;
@@ -461,6 +487,35 @@ void VK_LoadLevel(uint16_t levelid){
 	vk_level_needs_update = 1;
 	vk_level_update_tick = 0;
 };
+
+void VK_DrawTile(uint16_t x, uint16_t y, uint16_t lvlt){
+	uint16_t tile = ((lvlt%8)<<1) + ((lvlt>>3)<<5);
+	VK_GBA_BG_MAPA[((y)<<5)+(x)] = tile;
+	VK_GBA_BG_MAPA[((y)<<5)+(x)+1] = tile+1;
+	VK_GBA_BG_MAPA[(((y)+1)<<5)+(x)] = tile+16;
+	VK_GBA_BG_MAPA[(((y)+1)<<5)+(x)+1] = tile+17;
+};
+
+// Render a tile
+void VK_RenderTile(uint16_t offx, uint16_t offy, uint16_t lvlt, uint8_t plane){
+	uint16_t tile = ((lvlt%8)<<1) + ((lvlt>>3)<<5);
+
+	offx -= vk_level_offsetx;
+	offy -= vk_level_offsety;
+
+	if(plane){
+		VK_GBA_BG_MAPB[((offy<<1)<<5)+(offx<<1)] = tile;
+		VK_GBA_BG_MAPB[((offy<<1)<<5)+(offx<<1)+1] = tile+1;
+		VK_GBA_BG_MAPB[(((offy<<1)+1)<<5)+(offx<<1)] = tile+16;
+		VK_GBA_BG_MAPB[(((offy<<1)+1)<<5)+(offx<<1)+1] = tile+17;
+	}else{
+		VK_GBA_BG_MAPA[((offy<<1)<<5)+(offx<<1)] = tile;
+		VK_GBA_BG_MAPA[((offy<<1)<<5)+(offx<<1)+1] = tile+1;
+		VK_GBA_BG_MAPA[(((offy<<1)+1)<<5)+(offx<<1)] = tile+16;
+		VK_GBA_BG_MAPA[(((offy<<1)+1)<<5)+(offx<<1)+1] = tile+17;
+	}
+};
+
 
 // Render the level
 void VK_RenderLevel(){

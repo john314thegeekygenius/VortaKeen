@@ -23,14 +23,6 @@ typedef struct VK_DATA_BLOCK {
 }VK_DATA_BLOCK;
 
 
-// Size : 40 bytes
-typedef struct vk_highscore {
-	uint32_t score;
-	uint16_t items[4];
-	uint16_t citys[7];
-	uint8_t name[14];
-}vk_highscore;
-
 
 // Write a block of data to the game pak
 // Each block is 1K bytes.
@@ -57,5 +49,6 @@ void VK_MainMenu();
 
 void VK_StatusBar();
 uint16_t VK_QuitDialog();
+void VK_KeensLeft();
 
 #endif
