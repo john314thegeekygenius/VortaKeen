@@ -19,6 +19,12 @@ uint16_t vk_engine_demo = 0;
 vk_game_state vk_engine_gstate;
 
 
+void VK_ToggleLights(){
+	vk_engine_gstate.lights_out = !vk_engine_gstate.lights_out;
+	VK_SetPalette(vk_engine_gstate.lights_out<<1);
+};
+
+
 void VK_QuitGame(){
 	uint16_t i,e, gameovertimer, is_highscore;
 	uint16_t name_offset = 0;
@@ -245,6 +251,7 @@ void VK_NewGame(){
 	int i;
 	// Setup stuff for a new game
 	
+	vk_engine_gstate.lights_out = 0;
 	vk_engine_gstate.next_1up = 20000;
 	
 	vk_engine_gstate.num_of_done = 0;
@@ -287,16 +294,17 @@ void VK_ReturnToWorldmap(){
 	VK_LoadLevel(80);
 	vk_engine_gstate.in_game = 80;
 	vk_engine_gstate.level_to_load = 0;
+	vk_engine_gstate.lights_out = 0;
 
 	if((vk_engine_gstate.posX != 0xFFFF)&& (vk_engine_gstate.posY != 0xFFFF)){
-		vk_keen_obj->pos_x = vk_engine_gstate.posX<<8;
-		vk_keen_obj->pos_y = vk_engine_gstate.posY<<8;
+		vk_keen_obj->pos_x = vk_engine_gstate.posX;
+		vk_keen_obj->pos_y = vk_engine_gstate.posY;
 		
 		vk_engine_gstate.posX = 0xFFFF;
 		vk_engine_gstate.posY = 0xFFFF;
 		
-		vk_viewport_x = (uint32_t)vk_engine_gstate.viewportX<<8;
-		vk_viewport_y = (uint32_t)vk_engine_gstate.viewportY<<8;
+		vk_viewport_x = vk_engine_gstate.viewportX;
+		vk_viewport_y = vk_engine_gstate.viewportY;
 	}
 	
 	// Fix the map (cover up levels completed)
@@ -389,11 +397,20 @@ void VK_DoGameLoop(){
 		}
 		
 		VK_UpdateLevel();
+
+		if(vk_keen_obj->type==vko_keen){
+			VK_CollideKeenWLevel(vk_keen_obj);
+		}
+		if(vk_keen_obj->type==vko_mapkeen){
+			VK_CollideMapKeenWLevel(vk_keen_obj);
+		}
+
 		if(vk_keen_obj->type==vko_keen){
 			VKF_keen_input(vk_keen_obj);
 		}else{
 			VKF_mapkeen_input(vk_keen_obj);
 		}
+
 		VK_RenderLevel();
 		
 		VK_RenderObjects();
@@ -421,7 +438,7 @@ void VK_DoGameLoop(){
 void VK_MainEngine(){
 
 	VK_LoadHighScores();
-
+	
 	while(1){
 		// Run the demos
 		switch(vk_engine_demo){

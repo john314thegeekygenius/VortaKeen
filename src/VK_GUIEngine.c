@@ -790,7 +790,7 @@ void VK_OptionsMenu(){
 				if(vk_engine_gstate.gba_palette>2){
 					vk_engine_gstate.gba_palette = 0;
 				}
-				VK_SetPalette();
+				VK_SetPalette(0);
 				break;
 				case 24:
 				// Reset the ROM
@@ -1198,9 +1198,6 @@ void VK_StatusBar(){
 
 	// Remove it
 	for(i=0;(i<6)&&(i<vk_engine_gstate.numLives);i++){
-		// Sort of a hack
-		// Because we delete the sprites right away, we can do this
-		GBA_SpriteIndex -= keens[i]->s.num_sprs;
 		VK_RemoveSprite(keens[i]);
 	}
 	
@@ -1328,9 +1325,6 @@ void VK_KeensLeft(){
 
 	// Remove it
 	for(i=0;(i<8)&&(i<vk_engine_gstate.numLives);i++){
-		// Sort of a hack
-		// Because we delete the sprites right away, we can do this
-		GBA_SpriteIndex -= keens[i]->s.num_sprs;
 
 		VK_RemoveSprite(keens[i]);
 	}

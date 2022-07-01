@@ -44,12 +44,15 @@ GBA_SpriteSizes SPR_SIZE_TABLE[6][6] = {
 
 vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 	vk_sprite * ptr = &VK_GameSprites[VK_NumOfSprites];
-	int i;
+	int i, useing_old_spr;
 
 	
+	useing_old_spr = 0;
 	for(i = 0; i < VK_NumOfSprites; i++){
-		if(VK_GameSprites[i].active==0){
+		// Only reuse valid sprites
+		if(VK_GameSprites[i].active==0&&VK_GameSprites[i].s.spr_type == sprite_id){
 			ptr = &VK_GameSprites[i];
+			useing_old_spr = 1;
 			VK_NumOfSprites -= 1;
 			break;
 		}
@@ -152,57 +155,67 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 		break;
 	};
 
-	unsigned short cw = ptr->s.spr_width >> 3;
-	unsigned short ch = ptr->s.spr_height >> 3;
-
-	ptr->s.spr_cw[0] = (cw&0xFFFE)<<3;
-	ptr->s.spr_ch[0] = (ch&0xFFFE)<<3;
-	ptr->s.spr_cw[1] = ((cw&0x1)<<3);
-	ptr->s.spr_ch[1] = ptr->s.spr_ch[0];
-	ptr->s.spr_cw[2] = ptr->s.spr_cw[0];
-	ptr->s.spr_ch[2] = ((ch&0x1)<<3);
-	ptr->s.spr_cw[3] = 0;
-	ptr->s.spr_ch[3] = 0;
-
-	if(ptr->s.spr_cw[1] && ptr->s.spr_ch[2]){
-		// Need extra sprite
-		ptr->s.spr_cw[3] = ptr->s.spr_cw[1];
-		ptr->s.spr_ch[3] = ptr->s.spr_cw[2];
-	}
-
-	// Set the offsets
-	ptr->s.spr_off[0][0] = 0;
-	ptr->s.spr_off[0][1] = 0;
-
-	ptr->s.spr_off[1][0] = ptr->s.spr_cw[0];
-	ptr->s.spr_off[1][1] = 0;
-
-	ptr->s.spr_off[2][0] = 0;
-	ptr->s.spr_off[2][1] = ptr->s.spr_ch[0];
-
-	ptr->s.spr_off[3][0] = ptr->s.spr_cw[0];
-	ptr->s.spr_off[3][1] = ptr->s.spr_ch[0];
-
-	// Create gba sprites for keen sprite
-	ptr->s.spr_indx[0] = 0xFF;
-	ptr->s.spr_indx[1] = 0xFF;
-	ptr->s.spr_indx[2] = 0xFF;
-	ptr->s.spr_indx[3] = 0xFF;
+	ptr->s.spr_type = sprite_id;
 	
-	unsigned short setoff = 0;
-
-	ptr->s.num_sprs = 0;
-
-	for(i = 0; i < 4; i++){
-		ptr->s.spr_off[i][2] = VK_GBA_SGC+setoff;
+	// Only calculate sprite graphics if needed
+	if(!useing_old_spr){
 		
-		if(ptr->s.spr_cw[i]>0&&ptr->s.spr_ch[i]>0){
-			ptr->s.spr_indx[i] = GBA_CreateSprite(0xF0,0xF0,SPR_SIZE_TABLE[ptr->s.spr_ch[i]>>3][ptr->s.spr_cw[i]>>3],ptr->s.spr_off[i][2]>>5,GBA_SPRITE_ZFRONT,-1);
-			setoff += (ptr->s.spr_cw[i]*ptr->s.spr_ch[i]);
-			ptr->s.num_sprs += 1;
+		unsigned short cw = ptr->s.spr_width >> 3;
+		unsigned short ch = ptr->s.spr_height >> 3;
+
+		ptr->s.spr_cw[0] = (cw&0xFFFE)<<3;
+		ptr->s.spr_ch[0] = (ch&0xFFFE)<<3;
+		ptr->s.spr_cw[1] = ((cw&0x1)<<3);
+		ptr->s.spr_ch[1] = ptr->s.spr_ch[0];
+		ptr->s.spr_cw[2] = ptr->s.spr_cw[0];
+		ptr->s.spr_ch[2] = ((ch&0x1)<<3);
+		ptr->s.spr_cw[3] = 0;
+		ptr->s.spr_ch[3] = 0;
+
+		if(ptr->s.spr_cw[1] && ptr->s.spr_ch[2]){
+			// Need extra sprite
+			ptr->s.spr_cw[3] = ptr->s.spr_cw[1];
+			ptr->s.spr_ch[3] = ptr->s.spr_cw[2];
 		}
+
+		// Set the offsets
+		ptr->s.spr_off[0][0] = 0;
+		ptr->s.spr_off[0][1] = 0;
+
+		ptr->s.spr_off[1][0] = ptr->s.spr_cw[0];
+		ptr->s.spr_off[1][1] = 0;
+
+		ptr->s.spr_off[2][0] = 0;
+		ptr->s.spr_off[2][1] = ptr->s.spr_ch[0];
+
+		ptr->s.spr_off[3][0] = ptr->s.spr_cw[0];
+		ptr->s.spr_off[3][1] = ptr->s.spr_ch[0];
+
+		// Create gba sprites for keen sprite
+		ptr->s.spr_indx[0] = 0xFF;
+		ptr->s.spr_indx[1] = 0xFF;
+		ptr->s.spr_indx[2] = 0xFF;
+		ptr->s.spr_indx[3] = 0xFF;
+		
+		unsigned short setoff = 0;
+
+		ptr->s.num_sprs = 0;
+
+		for(i = 0; i < 4; i++){
+			ptr->s.spr_off[i][2] = VK_GBA_SGC+setoff;
+			
+			if(ptr->s.spr_cw[i]>0&&ptr->s.spr_ch[i]>0){
+	//			if(useing_old_spr){
+	//				GBA_RemakeSprite(ptr->s.spr_indx[i],0xF0,0xF0,SPR_SIZE_TABLE[ptr->s.spr_ch[i]>>3][ptr->s.spr_cw[i]>>3],ptr->s.spr_off[i][2]>>5,GBA_SPRITE_ZFRONT,-1);
+	//			}else{
+				ptr->s.spr_indx[i] = GBA_CreateSprite(0xF0,0xF0,SPR_SIZE_TABLE[ptr->s.spr_ch[i]>>3][ptr->s.spr_cw[i]>>3],ptr->s.spr_off[i][2]>>5,GBA_SPRITE_ZFRONT,-1);
+	//			}
+				setoff += (ptr->s.spr_cw[i]*ptr->s.spr_ch[i]);
+				ptr->s.num_sprs += 1;
+			}
+		}
+		VK_GBA_SGC += (ptr->s.spr_width*ptr->s.spr_height);
 	}
-	VK_GBA_SGC += (ptr->s.spr_width*ptr->s.spr_height);
 	
 	ptr->s.spr_gfx_ani = 0;
 
@@ -227,6 +240,11 @@ void VK_RemoveSprite(vk_sprite *ptr){
 	int e;
 	if(ptr!=NULL){
 		ptr->active = 0;
+		// Sort of a hack
+		// Because we delete the sprites right away, we can do this
+		GBA_SpriteIndex -= ptr->s.num_sprs;
+		VK_GBA_SGC -= (ptr->s.spr_width*ptr->s.spr_height);
+
 		// Reset the position
 		for(e = 0; e < 4; e++){
 			if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
@@ -279,7 +297,7 @@ void VK_RenderSprite(vk_sprite *ptr){
 	uint16_t e;
 	for(e = 0; e < 4; e++){
 		if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
-			if(ptr->x >= -0x40 && ptr->y >= -0x40 && ptr->x < 0x100 && ptr->y < 0xB0){
+			if (ptr->active&& (ptr->x >= -0x40 && ptr->y >= -0x40 && ptr->x < 0x100 && ptr->y < 0xB0)){
 				GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],ptr->x+ptr->s.spr_off[e][0],ptr->y+ptr->s.spr_off[e][1]);
 			}else{
 				// Hide the sprite

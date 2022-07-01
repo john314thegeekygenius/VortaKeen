@@ -54,6 +54,9 @@ extern unsigned short vk_level_update_tick;
 extern uint32_t vk_viewport_x;
 extern uint32_t vk_viewport_y;
 
+extern unsigned char *TILESET_data;
+extern unsigned short TILESET_size;
+
 
 // Clear GBA Map 1
 void VK_ClearTopLayer();
@@ -69,6 +72,9 @@ void VK_RenderTile(uint16_t offx, uint16_t offy, uint16_t lvlt, uint8_t plane);
 
 // Render the level
 void VK_RenderLevel();
+
+// Disable the rendering
+void VK_DisableLevelRendering();
 
 // Update the level
 void VK_UpdateLevel();

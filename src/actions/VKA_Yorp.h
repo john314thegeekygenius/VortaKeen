@@ -52,6 +52,22 @@ int VKF_yorp_init(vk_object *obj){
 };
 
 int VKF_yorp_collide(vk_object *obj, vk_object *cobj){
+	if(obj->animation == &VKA_yorp_die_1 || obj->animation == &VKA_yorp_die_2){
+		return 0;
+	}
+
+	// Interact with shots
+	if(cobj->type == vko_shot_friendly || cobj->type == vko_shot_deadly){
+		// Kill the shot
+		cobj->var1 = 1;
+		
+		// Kill the yorp
+		VK_SetObjAnimation(obj,&VKA_yorp_die_1);
+		VK_PlaySound(VKS_YORPSCREAM);
+	}
+	
+	
+	// Interact with keen
 	if(obj->var4==0x00){
 		if(cobj->pos_y+cobj->animation->cbox.bottom > obj->pos_y+obj->animation->cbox.top){
 			if(cobj->vel_y > 0x40){
@@ -98,95 +114,97 @@ int VKF_yorp_collide(vk_object *obj, vk_object *cobj){
 
 int VKF_yorp_think(vk_object *obj){
 	// vk_keen_obj is defined in VK_ObjectsEngine.c
+	if(!(obj->animation == &VKA_yorp_die_1 || obj->animation == &VKA_yorp_die_2)){
 
-	if(obj->hit_left||obj->hit_right){
-		// Make yorp think
-		obj->var1 = 0;
-	}
-	
-	if(obj->var4==1){
-		// Make yorp think
-		obj->var2 = (VK_2_FRAMES )<<2;
-		VK_SetObjAnimation(obj,&VKA_yorp_idle_1);
-	}
-	if(obj->var4 > 0){
-		obj->var4 -= 1;
+		if(obj->hit_left||obj->hit_right){
+			// Make yorp think
+			obj->var1 = 0;
+		}
 		
-	}else{
+		if(obj->var4==1){
+			// Make yorp think
+			obj->var2 = (VK_2_FRAMES )<<2;
+			VK_SetObjAnimation(obj,&VKA_yorp_idle_1);
+		}
+		if(obj->var4 > 0){
+			obj->var4 -= 1;
+			
+		}else{
 
-		
-		if(obj->var1 == 0){
+			
+			if(obj->var1 == 0){
+				if( (obj->animation == &VKA_yorp_walk_1) ||
+					(obj->animation == &VKA_yorp_walk_2)){
+
+					// Set look delay
+					obj->var2 = (VK_2_FRAMES )<<2;
+					
+					// Start the animation on a custom frame depending on direction
+					if(obj->facing == 0){
+						VK_SetObjAnimation(obj,&VKA_yorp_idle_2);
+					}else{
+						VK_SetObjAnimation(obj,&VKA_yorp_idle_1);
+					}
+					// Stop the yorp from gliding away!
+					obj->vel_x = 0x00;
+				}
+			}else{
+				obj->var1 -= 1;
+			}
+			
+			
+			// Wait for animation to be correct
+			if( (obj->animation == &VKA_yorp_idle_1)){
+				// Wait for look timer to run out
+				if(obj->var2==0){
+					// Yorp needs to move toward keen
+					if(vk_keen_obj->pos_x < obj->pos_x){
+						// Yorp can't move toward keen, so go opposite direction
+						if(obj->hit_right){
+							obj->vel_x = 0x80;
+							obj->facing = 1;
+						}else{
+							obj->vel_x = -0x80;
+							obj->facing = 0;
+						}
+					}
+					if(vk_keen_obj->pos_x > obj->pos_x){
+						// Yorp can't move toward keen, so go opposite direction
+						if(obj->hit_left){
+							obj->vel_x = -0x80;
+							obj->facing = 0;
+						}else{
+							obj->vel_x = 0x80;
+							obj->facing = 1;
+						}
+					}
+					// Count down to next look animation
+					obj->var1 = VK_GetRNG();
+
+					// Set animation to walking
+					VK_SetObjAnimation(obj,&VKA_yorp_walk_1);
+
+					obj->hit_right = 0;
+					obj->hit_left = 0;
+
+				}else{
+					obj->var2 -= 1;
+				}
+			}
+
+			// Count down to next jump
 			if( (obj->animation == &VKA_yorp_walk_1) ||
 				(obj->animation == &VKA_yorp_walk_2)){
-
-				// Set look delay
-				obj->var2 = (VK_2_FRAMES )<<2;
-				
-				// Start the animation on a custom frame depending on direction
-				if(obj->facing == 0){
-					VK_SetObjAnimation(obj,&VKA_yorp_idle_2);
-				}else{
-					VK_SetObjAnimation(obj,&VKA_yorp_idle_1);
+				if(obj->var3 == 0){
+					// Make the yorp jump
+					obj->vel_y = -(VK_GetRNG()+0x40); // Max jump height of 1 block?
+					// Set next jump time
+					obj->var3 = VK_GetRNG();
 				}
-				// Stop the yorp from gliding away!
-				obj->vel_x = 0x00;
 			}
-		}else{
-			obj->var1 -= 1;
-		}
-		
-		
-		// Wait for animation to be correct
-		if( (obj->animation == &VKA_yorp_idle_1)){
-			// Wait for look timer to run out
-			if(obj->var2==0){
-				// Yorp needs to move toward keen
-				if(vk_keen_obj->pos_x < obj->pos_x){
-					// Yorp can't move toward keen, so go opposite direction
-					if(obj->hit_right){
-						obj->vel_x = 0x80;
-						obj->facing = 1;
-					}else{
-						obj->vel_x = -0x80;
-						obj->facing = 0;
-					}
-				}
-				if(vk_keen_obj->pos_x > obj->pos_x){
-					// Yorp can't move toward keen, so go opposite direction
-					if(obj->hit_left){
-						obj->vel_x = -0x80;
-						obj->facing = 0;
-					}else{
-						obj->vel_x = 0x80;
-						obj->facing = 1;
-					}
-				}
-				// Count down to next look animation
-				obj->var1 = VK_GetRNG();
-
-				// Set animation to walking
-				VK_SetObjAnimation(obj,&VKA_yorp_walk_1);
-
-				obj->hit_right = 0;
-				obj->hit_left = 0;
-
-			}else{
-				obj->var2 -= 1;
+			if(obj->var3 > 0){
+				obj->var3 -= 1;
 			}
-		}
-
-		// Count down to next jump
-		if( (obj->animation == &VKA_yorp_walk_1) ||
-			(obj->animation == &VKA_yorp_walk_2)){
-			if(obj->var3 == 0){
-				// Make the yorp jump
-				obj->vel_y = -(VK_GetRNG()+0x40); // Max jump height of 1 block?
-				// Set next jump time
-				obj->var3 = VK_GetRNG();
-			}
-		}
-		if(obj->var3 > 0){
-			obj->var3 -= 1;
 		}
 	}
 

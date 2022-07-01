@@ -72,12 +72,16 @@ vk_obj_ani VKA_keen_ice_break = {31, 31, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8
 
 
 int VKF_keen_init(vk_object *obj){
+	// Interacted with map
+	obj->click_map = 0x00;
 	// Set is jumping
 	obj->var1 = 0x00;
 	// Death counter
 	obj->var2 = 0x00;
 	// Set jump time
 	obj->var3 = 0x00;
+	// Set is shooting
+	obj->var4 = 0x00;
 	return 0;
 };
 
@@ -114,50 +118,62 @@ int VKF_keen_input(vk_object *obj){
 	if(VK_CheckButton(GBA_BUTTON_RIGHT)){
 		// Move right
 		if(obj->on_ground!=3){
-			// Unless on ice
-			if(obj->on_ground==0){
-				obj->vel_x += 0x20;
-			}else{
-				obj->vel_x += 0x40;
-			}
-			if(obj->vel_x>0){
-				obj->facing = 1;
-			}
-			if(obj->on_ground){
-				if(obj->animation == &VKA_keen_idle){
-					VK_SetObjAnimation(obj,&VKA_keen_walk_1);
+			if(obj->var4==0){
+				// Unless on ice
+				if(obj->on_ground==0){
+					obj->vel_x += 0x20;
+				}else{
+					obj->vel_x += 0x40;
+				}
+				if(obj->vel_x>0){
+					obj->facing = 1;
+				}
+				if(obj->on_ground){
+					if(obj->animation == &VKA_keen_idle){
+						VK_SetObjAnimation(obj,&VKA_keen_walk_1);
+					}
 				}
 			}
 		}else{
-			if(obj->vel_x==0){
-				obj->vel_x = 0x40;
-				obj->facing = 1;
+			if(obj->var4==0){
+				if(obj->var1==0){
+					if(obj->vel_x==0){
+						obj->vel_x = 0x40;
+						obj->facing = 1;
+					}
+					VK_SetObjAnimation(obj,&VKA_keen_idle);
+				}
 			}
-			VK_SetObjAnimation(obj,&VKA_keen_idle);
 		}
 	}else if(VK_CheckButton(GBA_BUTTON_LEFT)){
 		// Move left
 		if(obj->on_ground!=3){
-			// Unless on ice
-			if(obj->on_ground==0){
-				obj->vel_x -= 0x20;
-			}else{
-				obj->vel_x -= 0x40;
-			}
-			if(obj->vel_x<0){
-				obj->facing = 0;
-			}
-			if(obj->on_ground){
-				if(obj->animation == &VKA_keen_idle){
-					VK_SetObjAnimation(obj,&VKA_keen_walk_1);
+			if(obj->var4==0){
+				// Unless on ice
+				if(obj->on_ground==0){
+					obj->vel_x -= 0x20;
+				}else{
+					obj->vel_x -= 0x40;
+				}
+				if(obj->vel_x<0){
+					obj->facing = 0;
+				}
+				if(obj->on_ground){
+					if(obj->animation == &VKA_keen_idle){
+						VK_SetObjAnimation(obj,&VKA_keen_walk_1);
+					}
 				}
 			}
 		}else{
-			if(obj->vel_x==0){
-				obj->vel_x = -0x40;
-				obj->facing = 0;
+			if(obj->var4==0){
+				if(obj->var1==0){
+					if(obj->vel_x==0){
+						obj->vel_x = -0x40;
+						obj->facing = 0;
+					}
+					VK_SetObjAnimation(obj,&VKA_keen_idle);
+				}
 			}
-			VK_SetObjAnimation(obj,&VKA_keen_idle);
 		}
 	}else{
 		if(obj->animation == &VKA_keen_walk_1 ||
@@ -189,31 +205,64 @@ int VKF_keen_input(vk_object *obj){
 		}
 	}
 	
-	if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
-		if(vk_engine_gstate.gotPogo ){
-			// Pogo
-			if(obj->animation==&VKA_keen_pogo_1 || obj->animation==&VKA_keen_pogo_2){
-				VK_SetObjAnimation(obj,&VKA_keen_fall);
-				obj->var1 = 0; // Reset this to 0
+	if(VK_CheckButton(GBA_BUTTON_B)){
+		// Shoot
+		if(obj->var4 == 0){
+			if(vk_engine_gstate.ammo){
+				// Spawn shot
+				VK_SpawnShot(obj->pos_x,obj->pos_y,obj->facing,0);
+				// Remove ammo
+				vk_engine_gstate.ammo -= 1;
+				// Play sound
+				VK_PlaySound(VKS_KEENFIRESND);
 			}else{
-				if(obj->on_ground){
-					if(obj->var1==0){
-						VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
-						obj->var1 = 1;
-						VK_PlaySound(VKS_KEENPOGOSND);
-					}
-				}else{
-					VK_SetObjAnimation(obj,&VKA_keen_pogo_2);
-				}
+				// Play sound
+				VK_PlaySound(VKS_GUNCLICK);
 			}
-		}else{
-			// Bug?
-			if(obj->on_ground){
-				obj->vel_x = 0x00;
-			}
+		}
+		if(obj->var4==0 || obj->var4>0x1E){
+			obj->var4 = 0x20;
 		}
 	}
 	
+	if(obj->var4){
+		// Always set the animation to shooting
+		VK_SetObjAnimation(obj,&VKA_keen_shoot);
+		// Set is jumping
+		obj->var1 = 0x00;
+		// Set jump time
+		obj->var3 = 0x00;
+
+		obj->var4 -= 1;
+	}
+	
+	if(obj->click_map==0){
+		if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+			if(vk_engine_gstate.gotPogo ){
+				// Pogo
+				if(obj->animation==&VKA_keen_pogo_1 || obj->animation==&VKA_keen_pogo_2){
+					VK_SetObjAnimation(obj,&VKA_keen_fall);
+					obj->var1 = 0; // Reset this to 0
+				}else{
+					if(obj->on_ground){
+						if(obj->var1==0){
+							VK_SetObjAnimation(obj,&VKA_keen_pogo_1);
+							obj->var1 = 1;
+							VK_PlaySound(VKS_KEENPOGOSND);
+						}
+					}else{
+						VK_SetObjAnimation(obj,&VKA_keen_pogo_2);
+					}
+				}
+			}else{
+				// Bug?
+				if(obj->on_ground){
+					obj->vel_x = 0x00;
+				}
+			}
+		}
+	}
+		
 	if(obj->animation == &VKA_keen_pogo_2){
 		if(obj->var1){
 			obj->var1 = 0;
@@ -316,8 +365,13 @@ int VKF_keen_think(vk_object *obj){
 	}
 	if(obj->hit_bottom || obj->on_ground){
 		if(obj->animation == &VKA_keen_fall){
-			VK_SetObjAnimation(obj,&VKA_keen_idle);		
+			VK_SetObjAnimation(obj,&VKA_keen_idle);	
 			VK_PlaySound(VKS_KEENLANDSND); // play land sound
+		}
+		if(obj->animation == &VKA_keen_shoot){
+			if(obj->var4 == 0){
+				VK_SetObjAnimation(obj,&VKA_keen_idle);
+			}
 		}
 	}else{
 		if(obj->animation == &VKA_keen_idle ||
@@ -325,9 +379,15 @@ int VKF_keen_think(vk_object *obj){
 			obj->animation == &VKA_keen_walk_2 ||
 			obj->animation == &VKA_keen_walk_3 ||
 			obj->animation == &VKA_keen_walk_4 ){
-			
 			VK_SetObjAnimation(obj,&VKA_keen_fall);		
 			VK_PlaySound(VKS_PLUMMETSND); // play fall sound
+		}
+
+		if(obj->animation == &VKA_keen_shoot){
+			if(obj->var4 == 0){
+				VK_SetObjAnimation(obj,&VKA_keen_fall);		
+				VK_PlaySound(VKS_PLUMMETSND); // play fall sound
+			}
 		}
 	}
 	
@@ -427,7 +487,7 @@ int VKF_keen_think(vk_object *obj){
 					}
 				}
 
-				if(obj->vel_x > 0x00 ){
+				if(obj->vel_x < 0x00 ){
 					if(obj->vel_x < -0x80){
 						obj->vel_x += 0x20;
 						// Stop the velocity from going too far
@@ -452,8 +512,7 @@ int VKF_keen_think(vk_object *obj){
 				if(obj->animation == &VKA_keen_walk_1||
 					obj->animation == &VKA_keen_walk_2||
 					obj->animation == &VKA_keen_walk_3||
-					obj->animation == &VKA_keen_walk_4||
-					obj->animation == &VKA_keen_fall){
+					obj->animation == &VKA_keen_walk_4){
 					VK_SetObjAnimation(obj,&VKA_keen_idle);
 				}
 			}

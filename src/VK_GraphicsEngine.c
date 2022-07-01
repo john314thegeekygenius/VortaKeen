@@ -89,18 +89,18 @@ void VK_WaitVRB(){
 	GBA_WAIT_VBLANK
 };
 
-void VK_SetPalette(){
+void VK_SetPalette(uint16_t offset){
 	if(vk_engine_gstate.gba_palette==0){
-		GBA_DMA_Copy16((uint16_t*)GBA_PAL_BG_START,(uint16_t*)vk_ega_palette[0],17);
-		GBA_DMA_Copy16((uint16_t*)GBA_PAL_SPR_START,(uint16_t*)vk_ega_palette[0],17);
+		GBA_DMA_Copy16((uint16_t*)GBA_PAL_BG_START,(uint16_t*)vk_ega_palette[offset],17);
+		GBA_DMA_Copy16((uint16_t*)GBA_PAL_SPR_START,(uint16_t*)vk_ega_palette[offset],17);
 	}
 	if(vk_engine_gstate.gba_palette==1){
-		GBA_DMA_Copy16((uint16_t*)GBA_PAL_BG_START,(uint16_t*)vk_gb_palette[0],17);
-		GBA_DMA_Copy16((uint16_t*)GBA_PAL_SPR_START,(uint16_t*)vk_gb_palette[0],17);
+		GBA_DMA_Copy16((uint16_t*)GBA_PAL_BG_START,(uint16_t*)vk_gb_palette[offset],17);
+		GBA_DMA_Copy16((uint16_t*)GBA_PAL_SPR_START,(uint16_t*)vk_gb_palette[offset],17);
 	}
 	if(vk_engine_gstate.gba_palette==2){
-		GBA_DMA_Copy16((uint16_t*)GBA_PAL_BG_START,(uint16_t*)vk_greyscale_palette[0],17);
-		GBA_DMA_Copy16((uint16_t*)GBA_PAL_SPR_START,(uint16_t*)vk_greyscale_palette[0],17);
+		GBA_DMA_Copy16((uint16_t*)GBA_PAL_BG_START,(uint16_t*)vk_greyscale_palette[offset],17);
+		GBA_DMA_Copy16((uint16_t*)GBA_PAL_SPR_START,(uint16_t*)vk_greyscale_palette[offset],17);
 	}
 
 };
@@ -210,17 +210,18 @@ char * VK_Iota16(int32_t val){
 
 
 char * VK_Iota(int32_t val){
-	int16_t i = 0, e = 0;
+	uint16_t i = 0, e = 0;
+	
 	if(val==0){
 		vk_iota_str[0] = '0';
 		vk_iota_str[1] = 0;
 		return vk_iota_str;
 	}
+	i = 0;
 	if(val < 0){
 		val = -val;
 		vk_iota_str[i++] = '-';
 	}
-	i = 0;
 	while(val){
 		char decv = '0'+(val%10);
 		
@@ -230,6 +231,7 @@ char * VK_Iota(int32_t val){
 		vk_iota_str[0] = decv;
 		val /= 10;
 	}
+
 	// End the string
 	vk_iota_str[i] = 0;
 	return vk_iota_str;

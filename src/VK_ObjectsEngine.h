@@ -39,6 +39,9 @@ typedef enum {
 	vko_yorp 	= 3,
 	vko_garg 	= 4,
 	vko_vorticon = 5,
+	vko_shot_friendly = 10,
+	vko_shot_deadly = 11,
+	vko_shot_zapzot = 12,
 }vk_obj_type;
 
 
@@ -58,6 +61,7 @@ typedef struct vk_object {
 							2 	Slippery
 							3 	Ice 
 						*/
+	uint16_t click_map; // did keen interact with the level
 
 	uint16_t var1;
 	uint16_t var2;
@@ -79,9 +83,27 @@ typedef struct vk_object {
 	vk_sprite *s;
 }vk_object;
 
+typedef struct vk_door_sprite{
+	int32_t x;
+	int32_t y;
+	uint16_t door_type;
+	uint16_t animation;	
+	uint16_t offset;
+	uint16_t tag;
+
+	uint32_t tt_off;
+	uint32_t bt_off;
+}vk_door_sprite;
+
+void VK_SetupDoors();
+void VK_SpawnDoor(int32_t x, int32_t y, uint16_t door_type, uint16_t t_tile, uint16_t b_tile);
+
 extern vk_object *vk_keen_obj;
 
-vk_object *VK_CreateObject(uint16_t sprite_id, uint32_t x, uint32_t y);
+void VK_SpawnShot(int32_t x,int32_t y,uint16_t dir, uint16_t type);
+
+vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y);
+
 void VK_SetObjAnimation(vk_object *obj,vk_obj_ani *animation);
 void VK_RemoveObjects();
 void VK_RenderObjects();

@@ -93,6 +93,9 @@ GBA_IN_EWRAM unsigned char vk_sprite_data[32*256];
 unsigned short *vk_level_map;
 GBA_IN_EWRAM unsigned char vk_tileanimations[0xFFF];
 
+unsigned char *TILESET_data = NULL;
+unsigned short TILESET_size = 0;
+
 const uint8_t vk_bithash[] = { 0x80, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1};
 
 GBA_IN_EWRAM unsigned short ck_update_positions[0x1000][2];
@@ -123,6 +126,8 @@ unsigned char vk_level_lock_cam = 0;
 
 unsigned short vk_level_update_tick = 0;
 unsigned short VK_CLEAR_TILE = 0;
+
+unsigned short vk_render_level_enable = 1;
 
 
 void VK_ClearTopLayer(){
@@ -181,8 +186,6 @@ void VK_ClearWorldMap(){
 void VK_LoadLevel(uint16_t levelid){	
 	int i,e;
 	// Setup the tileset
-	unsigned char *TILESET_data = NULL;
-	unsigned short TILESET_size = 0;
 	
 	switch(levelid){
 		case 1:
@@ -486,6 +489,9 @@ void VK_LoadLevel(uint16_t levelid){
 	
 	vk_level_needs_update = 1;
 	vk_level_update_tick = 0;
+	
+	vk_render_level_enable = 1;
+	
 };
 
 void VK_DrawTile(uint16_t x, uint16_t y, uint16_t lvlt){
@@ -516,6 +522,11 @@ void VK_RenderTile(uint16_t offx, uint16_t offy, uint16_t lvlt, uint8_t plane){
 	}
 };
 
+// Disable the rendering
+void VK_DisableLevelRendering(){
+	vk_render_level_enable = 0;
+};
+
 
 // Render the level
 void VK_RenderLevel(){
@@ -531,8 +542,11 @@ void VK_RenderLevel(){
 			VK_GBA_BG_MAPA[ck_update_locations[i][0]+33] = ck_update_locations[i][1]+17;
 		}
 	}
-		
+	if(vk_render_level_enable==0){
+		return;
+	}
 	if(vk_level_needs_update==1){
+
 		vk_level_needs_update = 0;
 		//GBA_WAIT_VBLANK
 		for(e = 0; e < 11; e++){

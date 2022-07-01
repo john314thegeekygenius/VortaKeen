@@ -37,9 +37,10 @@ typedef struct vk_game_state {
 	uint16_t level_to_load; // What level needs loaded
 	uint16_t in_game; // Is keen in the game
 	uint8_t faded; // Has the screen faded at all 0-no 1-out 2-in
-	uint16_t next_1up; // Next score to get to
+	int32_t next_1up; // Next score to get to
 	uint8_t finished_level; // Has keen finished the level
 	vk_highscore thekeenest[6];
+	uint8_t lights_out; // Are the lights turned off
 	
 	// Options
 	uint8_t sound_enabled; // Is the sound enabled
@@ -60,11 +61,11 @@ typedef struct vk_game_state {
 	uint16_t levelDone[16];// 	16 values for each level, 0=incomplete, 1=completed. With the 32 levels patch this becomes 32 1-byte entries.
 	uint16_t numLives;// 	Number of lives Keen has left
 	uint16_t ammo;// 	Number of shots Keen has left
-	uint16_t score;// 	Player score
-	uint16_t posX;// 	Location on world map, in "global" units (256 units = 1 pixel, 4096 units = 1 tile)
-	uint16_t posY;// 	Location on world map, in "global" units (256 units = 1 pixel, 4096 units = 1 tile)
-	uint16_t viewportX;// 	Location of left of visible screen, in "global" units. Usually player location minus nine tiles.
-	uint16_t viewportY;// 	Location of top of visible screen, in "global" units. Usually player location minus three tiles, but variable.
+	int32_t score;// 	Player score
+	int32_t posX;// 	Location on world map, in "global" units (256 units = 1 pixel, 4096 units = 1 tile)
+	int32_t posY;// 	Location on world map, in "global" units (256 units = 1 pixel, 4096 units = 1 tile)
+	int32_t viewportX;// 	Location of left of visible screen, in "global" units. Usually player location minus nine tiles.
+	int32_t viewportY;// 	Location of top of visible screen, in "global" units. Usually player location minus three tiles, but variable.
 	uint16_t cities[9];// 	In Keen 2, cities saved. 9 2-byte entries, the last seems not to be a valid city, but is kept in memory. 
 }vk_game_state;
 

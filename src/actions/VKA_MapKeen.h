@@ -124,10 +124,10 @@ int VKF_mapkeen_input(vk_object *obj){
 			uint16_t tile = vk_level_map[obj->var1];
 			if(tile > 0 && tile <= 16){
 				// Store current position
-				vk_engine_gstate.posX = (uint16_t)(obj->pos_x>>8);
-				vk_engine_gstate.posY = (uint16_t)(obj->pos_y>>8);
-				vk_engine_gstate.viewportX = (uint16_t)(vk_viewport_x>>8);
-				vk_engine_gstate.viewportY = (uint16_t)(vk_viewport_y>>8);
+				vk_engine_gstate.posX = obj->pos_x;
+				vk_engine_gstate.posY = obj->pos_y;
+				vk_engine_gstate.viewportX = vk_viewport_x;
+				vk_engine_gstate.viewportY = vk_viewport_y;
 				// Enter level
 				vk_engine_gstate.level_to_load = tile;
 				VK_PlaySound(2);

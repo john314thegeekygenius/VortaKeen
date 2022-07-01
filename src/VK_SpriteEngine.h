@@ -29,6 +29,7 @@ typedef struct vk_gba_spr{
 	unsigned short spr_ch[4];
 	unsigned short spr_off[4][3];
 	
+	unsigned short spr_type;
 	unsigned short spr_gfx_ani;
 }vk_gba_spr;
 

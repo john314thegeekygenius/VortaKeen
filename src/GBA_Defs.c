@@ -33,24 +33,28 @@ uint32_t GBA_Rand(){
 
 // Copy data using DMA 
 DONT_OPTIMISE void GBA_DMA_Copy16(uint16_t* dest, uint16_t* source, int amount) {
+	if(amount<=0) return;
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) source;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = amount | GBA_DMA_16 | GBA_DMA_ENABLE;
 };
 
 DONT_OPTIMISE void GBA_DMA_Copy32(uint32_t* dest, uint32_t* source, int amount) {
+	if(amount<=0) return;
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) source;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = amount | GBA_DMA_32 | GBA_DMA_ENABLE;
 };
 
 DONT_OPTIMISE void GBA_DMA_MemSet16(uint16_t* dest, uint16_t val, int len){
+	if(len<=0) return;
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) &val;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = len | GBA_DMA_16 | GBA_DMA_SRC_FIXED | GBA_DMA_ENABLE;
 };
 
 DONT_OPTIMISE void GBA_DMA_MemSet32(uint32_t* dest, uint32_t val, int len){
+	if(len<=0) return;
     *(volatile unsigned int*)GBA_DMA_SRC   = (unsigned int) &val;
     *(volatile unsigned int*)GBA_DMA_DEST  = (unsigned int) dest;
     *(volatile unsigned int*)GBA_DMA_COUNT = len | GBA_DMA_32 | GBA_DMA_SRC_FIXED | GBA_DMA_ENABLE;
@@ -79,7 +83,6 @@ copyloop:
 	if(--amount)
 		goto copyloop;
 };
-
 
 
 GBA_Sprite GBA_SpriteList[GBA_NUM_SPRITES];
@@ -178,7 +181,6 @@ void GBA_RemakeSprite(GBA_SpriteIndex_t index, int x, int y, GBA_SpriteSizes siz
 	GBA_SpriteList[index].a1 = x | (size_bits<<14);
 	GBA_SpriteList[index].a2 = tileIndex | zLayer | (palette<<12);
 };
-
 
 
 unsigned short GBA_GameBoysConnected[4];
