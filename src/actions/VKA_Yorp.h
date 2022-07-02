@@ -66,34 +66,39 @@ int VKF_yorp_collide(vk_object *obj, vk_object *cobj){
 		VK_PlaySound(VKS_YORPSCREAM);
 	}
 	
-	
-	// Interact with keen
-	if(obj->var4==0x00){
-		if(cobj->pos_y+cobj->animation->cbox.bottom > obj->pos_y+obj->animation->cbox.top){
-			if(cobj->vel_y > 0x40){
-				// Keen hit yorp on the head!
-				VK_SetObjAnimation(obj,&VKA_yorp_hit_1);
-				obj->var4 = 0x140;
-				obj->vel_x = 0;
-				// Play sound
-				VK_PlaySound(VKS_YORPBOPSND);
-				return 1;
+	if(cobj->type == vko_keen){
+		// Interact with keen
+		if(obj->var4==0x00){
+			if(cobj->pos_y+cobj->animation->cbox.bottom > obj->pos_y+obj->animation->cbox.top && cobj->pos_y+cobj->animation->cbox.top < obj->pos_y+obj->animation->cbox.top){
+				if(cobj->vel_y > 0x40){
+					// Keen hit yorp on the head!
+					VK_SetObjAnimation(obj,&VKA_yorp_hit_1);
+					obj->var4 = 0x140;
+					obj->vel_x = 0;
+					// Play sound
+					VK_PlaySound(VKS_YORPBOPSND);
+					return 1;
+				}
+			}
+			// Bounce Keen arround
+			if(obj->facing == 0){
+				if(cobj->pos_x+cobj->animation->cbox.right < obj->pos_x+obj->animation->cbox.right){
+					cobj->vel_x -= 0x300; // ZOOOOOOM!
+					// Play sound
+					VK_PlaySound(VKS_YORPBUMPSND);
+					return 1;
+				}
+			}
+			if(obj->facing == 1){
+				if(cobj->pos_x+cobj->animation->cbox.left > obj->pos_x+obj->animation->cbox.left){
+					cobj->vel_x += 0x300; // ZOOOOOOM!
+					// Play sound
+					VK_PlaySound(VKS_YORPBUMPSND);
+					return 1;
+				}
 			}
 		}
-		// Bounce Keen arround
-		if(cobj->pos_x+cobj->animation->cbox.right < obj->pos_x+obj->animation->cbox.right){
-			cobj->vel_x -= 0x400; // ZOOOOOOM!
-			// Play sound
-			VK_PlaySound(VKS_YORPBUMPSND);
-			return 1;
-		}
-		if(cobj->pos_x+cobj->animation->cbox.left > obj->pos_x+obj->animation->cbox.left){
-			cobj->vel_x += 0x400; // ZOOOOOOM!
-			// Play sound
-			VK_PlaySound(VKS_YORPBUMPSND);
-			return 1;
-		}
-	}	
+	}
 	return 0;
 };
 
@@ -116,9 +121,27 @@ int VKF_yorp_think(vk_object *obj){
 	// vk_keen_obj is defined in VK_ObjectsEngine.c
 	if(!(obj->animation == &VKA_yorp_die_1 || obj->animation == &VKA_yorp_die_2)){
 
-		if(obj->hit_left||obj->hit_right){
-			// Make yorp think
-			obj->var1 = 0;
+		if( (obj->animation == &VKA_yorp_walk_1) ||
+			(obj->animation == &VKA_yorp_walk_2)){
+
+			if(obj->hit_left){
+				obj->vel_x = -0x80;
+				obj->facing = 0;
+
+				obj->hit_left = 0;
+
+				// Make yorp think
+				//obj->var1 = 0;
+			}
+			if(obj->hit_right){
+				obj->vel_x = 0x80;
+				obj->facing = 1;
+
+				obj->hit_right = 0;
+
+				// Make yorp think
+				//obj->var1 = 0;
+			}
 		}
 		
 		if(obj->var4==1){
@@ -130,8 +153,6 @@ int VKF_yorp_think(vk_object *obj){
 			obj->var4 -= 1;
 			
 		}else{
-
-			
 			if(obj->var1 == 0){
 				if( (obj->animation == &VKA_yorp_walk_1) ||
 					(obj->animation == &VKA_yorp_walk_2)){

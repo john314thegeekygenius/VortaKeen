@@ -13,6 +13,8 @@
 
 #include "VK_Headers.h"
 
+uint16_t vk_keen_input[7]; 
+
 uint16_t VK_WaitForButton(){
 	while(1){
 		uint16_t b = VK_ButtonDown();

@@ -39,6 +39,8 @@ typedef enum {
 	vko_yorp 	= 3,
 	vko_garg 	= 4,
 	vko_vorticon = 5,
+	vko_butler = 6,
+	vko_robotank = 7,
 	vko_shot_friendly = 10,
 	vko_shot_deadly = 11,
 	vko_shot_zapzot = 12,
@@ -102,6 +104,7 @@ extern vk_object *vk_keen_obj;
 
 void VK_SpawnShot(int32_t x,int32_t y,uint16_t dir, uint16_t type);
 
+int VK_ObjAtEdge(vk_object *obj);
 vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y);
 
 void VK_SetObjAnimation(vk_object *obj,vk_obj_ani *animation);

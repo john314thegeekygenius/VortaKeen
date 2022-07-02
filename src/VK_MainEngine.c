@@ -337,6 +337,43 @@ void VK_DoGameLoop(){
 		VK_UpdateInput();
 		
 		uint16_t button_up = VK_ButtonUp();
+		
+		// Grab the input
+		if(VK_CheckButton(GBA_BUTTON_RIGHT)){
+			vk_keen_input[0] = 1;
+		}else{
+			vk_keen_input[0] = 0;
+		}
+		if(VK_CheckButton(GBA_BUTTON_LEFT)){
+			vk_keen_input[1] = 1;
+		}else{
+			vk_keen_input[1] = 0;
+		}
+		if(VK_CheckButton(GBA_BUTTON_UP)){
+			vk_keen_input[2] = 1;
+		}else{
+			vk_keen_input[2] = 0;
+		}
+		if(VK_CheckButton(GBA_BUTTON_DOWN)){
+			vk_keen_input[3] = 1;
+		}else{
+			vk_keen_input[3] = 0;
+		}
+		if(VK_CheckButton(GBA_BUTTON_A)){
+			vk_keen_input[4] = 1;
+		}else{
+			vk_keen_input[4] = 0;
+		}
+		if(VK_CheckButton(GBA_BUTTON_B)){
+			vk_keen_input[5] = 1;
+		}else{
+			vk_keen_input[5] = 0;
+		}
+		if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+			vk_keen_input[6] = 1;
+		}else{
+			vk_keen_input[6] = 0;
+		}
 
 		// Position the level
 		if(vk_keen_obj->hitmap){

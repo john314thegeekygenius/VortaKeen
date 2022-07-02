@@ -86,6 +86,12 @@ int VKF_keen_init(vk_object *obj){
 };
 
 int VKF_keen_collide(vk_object *obj, vk_object *cobj){
+	if(cobj->type == vko_shot_deadly){
+		// Kill keen
+		VKF_keen_die(obj);
+		// Kill the shot
+		cobj->var1 = 1;
+	}
 	return 0;
 };
 
@@ -115,7 +121,7 @@ int VKF_keen_input(vk_object *obj){
 	
 	// Grab the input :D
 	
-	if(VK_CheckButton(GBA_BUTTON_RIGHT)){
+	if(vk_keen_input[0]){
 		// Move right
 		if(obj->on_ground!=3){
 			if(obj->var4==0){
@@ -145,7 +151,7 @@ int VKF_keen_input(vk_object *obj){
 				}
 			}
 		}
-	}else if(VK_CheckButton(GBA_BUTTON_LEFT)){
+	}else if(vk_keen_input[1]){
 		// Move left
 		if(obj->on_ground!=3){
 			if(obj->var4==0){
@@ -185,7 +191,7 @@ int VKF_keen_input(vk_object *obj){
 				}
 		}
 	}
-	if(VK_CheckButton(GBA_BUTTON_A)){
+	if(vk_keen_input[4]){
 		// Jump
 		if(obj->on_ground){
 			if(obj->var1==0){
@@ -205,7 +211,7 @@ int VKF_keen_input(vk_object *obj){
 		}
 	}
 	
-	if(VK_CheckButton(GBA_BUTTON_B)){
+	if(vk_keen_input[5]){
 		// Shoot
 		if(obj->var4 == 0){
 			if(vk_engine_gstate.ammo){
@@ -237,7 +243,7 @@ int VKF_keen_input(vk_object *obj){
 	}
 	
 	if(obj->click_map==0){
-		if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+		if(vk_keen_input[6]){
 			if(vk_engine_gstate.gotPogo ){
 				// Pogo
 				if(obj->animation==&VKA_keen_pogo_1 || obj->animation==&VKA_keen_pogo_2){
@@ -349,6 +355,9 @@ int VKF_keen_think(vk_object *obj){
 		return 0;
 	}
 
+	if(obj->hit_top ){
+		VK_PlaySound(VKS_BUMPHEADSND);
+	}
 	
 	// vk_keen_obj is defined in VK_ObjectsEngine.c
 	if(obj->hit_left||obj->hit_right){

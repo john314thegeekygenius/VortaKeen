@@ -43,10 +43,14 @@ const uint16_t VK_4_FRAMES = 0x4;
 const uint16_t VK_8_FRAMES = 0x8;
 
 
-#include "actions/VKA_Shot.h"
-#include "actions/VKA_MapKeen.h"
 #include "actions/VKA_Keen.h"
+#include "actions/VKA_MapKeen.h"
+#include "actions/VKA_Shot.h"
 #include "actions/VKA_Yorp.h"
+#include "actions/VKA_Garg.h"
+//#include "actions/VKA_Vorticon.h"
+#include "actions/VKA_Butler.h"
+#include "actions/VKA_RoboTank.h"
 
 
 
@@ -377,12 +381,19 @@ int VK_CollideMapKeenWLevel(vk_object *obj){
 	}
 };
 
+uint8_t vk_keen_collide_flag = 0;
+
 // Advanced collistion code for keen vs level
 int VK_CollideKeenWLevel(vk_object *obj){
 	int i;
 	if(obj->animation==NULL){
 		return 0;
 	}
+	if(vk_keen_collide_flag==0){
+		vk_keen_collide_flag = 1;
+		return;
+	}
+	vk_keen_collide_flag = 0;
 
 	int32_t kleft = (obj->pos_x+obj->animation->cbox.left)>>8;
 	int32_t kright = (obj->pos_x+obj->animation->cbox.right)>>8;
@@ -425,11 +436,13 @@ int VK_CollideKeenWLevel(vk_object *obj){
 										// Play the sound
 										VK_PlaySound(VKS_DOOROPENSND);
 									}else{
-										obj->pos_x &= 0xFFFFFF00;
-										if(kleft < (tileX<<4)){
-											obj->vel_x = -0x10;
+										
+										if(kright > (tileX<<4)+8){
+											obj->pos_x = (tileX<<12)+(16<<8)-obj->animation->cbox.left;
+											obj->vel_x = -0x80;
 										}else{
-											obj->vel_x = 0x10;
+											obj->pos_x = (tileX<<12)-obj->animation->cbox.right;
+											obj->vel_x = 0x80;
 										}
 									}
 									break;
@@ -444,11 +457,12 @@ int VK_CollideKeenWLevel(vk_object *obj){
 										// Play the sound
 										VK_PlaySound(VKS_DOOROPENSND);
 									}else{
-										obj->pos_x &= 0xFFFFFF00;
-										if(kleft < (tileX<<4)){
-											obj->vel_x = -0x10;
+										if(kright > (tileX<<4)+8){
+											obj->pos_x = (tileX<<12)+(16<<8)-obj->animation->cbox.left;
+											obj->vel_x = -0x80;
 										}else{
-											obj->vel_x = 0x10;
+											obj->pos_x = (tileX<<12)-obj->animation->cbox.right;
+											obj->vel_x = 0x80;
 										}
 									}
 									break;
@@ -463,11 +477,12 @@ int VK_CollideKeenWLevel(vk_object *obj){
 										// Play the sound
 										VK_PlaySound(VKS_DOOROPENSND);
 									}else{
-										obj->pos_x &= 0xFFFFFF00;
-										if(kleft < (tileX<<4)){
-											obj->vel_x = -0x10;
+										if(kright > (tileX<<4)+8){
+											obj->pos_x = (tileX<<12)+(16<<8)-obj->animation->cbox.left;
+											obj->vel_x = -0x80;
 										}else{
-											obj->vel_x = 0x10;
+											obj->pos_x = (tileX<<12)-obj->animation->cbox.right;
+											obj->vel_x = 0x80;
 										}
 									}
 									break;
@@ -483,11 +498,12 @@ int VK_CollideKeenWLevel(vk_object *obj){
 										// Play the sound
 										VK_PlaySound(VKS_DOOROPENSND);
 									}else{
-										obj->pos_x &= 0xFFFFFF00;
-										if(kleft < (tileX<<4)){
-											obj->vel_x = -0x10;
+										if(kright > (tileX<<4)+8){
+											obj->pos_x = (tileX<<12)+(16<<8)-obj->animation->cbox.left;
+											obj->vel_x = -0x80;
 										}else{
-											obj->vel_x = 0x10;
+											obj->pos_x = (tileX<<12)-obj->animation->cbox.right;
+											obj->vel_x = 0x80;
 										}
 									}
 									break;
@@ -666,7 +682,7 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									// Display message
 									break;
 								case 23:
-									if(VK_ButtonUp()==GBA_BUTTON_LSHOLDER){
+									if(vk_keen_input[6]){
 										// Change the tile
 										//vk_level_data[tile] = 0;
 										VK_ForceLevelUpdate();
@@ -858,6 +874,43 @@ int VK_CollideObjWLevel(vk_object *obj){
 	return 0;
 };
 
+
+// Test if object is at edge
+int VK_ObjAtEdge(vk_object *obj){
+	if(obj->animation==NULL){
+		return 0;
+	}
+
+	int32_t kleft = (obj->pos_x+obj->animation->cbox.left)>>8;
+	int32_t kright = (obj->pos_x+obj->animation->cbox.right)>>8;
+	int32_t kbottom = (obj->pos_y+obj->animation->cbox.bottom)>>8;
+
+	int32_t leftTile = kleft>>4;
+	int32_t rightTile = kright>>4;
+	int32_t bottomTile = kbottom>>4;
+
+	int16_t tile;
+
+	obj->on_ground = 0;
+    
+	tile = (bottomTile*vk_level_width)+leftTile-1;
+	if(!((leftTile-1)<0||bottomTile<0||(leftTile-1)>=vk_level_width||bottomTile>=vk_level_height)){
+		if(!vk_level_tileinfo[(vk_level_data[tile]*6)+2]){
+			return -1;
+		}
+	}
+
+	tile = (bottomTile*vk_level_width)+rightTile;
+	if(!(rightTile<0||bottomTile<0||rightTile>=vk_level_width||bottomTile>=vk_level_height)){
+		if(!vk_level_tileinfo[(vk_level_data[tile]*6)+2]){
+			return 1;
+		}
+	}
+
+	return 0;
+};
+
+
 vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 	vk_object * obj = &vk_level_objects[vk_num_of_objects];
 	int i;
@@ -900,7 +953,7 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 		case 1:
 			// Yorp
 			obj->s = VK_CreateSprite(1);
-			obj->animation = &VKA_yorp_idle_1;
+			VK_SetObjAnimation(obj,&VKA_yorp_idle_1);
 			obj->collide = &VKF_yorp_collide;
 			obj->think = &VKF_yorp_think;
 			obj->type = vko_yorp;
@@ -909,15 +962,44 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 			break;
 		case 2:
 			// Garg
-		break;
+			obj->s = VK_CreateSprite(2);
+			VK_SetObjAnimation(obj,&VKA_garg_idle_1);
+			obj->collide = &VKF_garg_collide;
+			obj->think = &VKF_garg_think;
+			obj->type = vko_garg;
+			obj->hitmap = 1;
+			VKF_garg_init(obj);
+			break;
 		case 3:
 			// Vorticon
+/*			obj->s = VK_CreateSprite(3);
+			VK_SetObjAnimation(obj,&VKA_vorticon_walk_1);
+			obj->collide = &VKF_vorticon_collide;
+			obj->think = &VKF_vorticon_think;
+			obj->type = vko_vorticon;
+			obj->hitmap = 1;
+			VKF_vorticon_init(obj);*/
 		break;
 		case 4:
 			// Butler robot
-		break;
+			obj->s = VK_CreateSprite(4);
+			VK_SetObjAnimation(obj,&VKA_butler_walk_1);
+			obj->collide = &VKF_butler_collide;
+			obj->think = &VKF_butler_think;
+			obj->type = vko_butler;
+			obj->hitmap = 1;
+			VKF_robotank_init(obj);
+			break;
 		case 5:
 			// Tank robot
+			obj->s = VK_CreateSprite(5);
+			VK_SetObjAnimation(obj,&VKA_robotank_roll_1);
+			obj->collide = &VKF_robotank_collide;
+			obj->think = &VKF_robotank_think;
+			obj->type = vko_robotank;
+			obj->hitmap = 1;
+			VKF_robotank_init(obj);
+			
 		break;
 		case 6:
 			// Ice up / right
@@ -937,7 +1019,7 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 		case 251:
 			// Zap Zot obj
 			obj->s = VK_CreateSprite(9);
-			obj->animation = &VKA_shot_zap;
+			VK_SetObjAnimation(obj,&VKA_shot_zap);
 			obj->collide = NULL;
 			obj->think = NULL;
 			obj->type = vko_shot_zapzot;
@@ -946,21 +1028,29 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 		case 252:
 			// Keen Shot
 			obj->s = VK_CreateSprite(8);
-			obj->animation = &VKA_shot_keen;
+			VK_SetObjAnimation(obj,&VKA_shot_keen);
 			obj->collide = &VKF_shot_collide;
 			obj->think = &VKF_shot_think;
 			obj->type = vko_shot_friendly;
 			obj->hitmap = 1;
+			obj->var1 = 0;
 		break;
 		case 253:
 			// Enemy Shot
-		break;
+			obj->s = VK_CreateSprite(8);
+			VK_SetObjAnimation(obj,&VKA_shot_enemy);
+			obj->collide = &VKF_shot_collide;
+			obj->think = &VKF_shot_think;
+			obj->type = vko_shot_deadly;
+			obj->hitmap = 1;
+			obj->var1 = 0;
+			break;
 		case 254:
 			// World Map Commander Keen
 			obj->s = VK_CreateSprite(254);
 			// WARNING: This makes it so that only one keen sprite is playable
 			vk_keen_obj = obj;
-			obj->animation = &VKA_mapkeen_idle_v;
+			VK_SetObjAnimation(obj,&VKA_mapkeen_idle_v);
 			obj->collide = &VKF_mapkeen_collide;
 			obj->think = &VKF_mapkeen_think;
 			obj->type = vko_mapkeen;
@@ -972,7 +1062,7 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 			obj->s = VK_CreateSprite(255);
 			// WARNING: This makes it so that only one keen sprite is playable
 			vk_keen_obj = obj;
-			obj->animation = &VKA_keen_idle;
+			VK_SetObjAnimation(obj,&VKA_keen_idle);
 			obj->collide = &VKF_keen_collide;
 			obj->think = &VKF_keen_think;
 			obj->type = vko_keen;
@@ -1041,6 +1131,7 @@ void VK_RenderObjects(){
 	
 	for(i=0;i<vk_num_of_objects;i++){
 		vk_object * obj = &vk_level_objects[i];
+		
 		
 		if(obj->animation == NULL){
 			// If s is NULL this will explode?
