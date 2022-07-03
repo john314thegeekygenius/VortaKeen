@@ -5,7 +5,12 @@ A port of Commander Keen Invasion of the Vorticons for the Gameboy Advance.
 
 ![Level_1](https://user-images.githubusercontent.com/36487623/176095180-65a3665d-d833-43c7-8049-5a8cf0dcce7f.png)
 
-As of right now, this is not a completed port.
+As of right now, this project is in beta.
+
+TODO:
+  Add final end sequence
+  Fix object issues
+  Add music?
 
 
 # Controls
