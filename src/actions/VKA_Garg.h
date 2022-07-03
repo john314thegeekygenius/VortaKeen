@@ -185,6 +185,8 @@ int VKF_garg_think(vk_object *obj){
 			}
 		}
 
+	}else{
+		obj->vel_x = 0;
 	}
 	
 	// Move the garg

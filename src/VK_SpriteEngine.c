@@ -162,15 +162,26 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 		
 		unsigned short cw = ptr->s.spr_width >> 3;
 		unsigned short ch = ptr->s.spr_height >> 3;
-
-		ptr->s.spr_cw[0] = (cw&0xFFFE)<<3;
-		ptr->s.spr_ch[0] = (ch&0xFFFE)<<3;
-		ptr->s.spr_cw[1] = ((cw&0x1)<<3);
-		ptr->s.spr_ch[1] = ptr->s.spr_ch[0];
-		ptr->s.spr_cw[2] = ptr->s.spr_cw[0];
-		ptr->s.spr_ch[2] = ((ch&0x1)<<3);
-		ptr->s.spr_cw[3] = 0;
-		ptr->s.spr_ch[3] = 0;
+		
+		if(cw==1&&ch==1){
+			ptr->s.spr_cw[0] = 8;
+			ptr->s.spr_ch[0] = 8;
+			ptr->s.spr_cw[1] = 0;
+			ptr->s.spr_ch[1] = 0;
+			ptr->s.spr_cw[2] = 0;
+			ptr->s.spr_ch[2] = 0;
+			ptr->s.spr_cw[3] = 0;
+			ptr->s.spr_ch[3] = 0;
+		}else{
+			ptr->s.spr_cw[0] = (cw&0xFFFE)<<3;
+			ptr->s.spr_ch[0] = (ch&0xFFFE)<<3;
+			ptr->s.spr_cw[1] = ((cw&0x1)<<3);
+			ptr->s.spr_ch[1] = ptr->s.spr_ch[0];
+			ptr->s.spr_cw[2] = ptr->s.spr_cw[0];
+			ptr->s.spr_ch[2] = ((ch&0x1)<<3);
+			ptr->s.spr_cw[3] = 0;
+			ptr->s.spr_ch[3] = 0;
+		}
 
 		if(ptr->s.spr_cw[1] && ptr->s.spr_ch[2]){
 			// Need extra sprite

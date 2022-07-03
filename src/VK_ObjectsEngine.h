@@ -39,11 +39,15 @@ typedef enum {
 	vko_yorp 	= 3,
 	vko_garg 	= 4,
 	vko_vorticon = 5,
+	vko_vorticon_commander = 15,
 	vko_butler = 6,
 	vko_robotank = 7,
-	vko_shot_friendly = 10,
-	vko_shot_deadly = 11,
-	vko_shot_zapzot = 12,
+	vko_icecube = 8,
+	vko_iceshard = 9,
+	vko_chain = 10,
+	vko_shot_friendly = 20,
+	vko_shot_deadly = 21,
+	vko_shot_zapzot = 22,
 }vk_obj_type;
 
 
@@ -97,6 +101,18 @@ typedef struct vk_door_sprite{
 	uint32_t bt_off;
 }vk_door_sprite;
 
+
+typedef struct vk_ice_spawner{
+	int32_t x;
+	int32_t y;
+	uint16_t vel_x;
+	uint16_t vel_y;
+	uint16_t timer;
+}vk_ice_spawner;
+
+
+
+
 void VK_SetupDoors();
 void VK_SpawnDoor(int32_t x, int32_t y, uint16_t door_type, uint16_t t_tile, uint16_t b_tile);
 
@@ -110,6 +126,7 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y);
 void VK_SetObjAnimation(vk_object *obj,vk_obj_ani *animation);
 void VK_RemoveObjects();
 void VK_RenderObjects();
+void VK_HideObjects();
 
 
 #endif

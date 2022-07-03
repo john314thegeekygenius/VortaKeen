@@ -101,8 +101,9 @@ DONT_OPTIMISE void GBA_DMA_MemSet32(uint32_t* dest, uint32_t val, int len);
 
 // ASM Copy
 
-void GBA_ASM_Copy16(uint16_t* dest, uint16_t* source, int amount);
 void GBA_ASM_MemSet16(uint16_t* dest, uint16_t val, int amount);
+void GBA_ASM_Copy8(uint8_t* dest, uint8_t* source, int amount);
+void GBA_ASM_Copy16(uint16_t* dest, uint16_t* source, int amount);
 void GBA_ASM_Copy32(uint32_t* dest, uint32_t* source, int amount);
 
 

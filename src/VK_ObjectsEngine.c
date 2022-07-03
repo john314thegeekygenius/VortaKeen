@@ -48,10 +48,71 @@ const uint16_t VK_8_FRAMES = 0x8;
 #include "actions/VKA_Shot.h"
 #include "actions/VKA_Yorp.h"
 #include "actions/VKA_Garg.h"
-//#include "actions/VKA_Vorticon.h"
+#include "actions/VKA_Vorticon.h"
 #include "actions/VKA_Butler.h"
 #include "actions/VKA_RoboTank.h"
+#include "actions/VKA_Ice.h"
+#include "actions/VKA_Chain.h"
 
+
+vk_ice_spawner VK_IceSpawners[32]; // Max of 32 spawners??????
+int vk_ice_spawner_count = 0;
+
+void VK_SpawnIceSpawner(int32_t x,int32_t y, uint16_t type){
+	vk_ice_spawner *ispw = &VK_IceSpawners[vk_ice_spawner_count];
+	
+	ispw->x = x;
+	ispw->y = y;
+	ispw->timer = 0;
+	
+	ispw->vel_x = 0;
+	ispw->vel_y = 0;
+
+	switch(type){
+		case 0:
+			// E
+			ispw->vel_x = 0x200;
+		break;
+		case 1:
+			// NE
+			ispw->vel_y = -0x200;
+			ispw->vel_x = 0x200;
+		break;
+		case 2:
+			// N
+			ispw->vel_y = -0x200;
+		break;
+		case 3:
+			// NW
+			ispw->vel_y = -0x200;
+			ispw->vel_x = -0x200;
+		break;
+		case 4:
+			// W
+			ispw->vel_x = -0x200;
+		break;
+		case 5:
+			// SW
+			ispw->vel_y = 0x200;
+			ispw->vel_x = -0x200;
+		break;
+		case 6:
+			// S
+			ispw->vel_y = 0x200;
+		break;
+		case 7:
+			// SE
+			ispw->vel_y = 0x200;
+			ispw->vel_x = 0x200;
+		break;
+	}
+	vk_ice_spawner_count += 1;
+
+	// Overwrite the first spawners????
+	if(vk_ice_spawner_count >= 32){
+		vk_ice_spawner_count = 0;
+	}
+};
 
 
 void VK_SpawnShot(int32_t x,int32_t y,uint16_t dir, uint16_t type){
@@ -75,7 +136,7 @@ void VK_SetupDoors(){
 	for(i=0;i<8;i++){
 		VK_Doors[i].animation = 0xFF;
 		VK_Doors[i].tag = 120+i;
-		GBA_RemakeSprite(VK_Doors[i].tag,0xF0,0xA0,GBA_SPR_16_32,VK_DOOR_GFX_OFFSET+(i<<6),GBA_SPRITE_ZFRONT,-1);
+		GBA_RemakeSprite(VK_Doors[i].tag,0xF0,0xA0,GBA_SPR_16_32,VK_DOOR_GFX_OFFSET+(i<<6),GBA_SPRITE_ZTOP,-1);
 		GBA_SET_SPRITE_TILES(VK_Doors[i].tag,0x380+(i<<4));
 		GBA_UPDATE_SPRITE(VK_Doors[i].tag);
 
@@ -273,6 +334,7 @@ int VK_CollideMapKeenWLevel(vk_object *obj){
 	int32_t bottomTile = kbottom>>4;
 
 	int16_t tileY,tileX,tile;
+
 	
 	obj->var1 = 0;
 	
@@ -406,6 +468,8 @@ int VK_CollideKeenWLevel(vk_object *obj){
 	int32_t bottomTile = kbottom>>4;
 
 	int16_t tileY,tileX,tile;
+
+
 	
 	obj->click_map = 0;
 	
@@ -619,6 +683,11 @@ int VK_CollideKeenWLevel(vk_object *obj){
 													vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
 												}
 												VK_PlaySound(14);
+												
+												vk_engine_gstate.gotKeycardY = 0;
+												vk_engine_gstate.gotKeycardR = 0;
+												vk_engine_gstate.gotKeycardG = 0;
+												vk_engine_gstate.gotKeycardB = 0;
 
 												vk_engine_gstate.finished_level = 1;
 											}
@@ -663,23 +732,15 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									break;
 								case 22:
 									// Fix tile
-									vk_level_data[tile] -= ((vk_tileanimations[vk_level_data[tile]]>>4)&0xF);
-
-									// Remove the animation
-									for(i = 0; i < ck_number_of_updates; i++){
-										if(ck_update_positions[i][0] == tileX){
-											if(ck_update_positions[i][1] == tileY){
-												ck_update_positions[i][0] = 0;
-												ck_update_positions[i][1] = 0;
-											}
-										}
-									}
+									vk_level_data[tile] = vk_level_data[tile+vk_level_width]-1;
 									
 									VK_ForceLevelUpdate();
 									// Stop all sound
 									VK_StopSound();
 
 									// Display message
+									VK_DisplayMessage(vk_engine_gstate.in_game-1);
+									
 									break;
 								case 23:
 									if(vk_keen_input[6]){
@@ -694,10 +755,50 @@ int VK_CollideKeenWLevel(vk_object *obj){
 										obj->click_map = 1;
 									}
 									break;
-								case 24:
+								case  24:
 									// Teleport Keen to secret area
-									// Play the sound
-									//VK_PlaySound(VKS_CLICKSND);
+
+									// VK_TELEPORT_DEST is defined in VK_LevelEngine.c
+									vk_engine_gstate.posX = VK_TELEPORT_DEST[(2<<1)];
+									vk_engine_gstate.posY = VK_TELEPORT_DEST[(2<<1)+1];
+
+									vk_engine_gstate.viewportX = vk_engine_gstate.posX-(8<<12);
+									vk_engine_gstate.viewportY = vk_engine_gstate.posY-(6<<12);
+
+									if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+										vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+									}
+									
+									vk_engine_gstate.gotKeycardY = 0;
+									vk_engine_gstate.gotKeycardR = 0;
+									vk_engine_gstate.gotKeycardG = 0;
+									vk_engine_gstate.gotKeycardB = 0;
+
+									VK_ReturnToWorldmap();
+
+									vk_engine_gstate.posX = VK_TELEPORT_DEST[(2<<1)];
+									vk_engine_gstate.posY = VK_TELEPORT_DEST[(2<<1)+1];
+
+									vk_engine_gstate.viewportX = vk_engine_gstate.posX-(8<<12);
+									vk_engine_gstate.viewportY = vk_engine_gstate.posY-(6<<12);
+									
+									vk_keen_obj->pos_x = vk_engine_gstate.posX;
+									vk_keen_obj->pos_y = vk_engine_gstate.posY;
+
+									vk_engine_gstate.teleporting = 0x20; // Timer
+									vk_engine_gstate.teleporter_pos = ((VK_TELEPORT_DEST[(2<<1)+1]>>12)*vk_level_width) + (VK_TELEPORT_DEST[(2<<1)]>>12);
+									vk_engine_gstate.teleporter = vk_level_data[vk_engine_gstate.teleporter_pos];
+
+									VK_PlaySound(VKS_TELEPORTSND);
+									
+									// Animate the teleporter
+									vk_level_data[vk_engine_gstate.teleporter_pos] = vk_num_of_tiles-8; // Ice is -4
+
+									// Add the animation
+									ck_update_positions[ck_number_of_updates][0] = (vk_engine_gstate.teleporter_pos%vk_level_width);
+									ck_update_positions[ck_number_of_updates][1] = (vk_engine_gstate.teleporter_pos/vk_level_width);
+									ck_number_of_updates += 1;
+									return;
 									break;
 								case 25:
 									if(VK_ButtonUp()==GBA_BUTTON_LSHOLDER){
@@ -972,13 +1073,17 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 			break;
 		case 3:
 			// Vorticon
-/*			obj->s = VK_CreateSprite(3);
+			obj->s = VK_CreateSprite(3);
 			VK_SetObjAnimation(obj,&VKA_vorticon_walk_1);
 			obj->collide = &VKF_vorticon_collide;
 			obj->think = &VKF_vorticon_think;
 			obj->type = vko_vorticon;
+			if(vk_level_id==16){
+				obj->type = vko_vorticon_commander;
+			}
 			obj->hitmap = 1;
-			VKF_vorticon_init(obj);*/
+			VKF_vorticon_init(obj);
+
 		break;
 		case 4:
 			// Butler robot
@@ -1002,19 +1107,21 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 			
 		break;
 		case 6:
-			// Ice up / right
-		break;
 		case 7:
-			// Ice up
-		break;
 		case 8:
-			// Ice down
-		break;
 		case 9:
-			// Ice up / left
+			// Ice
 		break;
 		case 10:
 			// Chain
+			obj->s = VK_CreateSprite(10);
+			VK_SetObjAnimation(obj,&VKA_chain);
+			obj->collide = &VKF_chain_collide;
+			obj->think = &VKF_chain_think;
+			obj->type = vko_chain;
+			obj->hitmap = 0;
+			VKF_chain_init(obj);
+			
 		break;
 		case 251:
 			// Zap Zot obj
@@ -1068,10 +1175,11 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 			obj->type = vko_keen;
 			obj->hitmap = 1;
 			VKF_keen_init(obj);
+			obj->on_ground = 1;
 		break;
 	};
-	obj->pos_x = x;
-	obj->pos_y = y;
+	obj->pos_x = x - (obj->animation->cbox.left);
+	obj->pos_y = y;// + (32<<8) - (obj->animation->cbox.bottom);
 
 	obj->gfx_needs_update = 1;
 	obj->frame_count = 0;
@@ -1088,6 +1196,8 @@ void VK_RemoveObjects(){
 
 	vk_door_count = 0;
 	VK_SetupDoors();
+	
+	vk_ice_spawner_count = 0;
 
 };
 
@@ -1127,6 +1237,34 @@ void VK_RenderObjects(){
 	
 	// Render the doors
 	VK_RenderDoors();
+	
+	// Run the spawners
+	for(i = 0; i < vk_ice_spawner_count; i++){
+		vk_ice_spawner *ispw = &VK_IceSpawners[i];
+		ispw->timer += 1;
+		if(ispw->timer > 0x40){
+			ispw->timer = 0;
+			// Spawn cube if keen is near
+			if(ispw->y > vk_keen_obj->pos_y-(256<<8) && ispw->y < vk_keen_obj->pos_y+(256<<8)){
+				if(ispw->x > vk_keen_obj->pos_x-(256<<8) && ispw->x < vk_keen_obj->pos_x+(256<<8)){
+
+					// Spawn the cube
+					vk_object * obj = VK_CreateObject(6,ispw->x,ispw->y);
+					obj->s = VK_CreateSprite(6);
+					VK_SetObjAnimation(obj,&VKA_icecube);
+					obj->collide = &VKF_icecube_collide;
+					obj->think = &VKF_icecube_think;
+					obj->type = vko_icecube;
+					obj->hitmap = 1; // Yes we collide
+					// Set the velocitys
+					obj->vel_x = ispw->vel_x;
+					obj->vel_y = ispw->vel_y;
+					// Play the firing sound
+					VK_PlaySound(VKS_CANNONFIRE);
+				}
+			}
+		}
+	}
 
 	
 	for(i=0;i<vk_num_of_objects;i++){
@@ -1149,44 +1287,54 @@ void VK_RenderObjects(){
 					}
 				}
 			}
-			if(obj->hitmap){
-				VK_CollideObjWLevel(obj);
-			}
 
-			if(obj->collide!=NULL){
-				if(VK_ObjInObj(obj,vk_keen_obj)){
-					obj->collide(obj,vk_keen_obj);
-				}
+			// Only update the object if near keen
+			if(obj->pos_y > vk_keen_obj->pos_y-(256<<8) && obj->pos_y < vk_keen_obj->pos_y+(256<<8)){
+				if(obj->pos_x > vk_keen_obj->pos_x-(256<<8) && obj->pos_x < vk_keen_obj->pos_x+(256<<8)){
 
-				// Collide all objects with shots
-				if(obj->type == vko_shot_friendly || obj->type == vko_shot_deadly){
-					for(e=0;e<vk_num_of_objects;e++){
-						if(e==i) continue;
-						if(VK_ObjInObj(obj,&vk_level_objects[e])){
-							vk_level_objects[e].collide(&vk_level_objects[e],obj);
+
+					if(obj->hitmap){
+						VK_CollideObjWLevel(obj);
+					}
+
+					if(obj->collide!=NULL){
+						if(VK_ObjInObj(obj,vk_keen_obj)){
+							obj->collide(obj,vk_keen_obj);
+						}
+
+						// Collide all objects with shots
+						if(obj->type == vko_shot_friendly || obj->type == vko_shot_deadly){
+							for(e=0;e<vk_num_of_objects;e++){
+								if(e==i) continue;
+								if(VK_ObjInObj(obj,&vk_level_objects[e])){
+									vk_level_objects[e].collide(&vk_level_objects[e],obj);
+								}
+							}
 						}
 					}
+
+					if(obj->think!=NULL){
+						obj->think(obj);
+					}
+
+					cx = (obj->pos_x>>8)-(vk_level_offsetx<<4);
+					cy = (obj->pos_y>>8)-(vk_level_offsety<<4);
+					cx -= vk_map_offsetx;
+					cy -= vk_map_offsety;
+					
+					if(cx >= (0-obj->s->s.spr_width) && cy >= (0-obj->s->s.spr_height) && cx < (32<<3) && cy < (20<<3)){
+						if(obj->gfx_needs_update){
+							obj->gfx_needs_update = 0;
+							VK_SetSpriteGraphics(obj->s);
+						}
+					}
+					obj->s->x = cx;
+					obj->s->y = cy;
+					VK_RenderSprite(obj->s);
+
 				}
 			}
 
-			if(obj->think!=NULL){
-				obj->think(obj);
-			}
-
-			cx = (obj->pos_x>>8)-(vk_level_offsetx<<4);
-			cy = (obj->pos_y>>8)-(vk_level_offsety<<4);
-			cx -= vk_map_offsetx;
-			cy -= vk_map_offsety;
-			
-			if(cx >= (0-obj->s->s.spr_width) && cy >= (0-obj->s->s.spr_height) && cx < (32<<3) && cy < (20<<3)){
-				if(obj->gfx_needs_update){
-					obj->gfx_needs_update = 0;
-					VK_SetSpriteGraphics(obj->s);
-				}
-			}
-			obj->s->x = cx;
-			obj->s->y = cy;
-			VK_RenderSprite(obj->s);
 		}else{
 			// Reposition the sprite
 			VK_RenderSprite(obj->s);
@@ -1224,4 +1372,9 @@ void VK_RenderObjects(){
 	}
 
 };
+
+void VK_HideObjects(){
+	GBA_HideSprites();
+};
+
 

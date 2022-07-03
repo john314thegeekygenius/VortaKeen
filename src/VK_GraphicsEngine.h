@@ -36,6 +36,7 @@ void VK_FadeIn();
 
 extern uint16_t VK_TextX;
 extern uint16_t VK_TextY;
+void VK_PrintTXT(char *string);
 void VK_Print(char *string);
 void VK_Print2(char *string);
 char * VK_Iota16(int32_t val);

@@ -160,7 +160,7 @@ void VK_ClearWorldMap(){
 				 if(vk_engine_gstate.levelDone[((*tile)&0xFF)-1]){
 					 vk_sprite_data[(e*(vk_level_width>>3))+(i>>3)] |= vk_bithash[i%8];
 
-					 if(fixedlevel[(*tile)&0xFF]==0){
+					 if(fixedlevel[((*tile)&0xFF)-1]==0){
 						 // Add DONE sign
 						 if( ((*(tile+1)) &0xFF) == 0){
 							 // Make it a small sign
@@ -172,7 +172,7 @@ void VK_ClearWorldMap(){
 							 vk_level_data[((e+1)*vk_level_width)+i] = vk_num_of_tiles-10;
 							 vk_level_data[((e+1)*vk_level_width)+i+1] = vk_num_of_tiles-9;
 						 }
-						 fixedlevel[(*tile)&0xFF] = 1;
+						 fixedlevel[((*tile)&0xFF)-1] = 1;
 					 }
 
 				 }
@@ -463,7 +463,25 @@ void VK_LoadLevel(uint16_t levelid){
 			
 			if(vk_level_id<=16){
 				if( (*sprite)>=1&&(*sprite)<=10 ){
-					vk_object * obj = VK_CreateObject(*sprite,(i<<12),(e<<12));
+					// Spawn ice spawners if needed
+					if( (*sprite)==6){
+						// Ice up / right
+						VK_SpawnIceSpawner((i<<12),(e<<12),1);
+					}else
+					if( (*sprite)==7){
+						// Ice up
+						VK_SpawnIceSpawner((i<<12),(e<<12),2);
+					}else
+					if( (*sprite)==8){
+						// Ice down
+						VK_SpawnIceSpawner((i<<12),(e<<12),6);
+					}else
+					if( (*sprite)==9){
+						// Ice up / left
+						VK_SpawnIceSpawner((i<<12),(e<<12),3);
+					}else{
+						vk_object * obj = VK_CreateObject(*sprite,(i<<12),(e<<12));
+					}
 				}
 			}
 			if( (*sprite)==255) {
@@ -473,7 +491,8 @@ void VK_LoadLevel(uint16_t levelid){
 					temp_keen_obj->pos_y = (e<<12);
 				}else{
 					temp_keen_obj->pos_x = (i<<12);
-					temp_keen_obj->pos_y = (e<<12)+(32<<8)-(temp_keen_obj->animation->cbox.bottom);
+					temp_keen_obj->pos_y = (e<<12)+(8<<8);
+					temp_keen_obj->vel_y = 0x10;
 					temp_keen_obj->on_ground = 1; // Assume we are on the ground
 				}
 				// Set the viewport

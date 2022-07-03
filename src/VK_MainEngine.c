@@ -276,11 +276,25 @@ void VK_NewGame(){
 	for(i=0;i<9;i++)
 		vk_engine_gstate.cities[i] = 0;
 
+	// Make sure we load everything
+	vk_engine_gstate.has_loaded = 0;
+
 	// We faded out, so fade in
 	vk_engine_gstate.faded = 1;
 		
 	VK_ReturnToWorldmap();
 };
+
+void VK_InitGame(){
+
+	vk_engine_gstate.lights_out = 0;
+
+	// We faded out, so fade in
+	vk_engine_gstate.faded = 1;
+		
+	VK_ReturnToWorldmap();
+};
+
 
 void VK_ReturnToWorldmap(){
 
@@ -325,6 +339,9 @@ void VK_DoGameLoop(){
 		vk_engine_gstate.in_game = 1;
 	}
 	
+	// We should never be teleporting when we first load
+	vk_engine_gstate.teleporting = 0;
+	
 	while(vk_engine_gstate.in_game){
 		
 		if(vk_engine_gstate.level_to_load!=0){
@@ -334,123 +351,148 @@ void VK_DoGameLoop(){
 		}
 
 
-		VK_UpdateInput();
-		
-		uint16_t button_up = VK_ButtonUp();
-		
-		// Grab the input
-		if(VK_CheckButton(GBA_BUTTON_RIGHT)){
-			vk_keen_input[0] = 1;
-		}else{
-			vk_keen_input[0] = 0;
-		}
-		if(VK_CheckButton(GBA_BUTTON_LEFT)){
-			vk_keen_input[1] = 1;
-		}else{
-			vk_keen_input[1] = 0;
-		}
-		if(VK_CheckButton(GBA_BUTTON_UP)){
-			vk_keen_input[2] = 1;
-		}else{
-			vk_keen_input[2] = 0;
-		}
-		if(VK_CheckButton(GBA_BUTTON_DOWN)){
-			vk_keen_input[3] = 1;
-		}else{
-			vk_keen_input[3] = 0;
-		}
-		if(VK_CheckButton(GBA_BUTTON_A)){
-			vk_keen_input[4] = 1;
-		}else{
-			vk_keen_input[4] = 0;
-		}
-		if(VK_CheckButton(GBA_BUTTON_B)){
-			vk_keen_input[5] = 1;
-		}else{
-			vk_keen_input[5] = 0;
-		}
-		if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
-			vk_keen_input[6] = 1;
-		}else{
-			vk_keen_input[6] = 0;
-		}
+		if(vk_engine_gstate.teleporting){
+			vk_engine_gstate.teleporting -= 1;
+			if(vk_engine_gstate.teleporting==0x00){
+				vk_level_data[vk_engine_gstate.teleporter_pos] = vk_engine_gstate.teleporter;
 
-		// Position the level
-		if(vk_keen_obj->hitmap){
+				// Remove the animation
+				ck_number_of_updates -= 1;
+				ck_update_positions[ck_number_of_updates][0] = 0;
+				ck_update_positions[ck_number_of_updates][1] = 0;
+
+				vk_viewport_x = vk_keen_obj->pos_x-(8<<12);
+				vk_viewport_y = vk_keen_obj->pos_y-(6<<12);
+				
+				VK_ForceLevelUpdate();
+			}
+		}else{
+
+			VK_UpdateInput();
 			
-			if(button_up==GBA_BUTTON_START){
-				// Spawn status bar
-				VK_StatusBar();
-			}
-			if(button_up==GBA_BUTTON_SELECT){
-				// Spawn exit dialog
-				if(VK_QuitDialog()){
-					VK_QuitGame();
-					return;
-				}
-			}
-			/*
-			if(button_up==GBA_BUTTON_RSHOLDER){
-				if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
-					vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
-
-					VK_PlaySound(14);
-					while(VK_SoundDone());
-					VK_ReturnToWorldmap();
-
-				}	
-			}*/
+			uint16_t button_up = VK_ButtonUp();
 			
-			if(vk_keen_obj->pos_x > (vk_viewport_x + (8<<12))){//
-				vk_viewport_x += 0x200;
-				if(vk_keen_obj->pos_x < (vk_viewport_x + (8<<12))){//
-					vk_viewport_x = (vk_keen_obj->pos_x-(8<<12));
-				}
+			// Grab the input
+			if(VK_CheckButton(GBA_BUTTON_RIGHT)){
+				vk_keen_input[0] = 1;
+			}else{
+				vk_keen_input[0] = 0;
 			}
-			if(vk_keen_obj->pos_x < (vk_viewport_x+(6<<12))){//
-				vk_viewport_x -= 0x200;
-				if(vk_keen_obj->pos_x > (vk_viewport_x + (6<<12))){//
-					vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
-				}
+			if(VK_CheckButton(GBA_BUTTON_LEFT)){
+				vk_keen_input[1] = 1;
+			}else{
+				vk_keen_input[1] = 0;
 			}
-			if(vk_keen_obj->pos_y > (vk_viewport_y + (7<<12))){//
-				vk_viewport_y += 0x400;
-				if(vk_keen_obj->pos_y < (vk_viewport_y + (7<<12))){//
-					vk_viewport_y = (vk_keen_obj->pos_y-(7<<12));
-				}
+			if(VK_CheckButton(GBA_BUTTON_UP)){
+				vk_keen_input[2] = 1;
+			}else{
+				vk_keen_input[2] = 0;
 			}
-			if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
-				vk_viewport_y -= 0x400;
-				if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
-					vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
-				}
+			if(VK_CheckButton(GBA_BUTTON_DOWN)){
+				vk_keen_input[3] = 1;
+			}else{
+				vk_keen_input[3] = 0;
 			}
-			//vk_viewport_x = vk_keen_obj->pos_y-(8<<12);
-			//vk_viewport_y = vk_keen_obj->pos_y-(6<<12);
+			if(VK_CheckButton(GBA_BUTTON_A)){
+				vk_keen_input[4] = 1;
+			}else{
+				vk_keen_input[4] = 0;
+			}
+			if(VK_CheckButton(GBA_BUTTON_B)){
+				vk_keen_input[5] = 1;
+			}else{
+				vk_keen_input[5] = 0;
+			}
+			if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+				vk_keen_input[6] = 1;
+			}else{
+				vk_keen_input[6] = 0;
+			}
+			if(VK_ButtonUp() == (GBA_BUTTON_RSHOLDER)){
+				VK_InfoOptions();
+			}
 
-			VK_UnLockCamera();
-			VK_PositionCamera((vk_viewport_x>>8)&0xF,(vk_viewport_y>>8)&0xF);
-			VK_PositionLevel((vk_viewport_x>>12),(vk_viewport_y>>12));
+			// Position the level
+			if(vk_keen_obj->hitmap){
+				
+				if(button_up==GBA_BUTTON_START){
+					// Spawn status bar
+					VK_StatusBar();
+				}
+				if(button_up==GBA_BUTTON_SELECT){
+					// Spawn exit dialog
+					if(VK_QuitDialog()){
+						VK_QuitGame();
+						return;
+					}
+				}
+				/*
+				if(button_up==GBA_BUTTON_RSHOLDER){
+					if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+						vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+
+						VK_PlaySound(14);
+						while(VK_SoundDone());
+						VK_ReturnToWorldmap();
+
+					}	
+				}*/
+				
+				if(vk_keen_obj->pos_x > (vk_viewport_x + (8<<12))){//
+					vk_viewport_x += 0x200;
+					if(vk_keen_obj->pos_x < (vk_viewport_x + (8<<12))){//
+						vk_viewport_x = (vk_keen_obj->pos_x-(8<<12));
+					}
+				}
+				if(vk_keen_obj->pos_x < (vk_viewport_x+(6<<12))){//
+					vk_viewport_x -= 0x200;
+					if(vk_keen_obj->pos_x > (vk_viewport_x + (6<<12))){//
+						vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
+					}
+				}
+				if(vk_keen_obj->pos_y > (vk_viewport_y + (7<<12))){//
+					vk_viewport_y += 0x400;
+					if(vk_keen_obj->pos_y < (vk_viewport_y + (7<<12))){//
+						vk_viewport_y = (vk_keen_obj->pos_y-(7<<12));
+					}
+				}
+				if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
+					vk_viewport_y -= 0x400;
+					if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
+						vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
+					}
+				}
+
+				VK_UnLockCamera();
+				VK_PositionCamera((vk_viewport_x>>8)&0xF,(vk_viewport_y>>8)&0xF);
+				VK_PositionLevel((vk_viewport_x>>12),(vk_viewport_y>>12));
+			}
 		}
 		
 		VK_UpdateLevel();
 
-		if(vk_keen_obj->type==vko_keen){
-			VK_CollideKeenWLevel(vk_keen_obj);
-		}
-		if(vk_keen_obj->type==vko_mapkeen){
-			VK_CollideMapKeenWLevel(vk_keen_obj);
-		}
+		if(vk_engine_gstate.teleporting==0){
+			if(vk_keen_obj->type==vko_keen){
+				VK_CollideKeenWLevel(vk_keen_obj);
+			}
+			if(vk_keen_obj->type==vko_mapkeen){
+				VK_CollideMapKeenWLevel(vk_keen_obj);
+			}
 
-		if(vk_keen_obj->type==vko_keen){
-			VKF_keen_input(vk_keen_obj);
-		}else{
-			VKF_mapkeen_input(vk_keen_obj);
+			if(vk_keen_obj->type==vko_keen){
+				VKF_keen_input(vk_keen_obj);
+			}else{
+				VKF_mapkeen_input(vk_keen_obj);
+			}
 		}
 
 		VK_RenderLevel();
 		
-		VK_RenderObjects();
+		if(vk_engine_gstate.teleporting==0){
+			VK_RenderObjects();
+		}else{
+			VK_HideObjects();
+		}
 
 		if(vk_engine_gstate.level_to_load==0){
 			if(vk_engine_gstate.faded==1){
@@ -458,7 +500,9 @@ void VK_DoGameLoop(){
 				
 				VK_FadeIn();
 				if(vk_engine_gstate.in_game==80){
-					VK_KeensLeft();
+					if(vk_engine_gstate.teleporting==0x00){
+						VK_KeensLeft();
+					}
 				}
 			}
 			if(vk_engine_gstate.faded==2){
@@ -476,6 +520,10 @@ void VK_MainEngine(){
 
 	VK_LoadHighScores();
 	
+	VK_LoadOptions();
+	
+	VK_SoundEnabled = vk_engine_gstate.sound_enabled;
+		
 	while(1){
 		// Run the demos
 		switch(vk_engine_demo){

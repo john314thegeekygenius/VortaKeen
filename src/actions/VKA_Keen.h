@@ -63,11 +63,11 @@ vk_obj_ani VKA_keen_die_2 = {23, 23, VK_2_FRAMES, { 4<<8, 16<<8, 12<<8, 24<<8}, 
 vk_obj_ani VKA_keen_pogo_1 = {25, 27, VK_2_FRAMES, { 4<<8, 0<<8, 12<<8, 24<<8}, &VKA_keen_pogo_2 };
 vk_obj_ani VKA_keen_pogo_2 = {24, 26, VK_2_FRAMES, { 4<<8, 0<<8, 12<<8, 24<<8}, &VKA_keen_pogo_2 };
 
-vk_obj_ani VKA_keen_ice_1 = {28, 28, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_ice_2 };
-vk_obj_ani VKA_keen_ice_2 = {29, 29, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_ice_1 };
+vk_obj_ani VKA_keen_ice_1 = {28, 28, VK_4_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_ice_2 };
+vk_obj_ani VKA_keen_ice_2 = {29, 29, VK_4_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_ice_1 };
 
-vk_obj_ani VKA_keen_confused = {30, 30, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_confused };
-vk_obj_ani VKA_keen_ice_break = {31, 31, VK_2_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_idle };
+vk_obj_ani VKA_keen_confused = {30, 30, VK_4_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_confused };
+vk_obj_ani VKA_keen_ice_break = {31, 31, VK_4_FRAMES, { 4<<8, 1<<8, 12<<8, 24<<8}, &VKA_keen_idle };
 
 
 
@@ -77,6 +77,7 @@ int VKF_keen_init(vk_object *obj){
 	// Set is jumping
 	obj->var1 = 0x00;
 	// Death counter
+	// Ice counter
 	obj->var2 = 0x00;
 	// Set jump time
 	obj->var3 = 0x00;
@@ -92,12 +93,19 @@ int VKF_keen_collide(vk_object *obj, vk_object *cobj){
 		// Kill the shot
 		cobj->var1 = 1;
 	}
+
 	return 0;
 };
 
 int VKF_keen_die(vk_object *obj){
+	if( (obj->animation == &VKA_keen_ice_1) ||
+		(obj->animation == &VKA_keen_ice_2) ||
+		(obj->animation == &VKA_keen_confused) ||
+		(obj->animation == &VKA_keen_ice_break) ){
+			obj->var2 = 0; // Kill keen even if we are frozen
+	}
 	if(obj->var2==0){
-		obj->animation = &VKA_keen_die_1;
+		VK_SetObjAnimation(obj,&VKA_keen_die_1);
 		// Set timer
 		obj->var2 = 0x40;
 		// Set position
@@ -116,6 +124,14 @@ int VKF_keen_die(vk_object *obj){
 int VKF_keen_input(vk_object *obj){
 	// Don't take input if we can't hit the map???
 	if(obj->hitmap==0){
+		return 0;
+	}
+	
+	// Or if we are frozen!
+	if( (obj->animation == &VKA_keen_ice_1) ||
+		(obj->animation == &VKA_keen_ice_2) ||
+		(obj->animation == &VKA_keen_confused) ||
+		(obj->animation == &VKA_keen_ice_break) ){
 		return 0;
 	}
 	
@@ -312,8 +328,21 @@ int VKF_keen_input(vk_object *obj){
 	return 0;
 };
 
+
+
+
+
 int VKF_keen_think(vk_object *obj){
-	
+
+	if( (obj->animation == &VKA_keen_ice_1) ||
+		(obj->animation == &VKA_keen_ice_2)){
+			obj->var2 += 1;
+			if(obj->var2 > 0x180){
+				obj->var2 = 0;
+				VK_SetObjAnimation(obj,&VKA_keen_ice_break);
+			}
+	}
+
 	if(vk_engine_gstate.finished_level==1){
 		obj->animation = &VKA_keen_walk_1;
 		obj->facing = 1;
@@ -425,10 +454,13 @@ int VKF_keen_think(vk_object *obj){
 		obj->pos_x += obj->vel_x;
 		obj->pos_y += obj->vel_y;
 		
-		
-		obj->vel_y += 0x20;
-		
-		if(obj->animation == &VKA_keen_pogo_1 || obj->animation == &VKA_keen_pogo_2){
+		obj->vel_y += 0x20;		
+
+	if( (obj->animation == &VKA_keen_ice_1) ||
+		(obj->animation == &VKA_keen_ice_2)){
+			// Don't do any velocity changeing
+	}else if( (obj->animation == &VKA_keen_pogo_1)|| 
+		(obj->animation == &VKA_keen_pogo_2) ){
 			if(obj->vel_x>0x40){
 				obj->vel_x -= 0x10;
 				// Stop the velocity from going too far

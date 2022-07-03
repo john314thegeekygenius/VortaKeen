@@ -57,6 +57,8 @@ extern uint32_t vk_viewport_y;
 extern unsigned char *TILESET_data;
 extern unsigned short TILESET_size;
 
+extern unsigned short vk_level_id;
+
 
 // Clear GBA Map 1
 void VK_ClearTopLayer();

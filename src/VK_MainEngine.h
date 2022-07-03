@@ -36,11 +36,16 @@ typedef struct vk_game_state {
 	// Engine stuff
 	uint16_t level_to_load; // What level needs loaded
 	uint16_t in_game; // Is keen in the game
+	uint16_t has_loaded; // Did we load the game
 	uint8_t faded; // Has the screen faded at all 0-no 1-out 2-in
-	int32_t next_1up; // Next score to get to
 	uint8_t finished_level; // Has keen finished the level
-	vk_highscore thekeenest[6];
 	uint8_t lights_out; // Are the lights turned off
+	uint16_t teleporting; // Is keen teleporting
+	uint16_t teleporter; // What tile to place back
+	uint16_t teleporter_pos; // Where is the tile
+
+	// High scores
+	vk_highscore thekeenest[6];
 	
 	// Options
 	uint8_t sound_enabled; // Is the sound enabled
@@ -48,6 +53,7 @@ typedef struct vk_game_state {
 	uint8_t gba_palette; // What palette to use
 	
 	// Keen stuff
+	int32_t next_1up; // Next score to get to
 	uint16_t num_of_done; // Number of levels completed
 	uint16_t gotBattery;// 	Have battery part? 0=no, 1=yes
 	uint16_t gotVacuum;// 	Have vacuum cleaner part? 0=no, 1=yes
@@ -76,6 +82,7 @@ extern uint16_t vk_engine_demo;
 void VK_ReturnToWorldmap();
 void VK_WaitAMoment();
 void VK_NewGame();
+void VK_InitGame();
 void VK_MainEngine();
 
 

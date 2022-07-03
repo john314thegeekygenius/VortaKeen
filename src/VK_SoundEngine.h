@@ -16,6 +16,9 @@
 
 #include "../sound/VK_SOUNDS.h"
 
+extern short VK_SoundEnabled;
+extern short VK_MusicEnabled;
+
 GBA_ARM void VK_SoundHandler();
 void VK_SetupSound();
 void VK_PlaySoundIRQ(unsigned short *data,unsigned short len, unsigned short priority);

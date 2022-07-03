@@ -129,10 +129,10 @@ int VKF_robotank_think(vk_object *obj){
 		
 		if(obj->animation == &VKA_robotank_roll_1){
 			if(obj->facing==1){
-				obj->vel_x = 0x80;
+				obj->vel_x = 0xA0;
 			}
 			if(obj->facing==0){
-				obj->vel_x = -0x80;
+				obj->vel_x = -0xA0;
 			}
 		}
 		
@@ -146,13 +146,8 @@ int VKF_robotank_think(vk_object *obj){
 			if(obj->var2==0x30){
 				// Spawn shot
 				VK_SpawnShot(obj->pos_x,obj->pos_y,obj->facing,1);
-				// Play sound if need keen
-				if(obj->pos_y > vk_keen_obj->pos_y-(256<<8) && obj->pos_y < vk_keen_obj->pos_y+(256<<8)){
-					if(obj->pos_x > vk_keen_obj->pos_x-(256<<8) && obj->pos_x < vk_keen_obj->pos_x+(256<<8)){
-					// Play sound
-					VK_PlaySound(VKS_TANKFIRE);
-					}
-				}
+				// Play sound
+				VK_PlaySound(VKS_TANKFIRE);
 			}
 		}else{
 			// Count down to next look animation

@@ -120,10 +120,10 @@ int VKF_butler_think(vk_object *obj){
 	
 	if(obj->animation == &VKA_butler_walk_1){
 		if(obj->facing==1){
-			obj->vel_x = 0x80;
+			obj->vel_x = 0xA0;
 		}
 		if(obj->facing==0){
-			obj->vel_x = -0x80;
+			obj->vel_x = -0xA0;
 		}
 	}
 	

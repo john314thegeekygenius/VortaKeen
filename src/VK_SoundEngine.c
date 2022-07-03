@@ -82,6 +82,8 @@ volatile unsigned short vk_sound_delay_tick = 0;
 unsigned short vk_sound_priority = 0;
 short vk_cur_sound_id = -1;
 
+short VK_SoundEnabled = 1;
+short VK_MusicEnabled = 1;
 
 GBA_ARM void VK_SoundHandler(){
 		
@@ -101,12 +103,18 @@ GBA_ARM void VK_SoundHandler(){
 				fd = 1;
 			}
 			fq = 2048-fd;
+			
+			if(VK_SoundEnabled){
 
-			//enable sound 1 to left and right
-			*(volatile uint16_t*)GBA_SOUNDCNT_L |= GBA_SND_1L | GBA_SND_1R ;
+				//enable sound 1 to left and right
+				*(volatile uint16_t*)GBA_SOUNDCNT_L |= GBA_SND_1L | GBA_SND_1R ;
 
-			// set the frequency
-			*(volatile uint16_t*)GBA_SOUND1_X = fq | GBA_RESET_SOUND;
+				// set the frequency
+				*(volatile uint16_t*)GBA_SOUND1_X = fq | GBA_RESET_SOUND;
+			}else{
+				//disable sound 1 to left and right
+				*(volatile uint16_t*)GBA_SOUNDCNT_L &= ~(GBA_SND_1L | GBA_SND_1R);
+			}
 		}else{
 			//disable sound 1 to left and right
 			*(volatile uint16_t*)GBA_SOUNDCNT_L &= ~(GBA_SND_1L | GBA_SND_1R);
@@ -154,6 +162,8 @@ void VK_SetupSound(){
 
 	vk_cur_sound_id = -1;
 	vk_sound_priority = 0;
+	VK_SoundEnabled = 1;
+	VK_MusicEnabled = 1;
 };
 
 

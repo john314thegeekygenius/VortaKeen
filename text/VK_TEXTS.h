@@ -6,6 +6,24 @@ const char *HIGH_SCORE_NAMES[3] = {
 	"Zzapp!",
 };
 
+const uint16_t VK_STATUE_LENGTHS[16] = {
+	0,
+	7,
+	0,
+	0,
+	0,
+	7,
+	0,
+	0,
+	7,
+	7,
+	4,
+	7,
+	0,
+	0,
+		6
+};
+
 const char *VK_STATUE_MESSAGES[16][7] = {
 	{},
 	// Level 2 Yorp statue

@@ -152,16 +152,56 @@ void VK_FadeIn(){
 	}
 };
 
-uint16_t VK_TextX;
-uint16_t VK_TextY;
+uint16_t VK_TextX = 0;
+uint16_t VK_TextY = 0;
+
+
+void VK_PrintTXT(char *string){
+	uint16_t offset = 0;
+
+	uint16_t VK_TextInv = 0x2E0;
+
+	while(*string!=0x00){
+		
+		if((*string)==126){
+			VK_TextInv = 0x360;
+			string++;
+		}else if((*string)==31){
+			string++;
+			while(offset<28){
+				// Draw blank
+				VK_GBA_BG_MAPA[(VK_TextY<<5)+VK_TextX+offset] = VK_TextInv;
+				offset++;
+			}
+			return;
+		}else{
+			// Draw the letter
+			VK_GBA_BG_MAPA[(VK_TextY<<5)+VK_TextX+offset] = VK_TextInv+(*string)-' ';
+			if((*string)<' '||(*string)>'z'+2){
+				string++;
+			}
+			offset++;
+		}
+		if(offset>=28){
+			return ; //STOP THE STRING!
+		}
+		string++;
+	}
+	while(offset<28){
+		// Draw blank
+		VK_GBA_BG_MAPA[(VK_TextY<<5)+VK_TextX+offset] = VK_TextInv;
+		offset++;
+	}
+};
 
 void VK_Print(char *string){
 	uint16_t offset = 0;
+
 	while(*string!=0x00){
 		// Draw the letter
 		VK_GBA_BG_MAPA[(VK_TextY<<5)+VK_TextX+offset] = 0x2E0+(*string)-' ';
-		string++;
 		offset++;
+		string++;
 	}
 };
 

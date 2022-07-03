@@ -140,21 +140,35 @@ int VKF_mapkeen_input(vk_object *obj){
 			
 			if(tile == 0x14){
 				// Ship dialog
-				
+				VK_MissingParts();
+				return 0;
 			}
 			
 			if((tile & 0x20)==0x20){
 				uint16_t dest_teleporter = (tile&0x3) - 1; // Subtract 1 because we need to index at 0
 				uint16_t teleporter_type = (tile&0xC);
-				uint32_t teleport_tile_off = tile-(vk_level_width*vk_level_height);
-				uint16_t teleporter_tile = vk_level_map[teleport_tile_off];
+				uint16_t teleport_tile_off = obj->var1;
+				
+				vk_engine_gstate.teleporting = 0x40;
+				vk_engine_gstate.teleporter_pos = obj->var1-(vk_level_height*vk_level_width);
+				vk_engine_gstate.teleporter = vk_level_data[vk_engine_gstate.teleporter_pos];
 
 				VK_PlaySound(VKS_TELEPORTSND);
-				while(VK_SoundDone()){
-					// Animate the teleporter
-					vk_level_map[teleport_tile_off] = 0;
+				
+				// Animate the teleporter
+				if(teleporter_type){
+					// It's ice
+					vk_level_data[vk_engine_gstate.teleporter_pos] = vk_num_of_tiles-4;
+				}else{
+					vk_level_data[vk_engine_gstate.teleporter_pos] = vk_num_of_tiles-8;
 				}
-				vk_level_map[teleport_tile_off] = teleporter_tile;
+
+				// Add the animation
+				ck_update_positions[ck_number_of_updates][0] = (vk_engine_gstate.teleporter_pos%vk_level_width);
+				ck_update_positions[ck_number_of_updates][1] = (vk_engine_gstate.teleporter_pos/vk_level_width);
+				ck_number_of_updates += 1;
+
+				VK_ForceLevelUpdate();
 
 				// VK_TELEPORT_DEST is defined in VK_LevelEngine.c
 				obj->pos_x = VK_TELEPORT_DEST[dest_teleporter<<1];

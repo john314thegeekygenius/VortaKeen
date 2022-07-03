@@ -31,6 +31,11 @@ void VK_WriteInfo(uint32_t block, VK_DATA_BLOCK *data);
 // Read a block of data from the game pak
 void VK_ReadInfo(uint32_t block,VK_DATA_BLOCK *data);
 
+void VK_MissingParts();
+void VK_DisplayMessage(int index);
+
+int VK_LoadOptions();
+
 void VK_WaitAMoment();
 
 void VK_DoIntroDemo();
