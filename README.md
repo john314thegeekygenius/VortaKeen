@@ -16,6 +16,8 @@ B Button - Shoot
 
 Left Trigger - Pogo
 
+Right Trigger - Options Menu
+
 Start - Open status
 
 Select - Quit to menu
