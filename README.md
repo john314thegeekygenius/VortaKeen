@@ -8,9 +8,12 @@ A port of Commander Keen Invasion of the Vorticons for the Gameboy Advance.
 As of right now, this project is in beta.
 
 TODO:
-  Add final end sequence
-  Fix object issues
-  Add music?
+
+-- Add final end sequence
+
+-- Fix object issues
+
+-- Add music?
 
 
 # Controls
