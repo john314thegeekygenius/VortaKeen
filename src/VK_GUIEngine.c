@@ -221,6 +221,7 @@ void VK_LoadHighScores(){
 
 		// Write the data
 		VK_SaveHighScores();
+		return;
 	}
 	
 	// Copy the data
