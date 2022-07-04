@@ -9,8 +9,6 @@ As of right now, this project is in beta.
 
 TODO:
 
--- Add final end sequence
-
 -- Fix object issues
 
 -- Add music?
