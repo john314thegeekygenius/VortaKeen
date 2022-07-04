@@ -215,6 +215,18 @@ void VK_Print2(char *string){
 	}
 };
 
+void VK_Type(char *string){
+	uint16_t offset = 0;
+
+	while(*string!=0x00){
+		// Draw the letter
+		VK_GBA_BG_MAPA[(VK_TextY<<5)+VK_TextX+offset] = 0x2E0+(*string)-' ';
+		offset++;
+		string++;
+		GBA_Delay(250); // Wait ~ 250ms for each letter
+	}
+};
+
 char vk_iota_str[256];
 
 char * VK_Iota16(int32_t val){

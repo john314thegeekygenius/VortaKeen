@@ -75,6 +75,10 @@
 
 #include "../graph/bitmaps/SPECIAL_TILES.h"
 
+// Location keen is put at for the ending 
+const uint32_t VK_END_KEEN_POS[] = {
+	(13<<12), (39<<12)
+};
 
 const uint32_t VK_TELEPORT_DEST[] = {
 	// Location 1 (left side of planet: 28,6)
@@ -180,6 +184,46 @@ void VK_ClearWorldMap(){
 			 tile += 1;
 		}
 	}
+};
+
+void VK_ReloadLevelGfx(){
+	int i;
+	if(TILESET_data==NULL || vk_level_tileinfo == NULL)
+		return ; // Uh oh!
+
+	// Clear the tileset with black
+	for(i = 0; i < 64*128; i++){
+		VK_GBA_BG_Tiles[i] = 0x1;
+	}
+		
+	// Copy the tileset
+	GBA_DMA_Copy32(VK_GBA_BG_Tiles,TILESET_data,TILESET_size>>2);
+
+	// Add the special tiles
+	if((clear_tile_offset%8)==0){
+		vk_special_items = (TILESET_size+(128<<4))>>8;
+		GBA_DMA_Copy32(VK_GBA_BG_Tiles+(TILESET_size+(128<<4)),SPECIAL_TILES_data,SPECIAL_TILES_size>>2);
+	}else{
+		vk_special_items = TILESET_size>>8;
+		GBA_DMA_Copy32(VK_GBA_BG_Tiles+(TILESET_size),SPECIAL_TILES_data,SPECIAL_TILES_size>>2);
+	}
+	
+	// Clear tile at the end of the tiles
+	uint16_t cleartof = ((clear_tile_offset%8)<<7) + ((clear_tile_offset>>3)<<11);
+	for(i = 0; i < 64; i++){
+		VK_GBA_BG_Tiles[i+cleartof] = 0;
+		VK_GBA_BG_Tiles[i+cleartof+64] = 1;
+		VK_GBA_BG_Tiles[i+cleartof+1024] = 2;
+		VK_GBA_BG_Tiles[i+cleartof+64+1024] = 3;
+
+	}
+	
+	// Clear the maps
+	for(i = 0; i < 32*32; i++){
+		VK_GBA_BG_MAPA[i] = 0;
+		VK_GBA_BG_MAPB[i] = VK_CLEAR_TILE;
+	}
+	
 };
 
 // Load the level and tileset
@@ -369,7 +413,7 @@ void VK_LoadLevel(uint16_t levelid){
 			 vk_level_map = &level81_data;
 			 vk_level_width = level81_width;
 			 vk_level_height = level81_height;
-		break;		
+		break;	
 
 		case 90:
 			 TILESET_size = level90_tileset_size;
@@ -439,17 +483,6 @@ void VK_LoadLevel(uint16_t levelid){
 
 	ck_number_of_updates = 0;
 
-	// Spawn a dummy keen
-	vk_object * temp_keen_obj = NULL;
-	if(vk_level_id==80){
-		temp_keen_obj = VK_CreateObject(254,0,0);
-	}else{
-		temp_keen_obj = VK_CreateObject(255,0,0);
-	}
-	
-	// In case somthing goes wrong, we have an object to link to
-	vk_keen_obj = temp_keen_obj;
-
 	for(e = 0; e < vk_level_height; e++){
 		for(i = 0; i < vk_level_width; i++){
 			if((vk_tileanimations[*tile]&0xF) != 0x1){
@@ -485,16 +518,24 @@ void VK_LoadLevel(uint16_t levelid){
 				}
 			}
 			if( (*sprite)==255) {
-				
+
+				// Spawn a dummy keen
 				if(vk_level_id==80){
-					temp_keen_obj->pos_x = (i<<12);
-					temp_keen_obj->pos_y = (e<<12);
+					vk_keen_obj = VK_CreateObject(254,0,0);
 				}else{
-					temp_keen_obj->pos_x = (i<<12);
-					temp_keen_obj->pos_y = (e<<12)+(8<<8);
-					temp_keen_obj->vel_y = 0x10;
-					temp_keen_obj->on_ground = 1; // Assume we are on the ground
+					vk_keen_obj = VK_CreateObject(255,0,0);
 				}
+								
+				if(vk_level_id==80){
+					vk_keen_obj->pos_x = (i<<12);
+					vk_keen_obj->pos_y = (e<<12);
+				}else{
+					vk_keen_obj->pos_x = (i<<12);
+					vk_keen_obj->pos_y = (e<<12)+(8<<8);
+					vk_keen_obj->vel_y = 0x10;
+					vk_keen_obj->on_ground = 1; // Assume we are on the ground
+				}
+				vk_keen_obj->facing = 1; // Look right
 				// Set the viewport
 				vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
 				vk_viewport_y = (vk_keen_obj->pos_y-(5<<12));

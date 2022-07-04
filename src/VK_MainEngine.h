@@ -39,6 +39,8 @@ typedef struct vk_game_state {
 	uint16_t has_loaded; // Did we load the game
 	uint8_t faded; // Has the screen faded at all 0-no 1-out 2-in
 	uint8_t finished_level; // Has keen finished the level
+	uint8_t endsequence; // Has keen started the end sequence
+	uint8_t endtext; // What text should be written
 	uint8_t lights_out; // Are the lights turned off
 	uint16_t teleporting; // Is keen teleporting
 	uint16_t teleporter; // What tile to place back

@@ -15,6 +15,14 @@
 
 #include "../graph/bitmaps/GAME_OVER.h"
 
+const int VK_END_FADE_TIME = 6000; // Wait 6 seconds
+const int VK_END_TEXT_WAIT_TIME = 2000; // Wait 2 seconds
+const int VK_END_LIGHT_WAIT_TIME = 3000; // Wait 3 seconds
+const int VK_END_LIGHT_WAIT_TIME2 = 4000; // Wait 4 seconds
+
+
+
+
 uint16_t vk_engine_demo = 0;
 vk_game_state vk_engine_gstate;
 
@@ -279,6 +287,10 @@ void VK_NewGame(){
 	// Make sure we load everything
 	vk_engine_gstate.has_loaded = 0;
 
+	// Reset the ending
+	vk_engine_gstate.endsequence = 0;
+	vk_engine_gstate.endtext = 0;
+
 	// We faded out, so fade in
 	vk_engine_gstate.faded = 1;
 		
@@ -289,12 +301,15 @@ void VK_InitGame(){
 
 	vk_engine_gstate.lights_out = 0;
 
+	// Reset the ending
+	vk_engine_gstate.endsequence = 0;
+	vk_engine_gstate.endtext = 0;
+
 	// We faded out, so fade in
 	vk_engine_gstate.faded = 1;
 		
 	VK_ReturnToWorldmap();
 };
-
 
 void VK_ReturnToWorldmap(){
 
@@ -321,8 +336,31 @@ void VK_ReturnToWorldmap(){
 		vk_viewport_y = vk_engine_gstate.viewportY;
 	}
 	
-	// Fix the map (cover up levels completed)
-	VK_ClearWorldMap();
+	// Check for win state
+	vk_engine_gstate.endsequence = 0;
+
+	if(vk_engine_gstate.gotBattery && 
+		vk_engine_gstate.gotJoystick &&
+		vk_engine_gstate.gotVacuum &&
+		vk_engine_gstate.gotWhiskey){
+		// Tell the engine what's going on
+		vk_engine_gstate.endsequence = 1;
+		// Reposition keen
+		vk_keen_obj->pos_x = VK_END_KEEN_POS[0]; // Defined in VK_LevelEngine.c
+		vk_keen_obj->pos_y = VK_END_KEEN_POS[1]; 
+		vk_keen_obj->facing = 0; // Face left
+		extern vk_obj_ani VKA_mapkeen_idle_h;
+		VK_SetObjAnimation(vk_keen_obj,&VKA_mapkeen_idle_h);
+		// Set the viewport
+		vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
+		vk_viewport_y = (vk_keen_obj->pos_y-(2<<12)); // Make it a little lower
+		// Remove the old ship
+		vk_endship_obj = NULL;
+		vk_endpression_obj = NULL;
+	}else{
+		// Fix the map (cover up levels completed)
+		VK_ClearWorldMap();
+	}
 	VK_ForceLevelUpdate();
 
 	VK_UnLockCamera();
@@ -348,144 +386,273 @@ void VK_DoGameLoop(){
 			VK_LoadLevel(vk_engine_gstate.level_to_load);
 			vk_engine_gstate.in_game = vk_engine_gstate.level_to_load;
 			vk_engine_gstate.level_to_load = 0;
+			
+			// Spawn the spaceship
+			if(vk_engine_gstate.endsequence==2){
+				if(vk_endship_obj == NULL){
+					// VK_END_SHIP_POS defined in VK_ObjectEngine.c
+					vk_endship_obj = VK_CreateObject(20,VK_END_SHIP_POS[0],VK_END_SHIP_POS[1]);
+					vk_endpression_obj = VK_CreateObject(21,0x8F0000,0x8F0000);
+					// HACK: So things work right
+					vk_keen_obj = vk_endship_obj;
+				}
+			}
 		}
-
-
-		if(vk_engine_gstate.teleporting){
-			vk_engine_gstate.teleporting -= 1;
-			if(vk_engine_gstate.teleporting==0x00){
-				vk_level_data[vk_engine_gstate.teleporter_pos] = vk_engine_gstate.teleporter;
-
-				// Remove the animation
-				ck_number_of_updates -= 1;
-				ck_update_positions[ck_number_of_updates][0] = 0;
-				ck_update_positions[ck_number_of_updates][1] = 0;
-
-				vk_viewport_x = vk_keen_obj->pos_x-(8<<12);
-				vk_viewport_y = vk_keen_obj->pos_y-(6<<12);
-				
-				VK_ForceLevelUpdate();
-			}
-		}else{
-
-			VK_UpdateInput();
-			
-			uint16_t button_up = VK_ButtonUp();
-			
-			// Grab the input
-			if(VK_CheckButton(GBA_BUTTON_RIGHT)){
-				vk_keen_input[0] = 1;
-			}else{
-				vk_keen_input[0] = 0;
-			}
-			if(VK_CheckButton(GBA_BUTTON_LEFT)){
-				vk_keen_input[1] = 1;
-			}else{
-				vk_keen_input[1] = 0;
-			}
-			if(VK_CheckButton(GBA_BUTTON_UP)){
-				vk_keen_input[2] = 1;
-			}else{
-				vk_keen_input[2] = 0;
-			}
-			if(VK_CheckButton(GBA_BUTTON_DOWN)){
-				vk_keen_input[3] = 1;
-			}else{
-				vk_keen_input[3] = 0;
-			}
-			if(VK_CheckButton(GBA_BUTTON_A)){
-				vk_keen_input[4] = 1;
-			}else{
-				vk_keen_input[4] = 0;
-			}
-			if(VK_CheckButton(GBA_BUTTON_B)){
-				vk_keen_input[5] = 1;
-			}else{
-				vk_keen_input[5] = 0;
-			}
-			if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
-				vk_keen_input[6] = 1;
-			}else{
-				vk_keen_input[6] = 0;
-			}
-			if(VK_ButtonUp() == (GBA_BUTTON_RSHOLDER)){
-				VK_InfoOptions();
-			}
-
-			// Position the level
-			if(vk_keen_obj->hitmap){
-				
-				if(button_up==GBA_BUTTON_START){
-					// Spawn status bar
-					VK_StatusBar();
-				}
-				if(button_up==GBA_BUTTON_SELECT){
-					// Spawn exit dialog
-					if(VK_QuitDialog()){
-						VK_QuitGame();
-						return;
-					}
-				}
-				/*
-				if(button_up==GBA_BUTTON_RSHOLDER){
-					if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
-						vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
-
-						VK_PlaySound(14);
-						while(VK_SoundDone());
-						VK_ReturnToWorldmap();
-
-					}	
-				}*/
-				
-				if(vk_keen_obj->pos_x > (vk_viewport_x + (8<<12))){//
-					vk_viewport_x += 0x200;
-					if(vk_keen_obj->pos_x < (vk_viewport_x + (8<<12))){//
-						vk_viewport_x = (vk_keen_obj->pos_x-(8<<12));
-					}
-				}
-				if(vk_keen_obj->pos_x < (vk_viewport_x+(6<<12))){//
-					vk_viewport_x -= 0x200;
-					if(vk_keen_obj->pos_x > (vk_viewport_x + (6<<12))){//
-						vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
-					}
-				}
-				if(vk_keen_obj->pos_y > (vk_viewport_y + (7<<12))){//
-					vk_viewport_y += 0x400;
-					if(vk_keen_obj->pos_y < (vk_viewport_y + (7<<12))){//
-						vk_viewport_y = (vk_keen_obj->pos_y-(7<<12));
-					}
-				}
-				if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
-					vk_viewport_y -= 0x400;
-					if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
-						vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
-					}
-				}
+		
+		if(vk_engine_gstate.endsequence==2||vk_engine_gstate.endsequence==4){
+			if(vk_endship_obj->var1 < 2){
+				// Fix the camera position
+				vk_viewport_x = vk_endship_obj->pos_x-(8<<12);
+				vk_viewport_y = vk_endship_obj->pos_y-(4<<12);
 
 				VK_UnLockCamera();
 				VK_PositionCamera((vk_viewport_x>>8)&0xF,(vk_viewport_y>>8)&0xF);
 				VK_PositionLevel((vk_viewport_x>>12),(vk_viewport_y>>12));
 			}
+			if(vk_endship_obj->var1==6){
+				// Fade out
+				VK_FadeOut();
+				
+				// Hide the ship
+				VK_HideObjects();
+				
+				// Make it 3
+				vk_engine_gstate.endsequence += 1;
+
+				// Draw End scene
+				VK_CopyEndScreenGfx();
+				
+				VK_DrawEndScreen(0);
+				VK_FadeIn();
+				
+				// Do the dialog
+				int i;
+				for(i = 0; i < 8; i++){
+					if(i==2){
+						VK_DrawEndText3(i+1);
+					}else{
+						VK_DrawEndText2(i+1);
+					}
+					GBA_Delay(VK_END_TEXT_WAIT_TIME); // Defined in VK_MainEngine.c
+					VK_DrawEndScreen(0);
+					// Special cases
+					if(i==0){
+						// Wait
+						GBA_Delay(VK_END_LIGHT_WAIT_TIME); // Defined in VK_MainEngine.c
+						// Window light on
+						VK_DrawEndScreen(1);
+						// Play light switch sound
+						VK_PlaySound(VKS_CLICKSND);
+						// Wait
+						GBA_Delay(VK_END_LIGHT_WAIT_TIME); // Defined in VK_MainEngine.c
+						// Window light off
+						VK_DrawEndScreen(2);
+						// Play light switch sound
+						VK_PlaySound(VKS_CLICKSND);	
+						// Wait
+						GBA_Delay(VK_END_LIGHT_WAIT_TIME2); // Defined in VK_MainEngine.c
+					}
+					if(i==1){
+						// Wait
+						GBA_Delay(VK_END_LIGHT_WAIT_TIME); // Defined in VK_MainEngine.c
+						// Window light on
+						VK_DrawEndScreen(1);
+						// Play light switch sound
+						VK_PlaySound(VKS_CLICKSND);
+
+					}
+					if(i>=2&&i<=6){
+						// Window light on
+						VK_DrawEndScreen(1);
+					}
+					if(i==6){
+						// Wait
+						GBA_Delay(VK_END_LIGHT_WAIT_TIME); // Defined in VK_MainEngine.c
+						// Window light off
+						VK_DrawEndScreen(2);
+						// Play light switch sound
+						VK_PlaySound(VKS_CLICKSND);	
+						// Wait
+						GBA_Delay(VK_END_LIGHT_WAIT_TIME2); // Defined in VK_MainEngine.c
+						// Window light on
+						VK_DrawEndScreen(1);
+						// Play light switch sound
+						VK_PlaySound(VKS_CLICKSND);
+					}
+				}
+//				VK_FadeOut();
+				VK_ReloadLevelGfx();
+				vk_engine_gstate.faded = 1;
+				vk_endship_obj->var1 = 7;
+				vk_engine_gstate.endsequence += 1;
+
+				VK_UnLockCamera();
+				VK_PositionCamera((vk_viewport_x>>8)&0xF,(vk_viewport_y>>8)&0xF);
+				VK_PositionLevel((vk_viewport_x>>12),(vk_viewport_y>>12));
+
+				VK_ForceLevelUpdate();
+			}
+		}
+		if(vk_engine_gstate.endsequence==5){
+			VK_DrawEndTBC();
+			VK_UpdateInput();
+			while(!VK_ButtonUp()){
+				VK_UpdateInput();
+				VK_WaitVRB();
+			}
+			// Hide the ship
+			VK_HideObjects();
+			
+			// Display end screen
+			VK_DrawFinalText();
+
+			// Redraw the level
+			VK_ForceLevelUpdate();
+			VK_RenderLevel();
+
+			// End Game
+			VK_QuitGame();
 		}
 		
-		VK_UpdateLevel();
 
-		if(vk_engine_gstate.teleporting==0){
-			if(vk_keen_obj->type==vko_keen){
-				VK_CollideKeenWLevel(vk_keen_obj);
-			}
-			if(vk_keen_obj->type==vko_mapkeen){
-				VK_CollideMapKeenWLevel(vk_keen_obj);
-			}
+		if(vk_engine_gstate.endsequence==0){
 
-			if(vk_keen_obj->type==vko_keen){
-				VKF_keen_input(vk_keen_obj);
+			if(vk_engine_gstate.teleporting){
+				vk_engine_gstate.teleporting -= 1;
+				if(vk_engine_gstate.teleporting==0x00){
+					vk_level_data[vk_engine_gstate.teleporter_pos] = vk_engine_gstate.teleporter;
+
+					// Remove the animation
+					ck_number_of_updates -= 1;
+					ck_update_positions[ck_number_of_updates][0] = 0;
+					ck_update_positions[ck_number_of_updates][1] = 0;
+
+					vk_viewport_x = vk_keen_obj->pos_x-(8<<12);
+					vk_viewport_y = vk_keen_obj->pos_y-(6<<12);
+					
+					VK_ForceLevelUpdate();
+				}
 			}else{
-				VKF_mapkeen_input(vk_keen_obj);
+
+				VK_UpdateInput();
+				
+				uint16_t button_up = VK_ButtonUp();
+				
+				// Grab the input
+				if(VK_CheckButton(GBA_BUTTON_RIGHT)){
+					vk_keen_input[0] = 1;
+				}else{
+					vk_keen_input[0] = 0;
+				}
+				if(VK_CheckButton(GBA_BUTTON_LEFT)){
+					vk_keen_input[1] = 1;
+				}else{
+					vk_keen_input[1] = 0;
+				}
+				if(VK_CheckButton(GBA_BUTTON_UP)){
+					vk_keen_input[2] = 1;
+				}else{
+					vk_keen_input[2] = 0;
+				}
+				if(VK_CheckButton(GBA_BUTTON_DOWN)){
+					vk_keen_input[3] = 1;
+				}else{
+					vk_keen_input[3] = 0;
+				}
+				if(VK_CheckButton(GBA_BUTTON_A)){
+					vk_keen_input[4] = 1;
+				}else{
+					vk_keen_input[4] = 0;
+				}
+				if(VK_CheckButton(GBA_BUTTON_B)){
+					vk_keen_input[5] = 1;
+				}else{
+					vk_keen_input[5] = 0;
+				}
+				if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+					vk_keen_input[6] = 1;
+				}else{
+					vk_keen_input[6] = 0;
+				}
+				if(VK_ButtonUp() == (GBA_BUTTON_RSHOLDER)){
+					VK_InfoOptions();
+				}
+
+				// Position the level
+				if(vk_keen_obj->hitmap){
+					
+					if(button_up==GBA_BUTTON_START){
+						// Spawn status bar
+						VK_StatusBar();
+					}
+					if(button_up==GBA_BUTTON_SELECT){
+						// Spawn exit dialog
+						if(VK_QuitDialog()){
+							VK_QuitGame();
+							return;
+						}
+					}
+					/*
+					if(button_up==GBA_BUTTON_RSHOLDER){
+						if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+							vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+
+							VK_PlaySound(14);
+							while(VK_SoundDone());
+							VK_ReturnToWorldmap();
+
+						}	
+					}*/
+					
+					if(vk_keen_obj->pos_x > (vk_viewport_x + (8<<12))){//
+						vk_viewport_x += 0x200;
+						if(vk_keen_obj->pos_x < (vk_viewport_x + (8<<12))){//
+							vk_viewport_x = (vk_keen_obj->pos_x-(8<<12));
+						}
+					}
+					if(vk_keen_obj->pos_x < (vk_viewport_x+(6<<12))){//
+						vk_viewport_x -= 0x200;
+						if(vk_keen_obj->pos_x > (vk_viewport_x + (6<<12))){//
+							vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
+						}
+					}
+					if(vk_keen_obj->pos_y > (vk_viewport_y + (7<<12))){//
+						vk_viewport_y += 0x400;
+						if(vk_keen_obj->pos_y < (vk_viewport_y + (7<<12))){//
+							vk_viewport_y = (vk_keen_obj->pos_y-(7<<12));
+						}
+					}
+					if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
+						vk_viewport_y -= 0x400;
+						if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
+							vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
+						}
+					}
+
+					VK_UnLockCamera();
+					VK_PositionCamera((vk_viewport_x>>8)&0xF,(vk_viewport_y>>8)&0xF);
+					VK_PositionLevel((vk_viewport_x>>12),(vk_viewport_y>>12));
+				}
+			}
+			
+			VK_UpdateLevel();
+
+			if(vk_engine_gstate.teleporting==0){
+				if(vk_keen_obj->type==vko_keen){
+					VK_CollideKeenWLevel(vk_keen_obj);
+				}
+				if(vk_keen_obj->type==vko_mapkeen){
+					VK_CollideMapKeenWLevel(vk_keen_obj);
+				}
+
+				if(vk_keen_obj->type==vko_keen){
+					VKF_keen_input(vk_keen_obj);
+				}else{
+					VKF_mapkeen_input(vk_keen_obj);
+				}
 			}
 		}
-
+		
 		VK_RenderLevel();
 		
 		if(vk_engine_gstate.teleporting==0){
@@ -493,15 +660,38 @@ void VK_DoGameLoop(){
 		}else{
 			VK_HideObjects();
 		}
+		
+		if(vk_engine_gstate.endsequence==1){
+			if(vk_engine_gstate.endtext){
+				VK_DrawEndText(vk_engine_gstate.endtext-1);
+				GBA_Delay(VK_END_TEXT_WAIT_TIME); // Defined in VK_MainEngine.c
+				if(vk_engine_gstate.endtext == 1){
+					vk_engine_gstate.endsequence += 1;
+					vk_engine_gstate.faded = 1; // Fade out
+					VK_FadeOut();
+					vk_engine_gstate.level_to_load = 81; // Load the level
+				}
+				vk_engine_gstate.endtext += 1;
+			}
+		}
 
 		if(vk_engine_gstate.level_to_load==0){
 			if(vk_engine_gstate.faded==1){
 				vk_engine_gstate.faded = 0;
 				
+				if(vk_engine_gstate.endsequence==1){
+					if(vk_engine_gstate.in_game==80){
+						// Wait for a bit
+						GBA_Delay(VK_END_FADE_TIME); // Defined in VK_MainEngine.c
+						vk_engine_gstate.endtext = 1; // Set this to 1
+					}
+				}
 				VK_FadeIn();
-				if(vk_engine_gstate.in_game==80){
-					if(vk_engine_gstate.teleporting==0x00){
-						VK_KeensLeft();
+				if(vk_engine_gstate.endsequence==0){
+					if(vk_engine_gstate.in_game==80){
+						if(vk_engine_gstate.teleporting==0x00){
+							VK_KeensLeft();
+						}
 					}
 				}
 			}

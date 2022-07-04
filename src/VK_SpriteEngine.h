@@ -46,6 +46,6 @@ void VK_RemoveSprite(vk_sprite *ptr);
 void VK_ClearSprites();
 void VK_RenderSprites();
 void VK_RenderSprite(vk_sprite *spr);
-
+void VK_HideSprite(vk_sprite *ptr);
 
 #endif

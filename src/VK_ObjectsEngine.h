@@ -14,6 +14,7 @@
 #ifndef __VK_OBJECTS_ENGINE__
 #define __VK_OBJECTS_ENGINE__
 
+
 // Normal keen can't seem to handle more than 64
 #define VK_MAX_OBJECTS 128
 
@@ -45,9 +46,11 @@ typedef enum {
 	vko_icecube = 8,
 	vko_iceshard = 9,
 	vko_chain = 10,
-	vko_shot_friendly = 20,
-	vko_shot_deadly = 21,
-	vko_shot_zapzot = 22,
+	vko_endship = 20,
+	vko_expression = 21,
+	vko_shot_friendly = 50,
+	vko_shot_deadly = 51,
+	vko_shot_zapzot = 52,
 }vk_obj_type;
 
 
@@ -108,8 +111,13 @@ typedef struct vk_ice_spawner{
 	uint16_t vel_x;
 	uint16_t vel_y;
 	uint16_t timer;
+	uint16_t type;
 }vk_ice_spawner;
 
+
+extern const int VK_END_SHIP_POS[];
+extern vk_object * vk_endship_obj ;
+extern vk_object * vk_endpression_obj ;
 
 
 
@@ -128,5 +136,6 @@ void VK_RemoveObjects();
 void VK_RenderObjects();
 void VK_HideObjects();
 
+void VK_HideObject(vk_object *obj);
 
 #endif

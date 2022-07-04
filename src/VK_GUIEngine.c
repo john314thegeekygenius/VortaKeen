@@ -16,6 +16,7 @@
 // Include the texts
 #include "../text/VK_TEXTS.h"
 #include "../text/STORYTXT.h"
+#include "../text/ENDTEXT.h"
 //#include "../text/HELPTEXT.h"
 
 // Intro
@@ -34,6 +35,10 @@
 #include "../graph/bitmaps/NAME.h"
 #include "../graph/bitmaps/SCORE.h"
 #include "../graph/bitmaps/PARTS.h"
+// Ending
+#include "../graph/bitmaps/ENDSCREEN.h"
+#include "../graph/bitmaps/WINDOW_OFF.h"
+#include "../graph/bitmaps/WINDOW_ON.h"
 
 
 unsigned char *GBA_PakRam = (unsigned char*)GBA_GAMEPAK_RAM_START;
@@ -105,7 +110,7 @@ void VK_FormatROM(){
 			vk_engine_gstate.thekeenest[i].items[e] = 0;
 		for(e = 0; e < 7; e++)
 			vk_engine_gstate.thekeenest[i].citys[e] = 0;
-		memcpy(vk_engine_gstate.thekeenest[i].name, HIGH_SCORE_NAMES[i%3], strlen(HIGH_SCORE_NAMES[i%3]) );
+		memcpy(vk_engine_gstate.thekeenest[i].name, HIGH_SCORE_NAMES[i%3], strlen(HIGH_SCORE_NAMES[i%3])+1 );
 	}
 
 	// Write the data
@@ -193,6 +198,61 @@ void VK_SaveHighScores(){
 
 	// Save the data
 	VK_WriteInfo(0,&scores);
+};
+
+void VK_LoadHighScores(){
+	int i,e;
+	// Load the high scores
+	VK_DATA_BLOCK scores;
+
+	// Read the data
+	VK_ReadInfo(0,&scores);
+	
+	if(scores.errorcode){
+		// Reset the highscores
+		for(i = 0; i < 6; i++){
+			vk_engine_gstate.thekeenest[i].score = 100;
+			for(e = 0; e < 4; e++)
+				vk_engine_gstate.thekeenest[i].items[e] = 0;
+			for(e = 0; e < 7; e++)
+				vk_engine_gstate.thekeenest[i].citys[e] = 0;
+			memcpy(vk_engine_gstate.thekeenest[i].name, HIGH_SCORE_NAMES[i%3], strlen(HIGH_SCORE_NAMES[i%3])+1 );
+		}
+
+		// Write the data
+		VK_SaveHighScores();
+	}
+	
+	// Copy the data
+	uint8_t *sd = &scores.data;
+	for(i = 0; i < 6; i++){
+		vk_engine_gstate.thekeenest[i].score = (*sd); sd += 1;
+		vk_engine_gstate.thekeenest[i].score |= (*sd)<<8; sd += 1;
+		vk_engine_gstate.thekeenest[i].score |= (*sd)<<16; sd += 1;
+		vk_engine_gstate.thekeenest[i].score |= (*sd)<<24; sd += 1;
+
+		for(e = 0; e < 4; e++){
+			vk_engine_gstate.thekeenest[i].items[e] = (*sd); sd += 1;
+		}
+		for(e = 0; e < 7; e++){
+			vk_engine_gstate.thekeenest[i].citys[e] = (*sd); sd += 1;
+		}
+		for(e = 0; e < 14; e++){
+			vk_engine_gstate.thekeenest[i].name[e] = (*sd); sd += 1;
+		}
+	}
+
+	
+	// Sort the scores (bubble)
+	for(i = 0; i < 6; i++){
+		for(e = 0; e < 5; e++){
+			if(vk_engine_gstate.thekeenest[e].score > vk_engine_gstate.thekeenest[e+1].score){
+				vk_highscore tmp = vk_engine_gstate.thekeenest[e+1];
+				vk_engine_gstate.thekeenest[e+1] = vk_engine_gstate.thekeenest[e];
+				vk_engine_gstate.thekeenest[e] = tmp;
+			}
+		}
+	}
 };
 
 
@@ -643,60 +703,6 @@ void VK_SpawnBox(uint16_t spawnx, uint16_t spawny, uint16_t width, uint16_t heig
 
 
 
-void VK_LoadHighScores(){
-	int i,e;
-	// Load the high scores
-	VK_DATA_BLOCK scores;
-
-	// Read the data
-	VK_ReadInfo(0,&scores);
-
-	// Copy if ok
-	if(scores.errorcode==0){
-		uint8_t *sd = &scores.data;
-		for(i = 0; i < 6; i++){
-			memcpy(vk_engine_gstate.thekeenest[i].score, sd, sizeof(uint32_t));
-			sd += sizeof(uint32_t);
-			for(e = 0; e < 4; e++){
-				memcpy(vk_engine_gstate.thekeenest[i].items[e], sd, sizeof(uint8_t));
-				sd += sizeof(uint8_t);
-			}
-			for(e = 0; e < 7; e++){
-				memcpy(vk_engine_gstate.thekeenest[i].citys[e], sd, sizeof(uint8_t));
-				sd += sizeof(uint8_t);
-			}
-			for(e = 0; e < 14; e++){
-				memcpy(vk_engine_gstate.thekeenest[i].name[e], sd, sizeof(uint8_t));
-				sd += sizeof(uint8_t);
-			}
-		}
-	}else{
-		for(i = 0; i < 6; i++){
-			vk_engine_gstate.thekeenest[i].score = 100;
-			for(e = 0; e < 4; e++)
-				vk_engine_gstate.thekeenest[i].items[e] = 0;
-			for(e = 0; e < 7; e++)
-				vk_engine_gstate.thekeenest[i].citys[e] = 0;
-			memcpy(vk_engine_gstate.thekeenest[i].name, HIGH_SCORE_NAMES[i%3], strlen(HIGH_SCORE_NAMES[i%3]) );
-		}
-
-		// Write the data
-		VK_SaveHighScores();
-	}
-	
-	// Sort the scores (bubble)
-	for(i = 0; i < 6; i++){
-		for(e = 0; e < 5; e++){
-			if(vk_engine_gstate.thekeenest[e].score > vk_engine_gstate.thekeenest[e+1].score){
-				vk_highscore tmp = vk_engine_gstate.thekeenest[e+1];
-				vk_engine_gstate.thekeenest[e+1] = vk_engine_gstate.thekeenest[e];
-				vk_engine_gstate.thekeenest[e] = tmp;
-			}
-		}
-	}
-};
-
-
 void VK_DrawHighScores(){
 	int i,e;
 	unsigned int bmptileoff = 0;
@@ -918,6 +924,77 @@ void VK_DrawStory(){
 	vk_engine_demo = VK_DEMO_MAINMENU;
 };
 
+
+void VK_DrawFinalText(){
+	int i,e;
+	unsigned int bmptileoff = 0;
+	uint16_t updatetext = 1;
+	int TextScroll = 0;
+	
+	// Position the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0;
+			
+	
+	VK_DrawBox(0,0,29,19);
+	VK_DrawBox(0,17,29,2);
+
+	// Write instructions
+	VK_TextX = 1;
+	VK_TextY = 18;
+	VK_Print2("  B To Exit / \17 \23 to Read   ");
+	
+	while(1){
+
+		VK_UpdateInput();
+
+		if(VK_CheckButton(GBA_BUTTON_UP)){
+			TextScroll -= 1;
+			if(TextScroll<0){
+				TextScroll = 0;
+			}else{
+				updatetext = 1;
+			}
+		}
+		
+		if(VK_CheckButton(GBA_BUTTON_DOWN)){
+			TextScroll += 1;
+			if(TextScroll>=ENDTEXT_length-16){
+				TextScroll = ENDTEXT_length-17;
+			}else{
+				updatetext = 1;
+			}
+		}
+
+		// Break on key input
+		if(VK_ButtonUp()==GBA_BUTTON_B){
+			break;
+		}
+		
+		// Render story text
+		if(updatetext){
+			updatetext = 0;
+			
+			/*
+			 * 126  -> Start Print 2
+			 * 31   -> End Print 2
+			 * 
+			*/
+			
+			// Write the text
+			for(i = 0; i < 16; i++){
+				VK_TextX = 1;
+				VK_TextY = 1+i;
+				VK_PrintTXT(ENDTEXT_text[i+TextScroll]);
+			}
+		}
+
+		VK_WaitVRB();
+		
+	}
+};
 
 
 void VK_DrawTitleScreen(){
@@ -2420,4 +2497,128 @@ void VK_InfoOptions(){
 	
 	// Save what was changed
 	VK_SaveOptions();
+};
+
+
+void VK_DrawEndText(uint8_t text){
+	int i;
+	// Position the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0;
+			
+	VK_DrawBox(0,11,29,VK_END_TXT_LENGTHS[text]+1);
+	VK_TextX = 1;
+	for(i = 0; i < VK_END_TXT_LENGTHS[text]; i++){
+		VK_TextY = 12+i;
+		VK_Type(VK_END_TEXT[text][i]);
+	}
+};
+
+void VK_DrawEndText2(uint8_t text){
+	int i;
+	// Position the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0;
+			
+	VK_DrawBox(0,12,24,VK_END_TXT_LENGTHS[text]+1);
+	VK_TextX = 1;
+	for(i = 0; i < VK_END_TXT_LENGTHS[text]; i++){
+		VK_TextY = 13+i;
+		VK_Type(VK_END_TEXT[text][i]);
+	}
+};
+
+void VK_DrawEndText3(uint8_t text){
+	int i;
+	// Position the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0;
+			
+	VK_DrawBox(0,12,24,VK_END_TXT_LENGTHS[text]+1);
+	VK_TextX = 1;
+	VK_TextY = 13;
+	VK_Type(VK_END_TEXT[text][i]);
+	// Just print the rest
+	for(i = 1; i < VK_END_TXT_LENGTHS[text]; i++){
+		VK_TextY = 13+i;
+		VK_Print(VK_END_TEXT[text][i]);
+	}
+};
+
+void VK_DrawEndTBC(){
+	int i;
+	// Position the screen
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0;
+			
+	VK_DrawBox(2,3,25,2);
+	VK_TextX = 3;
+	VK_TextY = 4;
+	VK_Type("TO BE CONTINUED...");
+};
+
+void VK_CopyEndScreenGfx(){
+	unsigned int bmptileoff = 0;
+	
+	// Load the graphics
+	GBA_DMA_MemSet32(VK_GBA_BG_Tiles,0,16);
+	bmptileoff = 64;
+	GBA_DMA_Copy32((VK_GBA_BG_Tiles+bmptileoff),ENDSCREEN_data,ENDSCREEN_size>>2);
+	bmptileoff += ENDSCREEN_size;
+	GBA_DMA_Copy32((VK_GBA_BG_Tiles+bmptileoff),WINDOW_ON_data,WINDOW_ON_size>>2);
+	bmptileoff += WINDOW_ON_size;
+	GBA_DMA_Copy32((VK_GBA_BG_Tiles+bmptileoff),WINDOW_OFF_data,WINDOW_OFF_size>>2);
+	bmptileoff += WINDOW_OFF_size;
+
+};
+
+void VK_DrawEndScreen(uint8_t lights_on){
+	int i,e;
+	// Fix position
+	*(volatile uint16_t*)GBA_REG_BG0HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG0VOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1HOFS = 0x0;
+	*(volatile uint16_t*)GBA_REG_BG1VOFS = 0x0;
+	if(lights_on==0){
+		// Draw the scene
+		VK_WaitVRB();
+		for(i=0;i<20;i++){
+			for(e=0;e<30;e++){
+				VK_GBA_BG_MAPA[(i<<5)+e] = (i*30)+e+1;
+				VK_GBA_BG_MAPB[(i<<5)+e] = 0;
+			}
+		}
+	}
+	if(lights_on==1){
+		uint16_t dy = 0, dx = 0;
+		// Draw light
+		VK_WaitVRB();
+		for(i=0;i<WINDOW_ON_height>>3;i++){
+			for(e=0;e<WINDOW_ON_width>>3;e++){
+				dy = i + 0;
+				dx = e + 8;
+				VK_GBA_BG_MAPA[(dy<<5)+dx] = (i*(WINDOW_ON_width>>3))+e+1+(20*30);
+			}
+		}
+	}
+	if(lights_on==2){
+		uint16_t dy = 0, dx = 0;
+		// Draw light
+		VK_WaitVRB();
+		for(i=0;i<WINDOW_OFF_height>>3;i++){
+			for(e=0;e<WINDOW_OFF_width>>3;e++){
+				dy = i + 0;
+				dx = e + 8;
+				VK_GBA_BG_MAPA[(dy<<5)+dx] = (i*(WINDOW_OFF_width>>3))+e+1+(20*30)+(WINDOW_ON_size>>6);
+			}
+		}
+	}	
 };

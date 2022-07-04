@@ -21,6 +21,13 @@ vk_object *vk_keen_obj = NULL;
 uint16_t vk_oupdate_tick = 0;
 
 
+const int VK_END_SHIP_POS[] = {
+	(6<<12), (5<<12), // Starting position
+	(48<<12), (21<<12)-(8<<8), // Ending point (On top of earth)
+};
+
+vk_object * vk_endship_obj = NULL;
+vk_object * vk_endpression_obj = NULL;
 
 
 // Exported from EXE via Chocolate Keen
@@ -53,7 +60,8 @@ const uint16_t VK_8_FRAMES = 0x8;
 #include "actions/VKA_RoboTank.h"
 #include "actions/VKA_Ice.h"
 #include "actions/VKA_Chain.h"
-
+#include "actions/VKA_EndShip.h"
+#include "actions/VKA_Expression.h"
 
 vk_ice_spawner VK_IceSpawners[32]; // Max of 32 spawners??????
 int vk_ice_spawner_count = 0;
@@ -67,6 +75,7 @@ void VK_SpawnIceSpawner(int32_t x,int32_t y, uint16_t type){
 	
 	ispw->vel_x = 0;
 	ispw->vel_y = 0;
+	ispw->type = type;
 
 	switch(type){
 		case 0:
@@ -490,7 +499,8 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									VKF_keen_die(obj);
 								break;
 								case 2:
-									if(vk_engine_gstate.gotKeycardY){
+									if(vk_engine_gstate.gotKeycardY && 
+									vk_level_tileinfo[(vk_level_data[tile+vk_level_width]*6)+1]==2){
 										vk_engine_gstate.gotKeycardY -= 1;
 										// Spawn the door
 										VK_SpawnDoor(tileX<<12,tileY<<12,0,vk_level_data[tile],vk_level_data[tile+vk_level_width]);
@@ -511,7 +521,8 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									}
 									break;
 								case 3:
-									if(vk_engine_gstate.gotKeycardR){
+									if(vk_engine_gstate.gotKeycardR &&
+									vk_level_tileinfo[(vk_level_data[tile+vk_level_width]*6)+1]==3){
 										vk_engine_gstate.gotKeycardR -= 1;
 										// Spawn the door
 										VK_SpawnDoor(tileX<<12,tileY<<12,1,vk_level_data[tile],vk_level_data[tile+vk_level_width]);
@@ -531,7 +542,8 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									}
 									break;
 								case 4:
-									if(vk_engine_gstate.gotKeycardG){
+									if(vk_engine_gstate.gotKeycardG &&
+									vk_level_tileinfo[(vk_level_data[tile+vk_level_width]*6)+1]==4){
 										vk_engine_gstate.gotKeycardG -= 1;
 										// Spawn the door
 										VK_SpawnDoor(tileX<<12,tileY<<12,2,vk_level_data[tile],vk_level_data[tile+vk_level_width]);
@@ -552,7 +564,8 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									break;
 								case 5:
 									// Door
-									if(vk_engine_gstate.gotKeycardB){
+									if(vk_engine_gstate.gotKeycardB &&
+									vk_level_tileinfo[(vk_level_data[tile+vk_level_width]*6)+1]==5){
 										vk_engine_gstate.gotKeycardB -= 1;
 										// Spawn the door
 										VK_SpawnDoor(tileX<<12,tileY<<12,3,vk_level_data[tile],vk_level_data[tile+vk_level_width]);
@@ -1123,9 +1136,29 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 			VKF_chain_init(obj);
 			
 		break;
+		case 20:
+			// End ship
+			obj->s = VK_CreateSprite(20);
+			VK_SetObjAnimation(obj,&VKA_endship);
+			obj->collide = &VKF_endship_collide;
+			obj->think = &VKF_endship_think;
+			obj->type = vko_endship;
+			obj->hitmap = 0;
+			VKF_endship_init(obj);			
+		break;
+		case 21:
+			// Expression
+			obj->s = VK_CreateSprite(21);
+			VK_SetObjAnimation(obj,&VKA_expression);
+			obj->collide = &VKF_expression_collide;
+			obj->think = &VKF_expression_think;
+			obj->type = vko_expression;
+			obj->hitmap = 0;
+			VKF_expression_init(obj);			
+		break;
 		case 251:
 			// Zap Zot obj
-			obj->s = VK_CreateSprite(9);
+			obj->s = VK_CreateSprite(19);
 			VK_SetObjAnimation(obj,&VKA_shot_zap);
 			obj->collide = NULL;
 			obj->think = NULL;
@@ -1144,7 +1177,7 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 		break;
 		case 253:
 			// Enemy Shot
-			obj->s = VK_CreateSprite(8);
+			obj->s = VK_CreateSprite(9);
 			VK_SetObjAnimation(obj,&VKA_shot_enemy);
 			obj->collide = &VKF_shot_collide;
 			obj->think = &VKF_shot_think;
@@ -1210,8 +1243,9 @@ void VK_SetObjAnimation(vk_object *obj,vk_obj_ani *animation){
 		}else{
 			obj->s->s.spr_gfx_ani = obj->animation->gfxoff_r;
 		}
-		obj->gfx_needs_update = 1;
 	}
+	// Yes?
+	obj->gfx_needs_update = 1;
 };
 
 int VK_ObjInObj(vk_object *o1,vk_object *o2){
@@ -1249,7 +1283,10 @@ void VK_RenderObjects(){
 				if(ispw->x > vk_keen_obj->pos_x-(256<<8) && ispw->x < vk_keen_obj->pos_x+(256<<8)){
 
 					// Spawn the cube
-					vk_object * obj = VK_CreateObject(6,ispw->x,ispw->y);
+					vk_object * obj = VK_CreateObject(6,ispw->x-(12<<8),ispw->y);
+					if(ispw->type >= 3){
+						obj->pos_x -= (8<<8);
+					}
 					obj->s = VK_CreateSprite(6);
 					VK_SetObjAnimation(obj,&VKA_icecube);
 					obj->collide = &VKF_icecube_collide;
@@ -1266,14 +1303,20 @@ void VK_RenderObjects(){
 		}
 	}
 
+	int objlen = vk_num_of_objects;
 	
-	for(i=0;i<vk_num_of_objects;i++){
+	for(i=0;i<objlen;i++){
 		vk_object * obj = &vk_level_objects[i];
 		
 		
 		if(obj->animation == NULL){
 			// If s is NULL this will explode?
-			obj->s->active = 0;
+			if(obj->s!=NULL){
+	//			obj->s->active = 0;
+				VK_RemoveSprite(obj->s);
+				obj->s = NULL;
+			}
+			continue;
 		}
 		
 		if(obj!=NULL&&obj->s!=NULL&&obj->s->active!=0){
@@ -1289,8 +1332,8 @@ void VK_RenderObjects(){
 			}
 
 			// Only update the object if near keen
-			if(obj->pos_y > vk_keen_obj->pos_y-(256<<8) && obj->pos_y < vk_keen_obj->pos_y+(256<<8)){
-				if(obj->pos_x > vk_keen_obj->pos_x-(256<<8) && obj->pos_x < vk_keen_obj->pos_x+(256<<8)){
+			if( (obj->pos_y > vk_keen_obj->pos_y-(256<<8) && obj->pos_y < vk_keen_obj->pos_y+(256<<8)) &&
+				(obj->pos_x > vk_keen_obj->pos_x-(256<<8) && obj->pos_x < vk_keen_obj->pos_x+(256<<8)) ){
 
 
 					if(obj->hitmap){
@@ -1305,9 +1348,13 @@ void VK_RenderObjects(){
 						// Collide all objects with shots
 						if(obj->type == vko_shot_friendly || obj->type == vko_shot_deadly){
 							for(e=0;e<vk_num_of_objects;e++){
+								vk_object *obj2 = &vk_level_objects[e];
+								if(obj2->type == vko_shot_friendly || obj2->type == vko_shot_deadly){
+									continue;
+								}
 								if(e==i) continue;
-								if(VK_ObjInObj(obj,&vk_level_objects[e])){
-									vk_level_objects[e].collide(&vk_level_objects[e],obj);
+								if(VK_ObjInObj(obj,obj2)){
+									obj2->collide(obj2,obj);
 								}
 							}
 						}
@@ -1332,15 +1379,28 @@ void VK_RenderObjects(){
 					obj->s->y = cy;
 					VK_RenderSprite(obj->s);
 
+				}else{
+					if(obj->type == vko_shot_friendly || obj->type == vko_shot_deadly){
+						// Delete the object
+						VK_SetObjAnimation(obj,NULL);
+					}
 				}
-			}
 
 		}else{
 			// Reposition the sprite
-			VK_RenderSprite(obj->s);
+		//	VK_RenderSprite(obj->s);
 		}
 	}
+
+
 	/*
+
+	VK_TextX = 2;
+	VK_TextY = 2;
+	VK_Print("C:");
+	VK_TextX = 4;
+	VK_Print(VK_Iota16(vk_num_of_objects));
+
 	VK_TextX = 2;
 	VK_TextY = 2;
 	VK_Print("X:");
@@ -1371,6 +1431,10 @@ void VK_RenderObjects(){
 		vk_oupdate_tick = 0;
 	}
 
+};
+
+void VK_HideObject(vk_object *obj){
+	VK_HideSprite(obj->s);
 };
 
 void VK_HideObjects(){

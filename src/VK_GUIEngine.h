@@ -56,4 +56,9 @@ void VK_StatusBar();
 uint16_t VK_QuitDialog();
 void VK_KeensLeft();
 
+void VK_CopyEndScreenGfx();
+void VK_DrawEndScreen(uint8_t lights_on);
+
+void VK_DrawEndTBC();
+
 #endif

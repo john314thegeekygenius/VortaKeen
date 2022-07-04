@@ -14,7 +14,7 @@
 #ifndef __VK_LEVEL_ENGINE__
 #define __VK_LEVEL_ENGINE__
 
-
+extern const uint32_t VK_END_KEEN_POS[];
 extern const uint32_t VK_TELEPORT_DEST[];
 
 
@@ -68,6 +68,9 @@ void VK_ClearWorldMap();
 void VK_LoadLevel(uint16_t levelid);
 
 void VK_DrawTile(uint16_t x, uint16_t y, uint16_t lvlt);
+
+// Reload the graphics
+void VK_ReloadLevelGfx();
 
 // Render a tile
 void VK_RenderTile(uint16_t offx, uint16_t offy, uint16_t lvlt, uint8_t plane);

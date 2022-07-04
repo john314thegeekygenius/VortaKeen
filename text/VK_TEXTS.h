@@ -103,3 +103,66 @@ const char *VK_STATUE_MESSAGES[16][7] = {
 		"directly.           "
 	}
 };
+
+const uint16_t VK_END_TXT_LENGTHS[16] = {
+	6,
+	3,
+	3,
+	4,
+	2,
+	3,
+	1,
+	1,
+	5,
+};
+
+const char * VK_END_TEXT[9][8] = {
+//		"|------MAX-LENGTH----------|",
+	{
+		"Commander Keen returns to",
+		"the Bean-With-Bacon",
+		"Megarocket and quickly",
+		"replaces the missing parts.",
+		"He must get home before",
+		"his parents do!",
+	},
+	{
+		"Keen makes it home and",
+		"rushes to beat his",
+		"parents upstairs.",
+	},
+	{
+		"Shhh, Honey...Let's",
+		"see if little Billy",
+		"is asleep.",
+	},
+	{
+		"Billy...? Are you a--",
+		"WHAT IS THIS ONE-EYED",
+		"GREEN THING IN YOUR",
+		"ROOM!!!!???",
+	},
+	{
+		"Aw, Mom, Can't I",
+		"keep him?",
+	},
+	{
+		"Well, we'll talk about",
+		"that in the morning,",
+		"son. You get some rest.",
+	},
+	{
+		"OK, Mom. Goodnight.",
+	},
+	{
+		"Goodnight, Dear.",
+	},
+	{
+		"But there is NO sleep",
+		"for Commander Keen! The",
+		"Vorticon Mothership",
+		"looms above, ready to",
+		"destroy Earth!",
+	},
+
+};

@@ -23,6 +23,8 @@
 #include "../graph/sheets/LAZER.h"
 #include "../graph/sheets/ZAPZOT.h"
 #include "../graph/sheets/CHAIN.h"
+#include "../graph/sheets/SHIP.h"
+#include "../graph/sheets/EXPRESION.h"
 
 #include "../graph/sheets/MAPKEEN.h"
 #include "../graph/sheets/KEEN.h"
@@ -115,13 +117,14 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 			ptr->s.spr_data = &ICEPOW_data;
 		break;
 		case 8:
+		case 9:
 			// Lazer
 			ptr->s.spr_width = LAZER_spr_width;
 			ptr->s.spr_height = LAZER_spr_height;
 			ptr->s.sheet_width = LAZER_width;
 			ptr->s.spr_data = &LAZER_data;
 		break;
-		case 9:
+		case 19:
 			// Zap Zot
 			ptr->s.spr_width = ZAPZOT_spr_width;
 			ptr->s.spr_height = ZAPZOT_spr_height;
@@ -134,6 +137,20 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 			ptr->s.spr_height = CHAIN_spr_height;
 			ptr->s.sheet_width = CHAIN_width;
 			ptr->s.spr_data = &CHAIN_data;
+		break;
+		case 20:
+			// Space ship
+			ptr->s.spr_width = SHIP_spr_width;
+			ptr->s.spr_height = SHIP_spr_height;
+			ptr->s.sheet_width = SHIP_width;
+			ptr->s.spr_data = &SHIP_data;
+		break;
+		case 21:
+			// Expresion sprite
+			ptr->s.spr_width = EXPRESION_spr_width;
+			ptr->s.spr_height = EXPRESION_spr_height;
+			ptr->s.sheet_width = EXPRESION_width;
+			ptr->s.spr_data = &EXPRESION_data;
 		break;
 		case 254:
 			// World Map Commander Keen
@@ -226,6 +243,8 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 			}
 		}
 		VK_GBA_SGC += (ptr->s.spr_width*ptr->s.spr_height);
+	}else{
+		VK_SetSpriteGraphics(ptr);
 	}
 	
 	ptr->s.spr_gfx_ani = 0;
@@ -240,9 +259,11 @@ void VK_ClearSprites(){
 	GBA_ResetSprites();
 	for(i = 0; i < VK_MAX_SPRITES; i++){
 		VK_GameSprites[i].active = 0;
+		VK_GameSprites[i].s.spr_type = 0xFFFF; // Bad sprite
 	}
 	VK_NumOfSprites = 0;
 	VK_GBA_SGC = 0;
+	GBA_SpriteIndex = 0;
 	
 	GBA_UPDATE_SPRITES();
 };
@@ -251,18 +272,20 @@ void VK_RemoveSprite(vk_sprite *ptr){
 	int e;
 	if(ptr!=NULL){
 		ptr->active = 0;
+		/*
 		// Sort of a hack
 		// Because we delete the sprites right away, we can do this
 		GBA_SpriteIndex -= ptr->s.num_sprs;
 		VK_GBA_SGC -= (ptr->s.spr_width*ptr->s.spr_height);
+		*/
 
 		// Reset the position
 		for(e = 0; e < 4; e++){
 			if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
-				GBA_SET_SPRITE_CLEAR(ptr->s.spr_indx[e]);
+				//GBA_SET_SPRITE_CLEAR(ptr->s.spr_indx[e]);
+				GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],0xF0,0xA0);
 			}
 		}		
-		
 		GBA_UPDATE_SPRITES();
 	}
 };
@@ -314,6 +337,18 @@ void VK_RenderSprite(vk_sprite *ptr){
 				// Hide the sprite
 				GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],0xF0,0xB0);
 			}
+			GBA_UPDATE_SPRITE(ptr->s.spr_indx[e]);
+		}
+	}
+	
+};
+
+void VK_HideSprite(vk_sprite *ptr){
+	uint16_t e;
+	for(e = 0; e < 4; e++){
+		if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
+			// Hide the sprite
+			GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],0xF0,0xB0);
 			GBA_UPDATE_SPRITE(ptr->s.spr_indx[e]);
 		}
 	}
