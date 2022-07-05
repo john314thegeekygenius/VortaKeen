@@ -885,8 +885,8 @@ void VK_DrawStory(){
 		
 		if(VK_CheckButton(GBA_BUTTON_DOWN)){
 			TextScroll += 1;
-			if(TextScroll>=STORYTXT_length-11){
-				TextScroll = STORYTXT_length-12;
+			if(TextScroll>=STORYTXT_length-9){
+				TextScroll = STORYTXT_length-9;
 			}else{
 				updatetext = 1;
 			}

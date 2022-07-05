@@ -1,9 +1,7 @@
 // Vortakeen Text exported by vkmake
 // THIS FILE HAS BEEN FORMATED TO FIT THE GBA SCREEN
-
 //"|--THIS IS THE MAX LENGTH--|"
-
-const unsigned short STORYTXT_length = 166;
+const unsigned short STORYTXT_length = 164;
 const unsigned char *STORYTXT_text[] = {
 "\x7e       COMMANDER KEEN\x1f ",
 "\x7e            in\x1f ",

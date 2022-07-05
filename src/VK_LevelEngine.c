@@ -570,17 +570,26 @@ void VK_RenderTile(uint16_t offx, uint16_t offy, uint16_t lvlt, uint8_t plane){
 	offy -= vk_level_offsety;
 
 	if(plane){
-		VK_GBA_BG_MAPB[((offy<<1)<<5)+(offx<<1)] = tile;
-		VK_GBA_BG_MAPB[((offy<<1)<<5)+(offx<<1)+1] = tile+1;
-		VK_GBA_BG_MAPB[(((offy<<1)+1)<<5)+(offx<<1)] = tile+16;
-		VK_GBA_BG_MAPB[(((offy<<1)+1)<<5)+(offx<<1)+1] = tile+17;
+		if( (offx<<1) < 31){
+			VK_GBA_BG_MAPB[((offy<<1)<<5)+(offx<<1)] = tile;
+			VK_GBA_BG_MAPB[(((offy<<1)+1)<<5)+(offx<<1)] = tile+16;
+		}
+		if( ((offx<<1)+1) < 31){
+			VK_GBA_BG_MAPB[((offy<<1)<<5)+(offx<<1)+1] = tile+1;
+			VK_GBA_BG_MAPB[(((offy<<1)+1)<<5)+(offx<<1)+1] = tile+17;
+		}
 	}else{
-		VK_GBA_BG_MAPA[((offy<<1)<<5)+(offx<<1)] = tile;
-		VK_GBA_BG_MAPA[((offy<<1)<<5)+(offx<<1)+1] = tile+1;
-		VK_GBA_BG_MAPA[(((offy<<1)+1)<<5)+(offx<<1)] = tile+16;
-		VK_GBA_BG_MAPA[(((offy<<1)+1)<<5)+(offx<<1)+1] = tile+17;
+		if( (offx<<1) < 31){
+			VK_GBA_BG_MAPA[((offy<<1)<<5)+(offx<<1)] = tile;
+			VK_GBA_BG_MAPA[(((offy<<1)+1)<<5)+(offx<<1)] = tile+16;
+		}
+		if( ((offx<<1)+1) < 31){
+			VK_GBA_BG_MAPA[((offy<<1)<<5)+(offx<<1)+1] = tile+1;
+			VK_GBA_BG_MAPA[(((offy<<1)+1)<<5)+(offx<<1)+1] = tile+17;
+		}
 	}
 };
+
 
 // Disable the rendering
 void VK_DisableLevelRendering(){
