@@ -44,7 +44,7 @@ int VKF_garg_init(vk_object *obj){
 	obj->var3 = 0;
 	
 	// Set look delay
-	obj->var2 = (VK_2_FRAMES )<<2;
+	obj->var2 = 0;//(VK_2_FRAMES )<<2;
 
 	// Look countdown
 	obj->var1 = 0;
@@ -83,6 +83,22 @@ int VKF_garg_think(vk_object *obj){
 
 		if( (obj->animation == &VKA_garg_walk_1) ||
 			(obj->animation == &VKA_garg_walk_2)){
+				
+			// If at an edge, jump!
+			if(obj->var3==1){
+				if(obj->on_ground){
+					int edge = VK_ObjAtEdge(obj);
+					if(obj->facing==0){
+						if(edge==-1){
+							obj->vel_y = -0x200;
+						}
+					}else{
+						if(edge==1){
+							obj->vel_y = -0x200;
+						}
+					}
+				}
+			}
 
 			if(obj->hit_left){
 				obj->vel_x = -0x80;
@@ -132,8 +148,8 @@ int VKF_garg_think(vk_object *obj){
 				obj->var3 = 0;
 				
 				// Charge at keen if it can see him
-				if(vk_keen_obj->pos_x > obj->pos_x-(128<<8)){
-					if(vk_keen_obj->pos_x < obj->pos_x+(128<<8)){
+				if(vk_keen_obj->pos_x > obj->pos_x-(256<<8)){
+					if(vk_keen_obj->pos_x < obj->pos_x+(256<<8)){
 						if(vk_keen_obj->pos_y+(32<<8) > obj->pos_y-(16<<8)){
 							if(vk_keen_obj->pos_y < obj->pos_y+(32<<8)){
 								obj->var3 = 1;

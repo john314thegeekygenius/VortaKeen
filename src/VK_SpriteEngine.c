@@ -184,27 +184,30 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 		unsigned short cw = ptr->s.spr_width >> 3;
 		unsigned short ch = ptr->s.spr_height >> 3;
 		
-		ptr->s.spr_cw[0] = ((cw&0xFFFE)+(cw==0x1))<<3;
-		ptr->s.spr_ch[0] = ((ch&0xFFFE)+(ch==0x1))<<3;
-		ptr->s.spr_cw[1] = ((cw&0x1)-(cw==0x1))<<3;
+		if(cw==6){
+			ptr->s.spr_cw[0] = (4)<<3;
+		}else{
+			ptr->s.spr_cw[0] = ((cw&0xFFFE)+(cw==0x1))<<3;
+		}
+		if(ch==6){
+			ptr->s.spr_ch[0] = (4)<<3;
+		}else{
+			ptr->s.spr_ch[0] = ((ch&0xFFFE)+(ch==0x1))<<3;
+		}
+		if(cw==6){
+			ptr->s.spr_cw[1] = (2)<<3;
+		}else{
+			ptr->s.spr_cw[1] = ((cw&0x1)-(cw==0x1))<<3;
+		}
 		ptr->s.spr_ch[1] = ptr->s.spr_ch[0];
 		ptr->s.spr_cw[2] = ptr->s.spr_cw[0];
-		ptr->s.spr_ch[2] = ((ch&0x1)-(ch==0x1))<<3;
+		if(ch==6){
+			ptr->s.spr_ch[2] = (2)<<3;
+		}else{
+			ptr->s.spr_ch[2] = ((ch&0x1)-(ch==0x1))<<3;
+		}
 		ptr->s.spr_cw[3] = ptr->s.spr_cw[1];
 		ptr->s.spr_ch[3] = ptr->s.spr_ch[2];
-
-		// Set the offsets
-		ptr->s.spr_off[0][0] = 0;
-		ptr->s.spr_off[0][1] = 0;
-
-		ptr->s.spr_off[1][0] = ptr->s.spr_cw[0];
-		ptr->s.spr_off[1][1] = 0;
-
-		ptr->s.spr_off[2][0] = 0;
-		ptr->s.spr_off[2][1] = ptr->s.spr_ch[0];
-
-		ptr->s.spr_off[3][0] = ptr->s.spr_cw[0];
-		ptr->s.spr_off[3][1] = ptr->s.spr_ch[0];
 
 		// Create gba sprites for keen sprite
 		ptr->s.spr_indx[0] = 0xFF;
@@ -229,7 +232,7 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 				ptr->s.num_sprs += 1;
 			}
 		}
-		VK_GBA_SGC += (ptr->s.spr_width*ptr->s.spr_height);
+		VK_GBA_SGC += setoff;//(ptr->s.spr_width*ptr->s.spr_height);
 		// TODO: Catch SGC here?
 		//if(VK_GBA_SGC>
 	}

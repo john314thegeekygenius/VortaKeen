@@ -158,11 +158,30 @@ int VKF_robotank_think(vk_object *obj){
 			
 			// Turn
 			VK_SetObjAnimation(obj,&VKA_robotank_turn_1);
-			
+
+
+			// Tank needs to move toward keen
+			if(vk_keen_obj->pos_x < obj->pos_x){
+				// Tank can't move toward keen, so go opposite direction
+				if(obj->hit_right){
+					obj->facing = 1;
+				}else{
+					obj->facing = 0;
+				}
+			}
+			if(vk_keen_obj->pos_x > obj->pos_x){
+				// Tank can't move toward keen, so go opposite direction
+				if(obj->hit_left){
+					obj->facing = 0;
+				}else{
+					obj->facing = 1;
+				}
+			}
+			/*
 			// Randomize the next direction
 			if(VK_GetRNG()>0x80){
 				obj->facing = !obj->facing;
-			}
+			}*/
 		}
 	}
 

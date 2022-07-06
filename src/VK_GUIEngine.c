@@ -541,13 +541,13 @@ void VK_DoIntroDemo(){
 	// Render the APOGEE logo
 	for(e = 0; e < (INT_APOGEE_height>>3); e++){
 		for(i = 0; i < (INT_APOGEE_width>>3); i++){
-			VK_GBA_BG_MAPB[((e+2)<<5)+i] = (e*(INT_APOGEE_width>>3))+i+(VK_GBA_TILES2_OFF);
+			VK_GBA_BG_MAPB[((e+2)<<5)+i+15-(INT_APOGEE_width>>4)] = (e*(INT_APOGEE_width>>3))+i+(VK_GBA_TILES2_OFF);
 		}
 	}
 
 	int16_t APOGEE_UpdateTick = 0;
 	int16_t APOGEE_y = (12*8);
-	int16_t APOGEE_x = (INT_APOGEE_width>>1)-120;
+	int16_t APOGEE_x = 0;//(INT_APOGEE_width>>1)-120;
 
 	*(volatile uint16_t*)GBA_REG_BG1HOFS = APOGEE_x;
 	*(volatile uint16_t*)GBA_REG_BG1VOFS = APOGEE_y;
@@ -587,7 +587,7 @@ void VK_DoIntroDemo(){
 	// Render the AN text
 	for(e = 0; e < (INT_AN_height>>3); e++){
 		for(i = 0; i < (INT_AN_width>>3); i++){
-			VK_GBA_BG_MAPB[((e+0)<<5)+i+10] = (e*(INT_AN_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+			VK_GBA_BG_MAPB[((e+0)<<5)+i+15-(INT_AN_width>>4)] = (e*(INT_AN_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
 		}
 	}
 
@@ -596,7 +596,7 @@ void VK_DoIntroDemo(){
 	// Render the PRESENTAION text
 	for(e = 0; e < (INT_PREST_height>>3); e++){
 		for(i = 0; i < (INT_PREST_width>>3); i++){
-			VK_GBA_BG_MAPB[((e+6)<<5)+i+6] = (e*(INT_PREST_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+			VK_GBA_BG_MAPB[((e+6)<<5)+i+15-(INT_PREST_width>>4)] = (e*(INT_PREST_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
 		}
 	}
 	bmptileoff += (INT_PREST_size>>6);
@@ -604,7 +604,7 @@ void VK_DoIntroDemo(){
 	// Render the OF AN text
 	for(e = 0; e < (INT_OF_AN_height>>3); e++){
 		for(i = 0; i < (INT_OF_AN_width>>3); i++){
-			VK_GBA_BG_MAPB[((e+8)<<5)+i+9] = (e*(INT_OF_AN_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+			VK_GBA_BG_MAPB[((e+8)<<5)+i+15-(INT_OF_AN_width>>4)] = (e*(INT_OF_AN_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
 		}
 	}
 	bmptileoff += (INT_OF_AN_size>>6);
@@ -612,7 +612,7 @@ void VK_DoIntroDemo(){
 	// Render the ID Software logo
 	for(e = 0; e < (ID_SOFT_height>>3); e++){
 		for(i = 0; i < (ID_SOFT_width>>3); i++){
-			VK_GBA_BG_MAPB[((e+10)<<5)+i+7] = (e*(ID_SOFT_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+			VK_GBA_BG_MAPB[((e+10)<<5)+i+15-(ID_SOFT_width>>4)] = (e*(ID_SOFT_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
 		}
 	}
 	bmptileoff += (ID_SOFT_size>>6);
@@ -620,7 +620,7 @@ void VK_DoIntroDemo(){
 	// Render the PRODUCTION text
 	for(e = 0; e < (INT_PROD_height>>3); e++){
 		for(i = 0; i < (INT_PROD_width>>3); i++){
-			VK_GBA_BG_MAPB[((e+16)<<5)+i+7] = (e*(INT_PROD_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
+			VK_GBA_BG_MAPB[((e+16)<<5)+i+15-(INT_PROD_width>>4)] = (e*(INT_PROD_width>>3))+i+(VK_GBA_TILES2_OFF + bmptileoff);
 		}
 	}
 
@@ -651,6 +651,8 @@ void VK_DoIntroDemo(){
 	vk_engine_demo = VK_DEMO_MAINMENU;
 
 };
+
+
 
 
 
@@ -1625,7 +1627,7 @@ void VK_StatusBar(){
 	// Write the text on the status bar
 	VK_TextX = 1+(vk_map_offsetx>>3);
 	VK_TextY = 4+(vk_map_offsety>>3);
-	VK_Print2("    SCORE     EXTRA KEEN AT ");
+	VK_Print2(VK_STATUS_TEXT[0]);
 	VK_TextY += 1;
 	char *strptr = VK_Iota(vk_engine_gstate.score);
 	VK_TextX += 9 - strlen(strptr);
@@ -1638,18 +1640,18 @@ void VK_StatusBar(){
 	VK_TextX -= 0x19 - strlen(strptr);
 
 	VK_TextY += 1;
-	VK_Print2("    KEENS       SHIP PARTS  ");
+	VK_Print2(VK_STATUS_TEXT[1]);
 	VK_TextY += 4;
-	VK_Print2(" RAYGUN   POGO    KEYCARDS  ");
+	VK_Print2(VK_STATUS_TEXT[2]);
 	VK_TextY += 4;
-	VK_Print2(" CHARGE ");
+	VK_Print2(VK_STATUS_TEXT[3]);
 	VK_TextY += 1;
 	strptr = VK_Iota(vk_engine_gstate.ammo);
 	VK_TextX += 0x5 - strlen(strptr);
 	VK_Print(strptr);
 	VK_TextX -= 0x5 - strlen(strptr);
 	VK_TextY += 1;
-	VK_Print2("    PLEASE PRESS A BUTTON   ");
+	VK_Print2(VK_STATUS_TEXT[4]);
 	// Line 1
 	VK_TextX = 13+(vk_map_offsetx>>3);
 	VK_TextY = 5+(vk_map_offsety>>3);
@@ -1852,12 +1854,12 @@ void VK_MissingParts(){
 	// Write the text on the dialog box
 	VK_TextX = 5;
 	VK_TextY = 6;
-	VK_Print("Your ship is missing");
+	VK_Print(GO_GET_EM_TXT[0]);
 	VK_TextY = 7;
-	VK_Print("these parts:");
+	VK_Print(GO_GET_EM_TXT[1]);
 	VK_TextX = 9;
 	VK_TextY = 12;
-	VK_Print("GO GET THEM!");
+	VK_Print(GO_GET_EM_TXT[2]);
 	VK_TextX = 8;
 	VK_TextY = 13;
 	VK_Print("Press button:");
@@ -1997,7 +1999,7 @@ void VK_KeensLeft(){
 
 	VK_TextX = 9;
 	VK_TextY = 9;
-	VK_Print("Keens Left");
+	VK_Print(VK_KEENS_LEFT_TXT);
 
 	VK_PlaySound(VKS_KEENSLEFT);
 	
@@ -2605,7 +2607,7 @@ void VK_DrawEndTBC(){
 	VK_DrawBox(2,3,25,2);
 	VK_TextX = 3;
 	VK_TextY = 4;
-	VK_Type("TO BE CONTINUED...");
+	VK_Type(VK_END_TBC);
 };
 
 void VK_CopyEndScreenGfx(){

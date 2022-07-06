@@ -325,6 +325,13 @@ void VK_ReturnToWorldmap(){
 	vk_engine_gstate.level_to_load = 0;
 	vk_engine_gstate.lights_out = 0;
 
+	// Remove the keycards
+	vk_engine_gstate.gotKeycardR = 0;
+	vk_engine_gstate.gotKeycardG = 0;
+	vk_engine_gstate.gotKeycardB = 0;
+	vk_engine_gstate.gotKeycardY = 0;
+
+
 	if((vk_engine_gstate.posX != 0xFFFF)&& (vk_engine_gstate.posY != 0xFFFF)){
 		vk_keen_obj->pos_x = vk_engine_gstate.posX;
 		vk_keen_obj->pos_y = vk_engine_gstate.posY;

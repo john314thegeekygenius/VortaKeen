@@ -30,15 +30,15 @@ vk_obj_ani VKA_mapkeen_idle_h = { 0, 8, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}
 vk_obj_ani VKA_mapkeen_idle_v = { 4, 12, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_idle_v };
 
 // Right / Left
-vk_obj_ani VKA_mapkeen_walk_h1 = { 1, 9, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h2 };
-vk_obj_ani VKA_mapkeen_walk_h2 = { 2, 10, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h3 };
-vk_obj_ani VKA_mapkeen_walk_h3 = { 3, 11, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h4 };
-vk_obj_ani VKA_mapkeen_walk_h4 = { 2, 10, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h1 };
+vk_obj_ani VKA_mapkeen_walk_h1 = { 1, 9, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h2 };
+vk_obj_ani VKA_mapkeen_walk_h2 = { 2, 10, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h3 };
+vk_obj_ani VKA_mapkeen_walk_h3 = { 3, 11, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h4 };
+vk_obj_ani VKA_mapkeen_walk_h4 = { 2, 10, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_h1 };
 // Up / Down
-vk_obj_ani VKA_mapkeen_walk_v1 = { 5, 13, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v2 };
-vk_obj_ani VKA_mapkeen_walk_v2 = { 6, 14, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v3 };
-vk_obj_ani VKA_mapkeen_walk_v3 = { 7, 15, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v4 };
-vk_obj_ani VKA_mapkeen_walk_v4 = { 6, 14, VK_2_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v1 };
+vk_obj_ani VKA_mapkeen_walk_v1 = { 5, 13, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v2 };
+vk_obj_ani VKA_mapkeen_walk_v2 = { 6, 14, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v3 };
+vk_obj_ani VKA_mapkeen_walk_v3 = { 7, 15, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v4 };
+vk_obj_ani VKA_mapkeen_walk_v4 = { 6, 14, VK_1_FRAMES, { 2<<8, 1<<8, 10<<8, 16<<8}, &VKA_mapkeen_walk_v1 };
 
 
 
@@ -183,13 +183,13 @@ int VKF_mapkeen_think(vk_object *obj){
 	
 	if(obj->hit_left||obj->hit_right||obj->hit_top||obj->hit_bottom){
 		// Play the block sound
-		if(obj->animation == &VKA_mapkeen_walk_h2||obj->animation == &VKA_mapkeen_walk_h4 ||
-		obj->animation == &VKA_mapkeen_walk_v2||obj->animation == &VKA_mapkeen_walk_v4){
+		if(obj->animation == &VKA_mapkeen_walk_h1 ||
+		obj->animation == &VKA_mapkeen_walk_v1){
 			VK_PlaySound(VKS_WLDBLOCKSND);
 		}
 	}else{
-		if(obj->animation == &VKA_mapkeen_walk_h1|| obj->animation == &VKA_mapkeen_walk_h3||
-			obj->animation == &VKA_mapkeen_walk_v1 || obj->animation == &VKA_mapkeen_walk_v3){
+		if(obj->animation == &VKA_mapkeen_walk_h1|| 
+			obj->animation == &VKA_mapkeen_walk_v1 ){
 			// Play the walk sound
 			VK_PlaySound(VKS_WLDWALKSND);
 		}

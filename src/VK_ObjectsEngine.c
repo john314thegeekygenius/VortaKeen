@@ -296,12 +296,12 @@ int VK_CollideMapKeenWLevel(vk_object *obj){
 				if(VK_CheckButton( GBA_BUTTON_RSHOLDER|GBA_BUTTON_LSHOLDER)==(GBA_BUTTON_RSHOLDER|GBA_BUTTON_LSHOLDER)){
 					continue;
 				}
-				
-				// Collide with top
+					
+					// Collide with top
 				if(kright > (tileX<<4)){
 					if(kleft < (tileX<<4)+(16)){
 						if(kbottom >= (tileY<<4)){
-							if(kbottom <= (tileY<<4)+(obj->vel_y>>8)){
+							if(kbottom <= (tileY<<4)+4){
 								if(obj->vel_y > 0){
 									obj->pos_y = (tileY<<12)-(obj->animation->cbox.bottom);
 									obj->vel_y = 0;
@@ -315,11 +315,11 @@ int VK_CollideMapKeenWLevel(vk_object *obj){
 						}
 					}
 				}
-								
+				
 				// Collide with bottom
 				if(kright > (tileX<<4)){
 					if(kleft < (tileX<<4)+(16)){
-						if(ktop >= (tileY<<4)+16+(obj->vel_y>>8)){
+						if(ktop >= (tileY<<4)+16-4){
 							if(ktop <= (tileY<<4)+(16)){
 								if(obj->vel_y < 0){
 									obj->pos_y = ((tileY<<12)+(16<<8))-obj->animation->cbox.top;
@@ -351,7 +351,7 @@ int VK_CollideMapKeenWLevel(vk_object *obj){
 						}
 					}
 				}
-				
+
 				  // Collide with left
 				if(kright > (tileX<<4)){
 					if(kleft <= (tileX<<4)+(16)){
@@ -389,6 +389,9 @@ int VK_CollideKeenWLevel(vk_object *obj){
 	int i;
 	if(obj->animation==NULL){
 		return 0;
+	}
+	if(obj->animation == &VKA_keen_die_1 || obj->animation == &VKA_keen_die_2){
+		return 0; // Stop keen from collecting things
 	}
 	if(vk_keen_collide_flag==0){
 		vk_keen_collide_flag = 1;
