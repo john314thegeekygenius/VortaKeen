@@ -16,6 +16,9 @@
 
 #define VORTICON_SHOTS 4
 #define VORTICON_COMMANDER_SHOTS 105
+#define VORTICON_COMMANDER_LEVEL 16
+// You could define the commander level as: 16 || vk_level_id==XX
+// where XX is another level, thus alowing for him to be in more than one level
 
 vk_obj_ani VKA_vorticon_walk_1,
 			VKA_vorticon_walk_2,
@@ -45,12 +48,12 @@ vk_obj_ani VKA_vorticon_idle_2 = { 9, 9, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8
 
 vk_obj_ani VKA_vorticon_jump = { 10, 11, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_jump };
 
-vk_obj_ani VKA_vorticon_die_1 = { 12, 12, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_2 };
-vk_obj_ani VKA_vorticon_die_2 = { 13, 13, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_3 };
-vk_obj_ani VKA_vorticon_die_3 = { 14, 14, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_4 };
-vk_obj_ani VKA_vorticon_die_4 = { 15, 15, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_5 };
-vk_obj_ani VKA_vorticon_die_5 = { 16, 16, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_6 };
-vk_obj_ani VKA_vorticon_die_6 = { 17, 17, VK_2_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_6 };
+vk_obj_ani VKA_vorticon_die_1 = { 12, 12, VK_4_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_2 };
+vk_obj_ani VKA_vorticon_die_2 = { 13, 13, VK_4_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_3 };
+vk_obj_ani VKA_vorticon_die_3 = { 14, 14, VK_4_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_4 };
+vk_obj_ani VKA_vorticon_die_4 = { 15, 15, VK_4_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_5 };
+vk_obj_ani VKA_vorticon_die_5 = { 16, 16, VK_4_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_6 };
+vk_obj_ani VKA_vorticon_die_6 = { 17, 17, VK_4_FRAMES, { 2<<8, 1<<8, 22<<8, 32<<8}, &VKA_vorticon_die_6 };
 
 
 
@@ -88,6 +91,7 @@ int VKF_vorticon_collide(vk_object *obj, vk_object *cobj){
 
 		if(obj->var1==0){
 			// Kill the vorticon
+			obj->vel_x = 0;
 			VK_SetObjAnimation(obj,&VKA_vorticon_die_1);
 			VK_PlaySound(VKS_VORTSCREAM);
 		}
@@ -206,7 +210,7 @@ int VKF_vorticon_think(vk_object *obj){
 		obj->vel_x = 0;
 	}
 	
-	// Move the yorp
+	// Move the vorticon
 	obj->pos_x += obj->vel_x;
 	obj->pos_y += obj->vel_y;
 	

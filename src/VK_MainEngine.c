@@ -569,13 +569,24 @@ void VK_DoGameLoop(){
 				}else{
 					vk_keen_input[5] = 0;
 				}
-				if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
-					vk_keen_input[6] = 1;
+				if(vk_engine_gstate.pogo_swaped==1){
+					if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+						vk_keen_input[6] = 1;
+					}else{
+						vk_keen_input[6] = 0;
+					}
+					if(VK_ButtonUp() == (GBA_BUTTON_RSHOLDER)){
+						VK_InfoOptions();
+					}
 				}else{
-					vk_keen_input[6] = 0;
-				}
-				if(VK_ButtonUp() == (GBA_BUTTON_RSHOLDER)){
-					VK_InfoOptions();
+					if(VK_ButtonUp() == (GBA_BUTTON_RSHOLDER)){
+						vk_keen_input[6] = 1;
+					}else{
+						vk_keen_input[6] = 0;
+					}
+					if(VK_ButtonUp() == (GBA_BUTTON_LSHOLDER)){
+						VK_InfoOptions();
+					}
 				}
 
 				// Position the level

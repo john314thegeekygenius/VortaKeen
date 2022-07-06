@@ -195,93 +195,23 @@ void VK_RenderDoors(){
 	for(i = 0; i < 8; i++){
 		vk_door_sprite *door = &VK_Doors[i];
 		if(vk_oupdate_tick >= 0x4){
-
-			if(door->animation < 0x40){
+			if(door->animation <= 0x20){
 				// Move the graphics down
-				//door->animation*16
-
-				if(door->animation<0x8){
-					
-					// Top tile
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3),TILESET_data+door->tt_off,16-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+64,TILESET_data+door->tt_off+64,16-(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+128,TILESET_data+door->tt_off+64-(door->animation<<3),(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+128+64,TILESET_data+door->tt_off+128-(door->animation<<3),(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+128,TILESET_data+door->tt_off+(1024),16-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+192,TILESET_data+door->tt_off+(1024)+64,16-(door->animation<<1));
-
-					// Bottom tile
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256,TILESET_data+door->tt_off+1024+64-((door->animation%8)<<3),(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+64,TILESET_data+door->tt_off+1024+128-((door->animation%8)<<3),(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+(door->animation<<3),TILESET_data+door->bt_off,16-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+(door->animation<<3)+64,TILESET_data+door->bt_off+64,16-(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+128,TILESET_data+door->bt_off+64-(door->animation<<3),(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+128+64,TILESET_data+door->bt_off+128-(door->animation<<3),(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+(door->animation<<3)+128,TILESET_data+door->bt_off+(1024),16-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+(door->animation<<3)+192,TILESET_data+door->bt_off+(1024)+64,16-(door->animation<<1));
-
-				}else
-				if(door->animation<0x10){
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+64,TILESET_data+door->tt_off,32-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+128,TILESET_data+door->tt_off+64,32-(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256,TILESET_data+door->tt_off+64-((door->animation%8)<<3),(door->animation<<1)-0x10);
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+64,TILESET_data+door->tt_off+128-((door->animation%8)<<3),(door->animation<<1)-0x10);
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+64+128,TILESET_data+door->tt_off+(1024),32-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+64+192,TILESET_data+door->tt_off+(1024)+64,32-(door->animation<<1));
-
-					// Bottom tile
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+128,TILESET_data+door->tt_off+1024+64-((door->animation%8)<<3),(door->animation<<1)-0x10);
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+128+64,TILESET_data+door->tt_off+1024+128-((door->animation%8)<<3),(door->animation<<1)-0x10);
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+64+(door->animation<<3),TILESET_data+door->bt_off,32-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+64+(door->animation<<3)+64,TILESET_data+door->bt_off+64,32-(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+256,TILESET_data+door->bt_off+64-((door->animation%8)<<3),(door->animation<<1)-0x10);
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+256+64,TILESET_data+door->bt_off+128-((door->animation%8)<<3),(door->animation<<1)-0x10);
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+(door->animation<<3)+64+128,TILESET_data+door->bt_off+(1024),32-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+256+(door->animation<<3)+64+192,TILESET_data+door->bt_off+(1024)+64,32-(door->animation<<1));
-
-				}else
-				if(door->animation<0x18){
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+128,TILESET_data+door->tt_off,48-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+192,TILESET_data+door->tt_off+64,48-(door->animation<<1));
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+384,TILESET_data+door->tt_off+64-((door->animation%8)<<3),(door->animation<<1)-0x20);
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+384+64,TILESET_data+door->tt_off+128-((door->animation%8)<<3),(door->animation<<1)-0x20);
-
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+128+128,TILESET_data+door->tt_off+(1024),48-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+128+192,TILESET_data+door->tt_off+(1024)+64,48-(door->animation<<1));
-				}else if(door->animation<0x20){
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+192,TILESET_data+door->tt_off,64-(door->animation<<1));
-					GBA_DMA_Copy32(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+(door->animation<<3)+256,TILESET_data+door->tt_off+64,64-(door->animation<<1));
-				}
+				
 				if(door->animation){
-					door->animation -= 1;
-					uint16_t anichunk = ((door->animation%8)<<3) + ((door->animation>>3)<<7);
+					uint16_t anichunk = (((0x20-door->animation)%8)<<3) + (((0x20-door->animation)>>3)<<7);
 					GBA_ASM_MemSet16(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+anichunk, 0x0000,4);
 					GBA_ASM_MemSet16(GBA_SPRGFX_START+VK_DOOR_GFX_OFFSET+(door->offset)+anichunk+64, 0x0000,4);
-					door->animation += 1;
 				}
 
 				// Animate it
 				door->animation += 0x1;
 			}
 		}
-		if(door->animation < 0x40){
+		if(door->animation <= 0x20){
 			// Render the door
 			cx = (door->x>>8)-(vk_level_offsetx<<4);
-			cy = (door->y>>8)-(vk_level_offsety<<4);
+			cy = (door->y>>8)-(vk_level_offsety<<4)+(door->animation)-(door->animation>0);
 			cx -= vk_map_offsetx;
 			cy -= vk_map_offsety;
 			
@@ -755,7 +685,7 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									VK_DisplayMessage(vk_engine_gstate.in_game-1);
 									
 									break;
-								case 23:
+								case 233:
 									if(vk_keen_input[6]){
 										// Change the tile
 										//vk_level_data[tile] = 0;
@@ -814,12 +744,17 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									return;
 									break;
 								case 25:
-									if(VK_ButtonUp()==GBA_BUTTON_LSHOLDER){
-										// Change the tile
-										//vk_level_data[tile] = 0;
-										VK_ForceLevelUpdate();
+									if(vk_keen_input[6]){
+										int8_t bx,by;
+										// Set this
+										VK_BRIDGE_TILE = vk_level_data[tile]+2;
 										// Spawn bridge
-										// VK_SummonBridge(x,y);
+										by = (vk_level_map[tile+(vk_level_width*vk_level_height)]>>8)&0xFF;
+										bx = (vk_level_map[tile+(vk_level_width*vk_level_height)])&0xFF;
+										VK_SpawnBridge(tile,bx,by);
+										// Change the tile
+										vk_level_data[tile] = vk_level_data[tile]+1;
+										VK_ForceLevelUpdate();
 										// Play the sound
 										VK_PlaySound(VKS_CLICKSND);
 										// Tell keen we interacted
@@ -827,12 +762,17 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									}
 									break;
 								case 26:
-									if(VK_ButtonUp()==GBA_BUTTON_LSHOLDER){
+									if(vk_keen_input[6]){
+										int8_t bx,by;
+										// Set this
+										VK_BRIDGE_TILE = vk_level_data[tile]+1;
+										// Spawn bridge
+										by = (vk_level_map[tile+(vk_level_width*vk_level_height)]>>8)&0xFF;
+										bx = (vk_level_map[tile+(vk_level_width*vk_level_height)])&0xFF;
+										VK_SpawnBridge(tile,bx,by);
 										// Change the tile
-										//vk_level_data[tile] = 0;
+										vk_level_data[tile] = vk_level_data[tile]+1;
 										VK_ForceLevelUpdate();
-										// Remove bridge
-										// VK_EatBridge(x,y);
 										// Play the sound
 										VK_PlaySound(VKS_CLICKSND);
 									}
@@ -1029,18 +969,21 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 	vk_object * obj = &vk_level_objects[vk_num_of_objects];
 	int i;
 
-	vk_num_of_objects+= 1;
-	if(vk_num_of_objects >= VK_MAX_OBJECTS){
-		vk_num_of_objects = VK_MAX_OBJECTS; // Loop arround?
-		//while(1); // Just hang
-	}
-
-	for(i = 0; i < vk_num_of_objects-1; i++){
+	for(i = 0; i < vk_num_of_objects; i++){
 		if(vk_level_objects[i].animation == NULL){
 			obj = &vk_level_objects[i];
+			VK_RemoveSprite(obj->s); // In case we need to
 			vk_num_of_objects -= 1;
 			break;
 		}
+	}
+
+	vk_num_of_objects+= 1;
+	if(vk_num_of_objects >= VK_MAX_OBJECTS){
+		vk_num_of_objects = VK_MAX_OBJECTS; // Uhhhh
+		while(1){
+			GBA_ASM_MemSet16(GBA_VRAM,0x0001,120*160);
+		}; // Just hang
 	}
 
 	obj->s = NULL;
@@ -1091,7 +1034,7 @@ vk_object *VK_CreateObject(uint16_t sprite_id, int32_t x, int32_t y){
 			obj->collide = &VKF_vorticon_collide;
 			obj->think = &VKF_vorticon_think;
 			obj->type = vko_vorticon;
-			if(vk_level_id==16){
+			if(vk_level_id==VORTICON_COMMANDER_LEVEL){
 				obj->type = vko_vorticon_commander;
 			}
 			obj->hitmap = 1;
@@ -1243,9 +1186,11 @@ void VK_SetObjAnimation(vk_object *obj,vk_obj_ani *animation){
 		}else{
 			obj->s->s.spr_gfx_ani = obj->animation->gfxoff_r;
 		}
+		obj->gfx_needs_update = 1;
+	}else{
+		VK_RemoveSprite(obj->s);
+		obj->s = NULL;
 	}
-	// Yes?
-	obj->gfx_needs_update = 1;
 };
 
 int VK_ObjInObj(vk_object *o1,vk_object *o2){
@@ -1307,19 +1252,16 @@ void VK_RenderObjects(){
 	
 	for(i=0;i<objlen;i++){
 		vk_object * obj = &vk_level_objects[i];
-		
-		
-		if(obj->animation == NULL){
-			// If s is NULL this will explode?
-			if(obj->s!=NULL){
-	//			obj->s->active = 0;
-				VK_RemoveSprite(obj->s);
-				obj->s = NULL;
+				
+		if(obj!=NULL){
+					
+			if(obj->animation == NULL){
+				if(obj->s!=NULL){
+					VK_RemoveSprite(obj->s);
+					obj->s = NULL;
+				}
+				continue;
 			}
-			continue;
-		}
-		
-		if(obj!=NULL&&obj->s!=NULL&&obj->s->active!=0){
 			
 			if(vk_oupdate_tick >= 0x4){
 				if(obj->animation!=NULL){
@@ -1346,6 +1288,7 @@ void VK_RenderObjects(){
 						}
 
 						// Collide all objects with shots
+						
 						if(obj->type == vko_shot_friendly || obj->type == vko_shot_deadly){
 							for(e=0;e<vk_num_of_objects;e++){
 								vk_object *obj2 = &vk_level_objects[e];
@@ -1354,7 +1297,9 @@ void VK_RenderObjects(){
 								}
 								if(e==i) continue;
 								if(VK_ObjInObj(obj,obj2)){
-									obj2->collide(obj2,obj);
+									if(obj2->collide!=NULL){
+										obj2->collide(obj2,obj);
+									}
 								}
 							}
 						}
@@ -1363,29 +1308,35 @@ void VK_RenderObjects(){
 					if(obj->think!=NULL){
 						obj->think(obj);
 					}
+					
+					if(obj->animation==NULL){
+						continue;
+					}
 
 					cx = (obj->pos_x>>8)-(vk_level_offsetx<<4);
 					cy = (obj->pos_y>>8)-(vk_level_offsety<<4);
 					cx -= vk_map_offsetx;
 					cy -= vk_map_offsety;
 					
-					if(cx >= (0-obj->s->s.spr_width) && cy >= (0-obj->s->s.spr_height) && cx < (32<<3) && cy < (20<<3)){
-						if(obj->gfx_needs_update){
-							obj->gfx_needs_update = 0;
-							VK_SetSpriteGraphics(obj->s);
+					if(obj->s){
+						if(cx >= (0-obj->s->s.spr_width) && cy >= (0-obj->s->s.spr_height) && cx < (32<<3) && cy < (20<<3)){
+							if(obj->gfx_needs_update){
+								obj->gfx_needs_update = 0;
+								VK_SetSpriteGraphics(obj->s);
+							}
 						}
+						obj->s->x = cx;
+						obj->s->y = cy;
 					}
-					obj->s->x = cx;
-					obj->s->y = cy;
 					VK_RenderSprite(obj->s);
 
 				}else{
-					if(obj->type == vko_shot_friendly || obj->type == vko_shot_deadly){
+					if(obj->type == vko_shot_friendly || obj->type == vko_shot_deadly || 
+					obj->type == vko_icecube || obj->type == vko_iceshard){
 						// Delete the object
 						VK_SetObjAnimation(obj,NULL);
 					}
 				}
-
 		}else{
 			// Reposition the sprite
 		//	VK_RenderSprite(obj->s);

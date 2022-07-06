@@ -92,6 +92,11 @@ const uint32_t VK_TELEPORT_DEST[] = {
 
 uint16_t clear_tile_offset = 0;
 
+VK_Bridge vk_level_bridges[32]; // Max of 32 bridges????
+uint16_t vk_bridge_count = 0;
+uint16_t VK_BRIDGE_TILE = 0;
+
+
 GBA_IN_EWRAM unsigned short vk_level_data[256*256];
 GBA_IN_EWRAM unsigned char vk_sprite_data[32*256];
 unsigned short *vk_level_map;
@@ -132,6 +137,41 @@ unsigned short vk_level_update_tick = 0;
 unsigned short VK_CLEAR_TILE = 0;
 
 unsigned short vk_render_level_enable = 1;
+
+
+
+void VK_SpawnBridge(uint16_t off, int8_t x, int8_t y){
+	int i, offset;
+	
+	offset = off+(y*vk_level_width)+x;
+	
+	// See if bridge exists already
+	for(i = 0; i < vk_bridge_count; i++){
+		if(vk_level_bridges[i].init_pos == offset){
+			// Close the bridge
+			vk_level_bridges[i].cur_pos -= 1;
+			vk_level_bridges[i].active = 2;
+			return;
+		}
+		if(vk_level_bridges[i].init_pos == 0){
+			vk_level_bridges[i].init_pos = offset;
+			vk_level_bridges[i].cur_pos = offset;
+			vk_level_bridges[i].end_pos = 0;
+			vk_level_bridges[i].init_tile = vk_level_data[vk_level_bridges[i].init_pos];
+			vk_level_bridges[i].tick = 0;
+			vk_level_bridges[i].active = 1;
+		}
+	}
+	vk_level_bridges[vk_bridge_count].init_pos = offset;
+	vk_level_bridges[vk_bridge_count].cur_pos = offset;
+	vk_level_bridges[vk_bridge_count].end_pos = 0;
+	vk_level_bridges[vk_bridge_count].init_tile = vk_level_data[vk_level_bridges[vk_bridge_count].init_pos];
+	vk_level_bridges[vk_bridge_count].tick = 0;
+	vk_level_bridges[vk_bridge_count].active = 1;
+		
+	vk_bridge_count += 1;
+};
+
 
 
 void VK_ClearTopLayer(){
@@ -446,7 +486,7 @@ void VK_LoadLevel(uint16_t levelid){
 	
 	// Copy the tileset
 	GBA_DMA_Copy32(VK_GBA_BG_Tiles,TILESET_data,TILESET_size>>2);
-
+	
 	// Add the special tiles
 	if((clear_tile_offset%8)==0){
 		vk_special_items = (TILESET_size+(128<<4))>>8;
@@ -546,6 +586,17 @@ void VK_LoadLevel(uint16_t levelid){
 		}
 	}
 
+	// Remove all bridges
+	for(i = 0; i < 32; i++){
+		vk_level_bridges[i].init_pos = 0;
+		vk_level_bridges[i].cur_pos = 0;
+		vk_level_bridges[i].end_pos = 0;
+		vk_level_bridges[i].init_tile = 0;
+		vk_level_bridges[i].tick = 0;
+		vk_level_bridges[i].active = 0;
+	}
+	vk_bridge_count = 0;
+
 	
 	vk_level_needs_update = 1;
 	vk_level_update_tick = 0;
@@ -597,9 +648,44 @@ void VK_DisableLevelRendering(){
 };
 
 
+
 // Render the level
 void VK_RenderLevel(){
 	int i,e;
+
+	// Animate bridges
+	for(i = 0; i < vk_bridge_count; i++){
+		if(vk_level_bridges[i].active){
+			vk_level_bridges[i].tick += 0x1;
+			if(vk_level_bridges[i].tick>0x4){
+				vk_level_bridges[i].tick = 0;
+				if(vk_level_bridges[i].active==1){
+					if(vk_level_data[vk_level_bridges[i].cur_pos] == vk_level_bridges[i].init_tile){
+						// Advance the bridge
+						vk_level_data[vk_level_bridges[i].cur_pos] = VK_BRIDGE_TILE;
+						vk_level_bridges[i].cur_pos += 1;
+						VK_ForceLevelUpdate();
+					}else{
+						// Stop the bridge
+						vk_level_bridges[i].end_pos = vk_level_bridges[i].cur_pos;
+						vk_level_bridges[i].active = 0;
+					}
+				}else{
+					if(vk_level_data[vk_level_bridges[i].cur_pos] == VK_BRIDGE_TILE){
+						// Advance the bridge
+						vk_level_data[vk_level_bridges[i].cur_pos] = vk_level_bridges[i].init_tile;
+						vk_level_bridges[i].cur_pos -= 1;
+						VK_ForceLevelUpdate();
+					}else{
+						// Remove the bridge
+						vk_level_bridges[i].init_pos = 0;
+						vk_level_bridges[i].cur_pos = 0;
+						vk_level_bridges[i].active = 0;
+					}
+				}
+			}
+		}
+	}
 	
 	if(vk_level_needs_update==2){
 		vk_level_needs_update = 0;

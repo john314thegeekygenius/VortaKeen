@@ -495,7 +495,7 @@ int VKF_keen_think(vk_object *obj){
 			// Bug?
 			if(VK_CheckButton(GBA_BUTTON_DOWN)){
 				// Act like ice
-				if(obj->on_ground){
+				if(obj->on_ground==1){
 					obj->on_ground = 2;
 				}
 			}

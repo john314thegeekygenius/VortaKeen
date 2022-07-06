@@ -100,6 +100,7 @@ void VK_FormatROM(){
 	vk_engine_gstate.sound_enabled = 1;
 	vk_engine_gstate.music_enabled = 1;
 	vk_engine_gstate.gba_palette = 0;
+	vk_engine_gstate.pogo_swaped = 0;
 	
 	VK_SetPalette(0);
 
@@ -134,6 +135,7 @@ void VK_SaveOptions(){
 	data[0] = vk_engine_gstate.sound_enabled;
 	data[1] = vk_engine_gstate.music_enabled;
 	data[2] = vk_engine_gstate.gba_palette;
+	data[3] = vk_engine_gstate.pogo_swaped;
 
 	// Write to ROM
 	VK_WriteInfo(1,&SaveData);
@@ -147,6 +149,7 @@ int VK_LoadOptions(){
 	vk_engine_gstate.sound_enabled = 1;
 	vk_engine_gstate.music_enabled = 1;
 	vk_engine_gstate.gba_palette = 0;
+	vk_engine_gstate.pogo_swaped = 0;
 
 	VK_SetPalette(0);
 
@@ -163,6 +166,7 @@ int VK_LoadOptions(){
 	vk_engine_gstate.sound_enabled = data[0];
 	vk_engine_gstate.music_enabled = data[1];
 	vk_engine_gstate.gba_palette = data[2];
+	vk_engine_gstate.pogo_swaped = data[3];
 	
 	VK_SoundEnabled = vk_engine_gstate.sound_enabled;
 	VK_MusicEnabled = vk_engine_gstate.music_enabled;
@@ -1252,7 +1256,7 @@ void VK_DrawOptions(){
 	
 	VK_GBA_BG_MAPB[0] = 0;
 
-	VK_SpawnBox(15,10,26,8);
+	VK_SpawnBox(15,10,26,9);
 	
 	// Write the text on the dialog box
 	VK_TextX = 8;
@@ -1260,6 +1264,8 @@ void VK_DrawOptions(){
 	VK_Print("Sound  On  Off");
 	VK_TextY += 1;
 	VK_Print("Music  On  Off");
+	VK_TextY += 1;
+	VK_Print("Swap pogo  On  Off");
 	VK_TextY += 1;
 	VK_Print("Palette  N  GB  GR");
 	VK_TextY += 1;
@@ -1314,6 +1320,14 @@ void VK_OptionsMenu(){
 				VK_MusicEnabled = vk_engine_gstate.music_enabled;
 				break;
 				case 16:
+				// Swap the pogo control
+				if(vk_engine_gstate.pogo_swaped){
+					vk_engine_gstate.pogo_swaped = 0;
+				}else {
+					vk_engine_gstate.pogo_swaped = 1;
+				}
+				break;
+				case 24:
 				// Toggle Palette
 				vk_engine_gstate.gba_palette += 1;
 				if(vk_engine_gstate.gba_palette>2){
@@ -1321,7 +1335,7 @@ void VK_OptionsMenu(){
 				}
 				VK_SetPalette(0);
 				break;
-				case 24:
+				case 32:
 				// Reset the ROM
 				if(VK_AreYouSure()){
 					VK_FormatROM();
@@ -1346,14 +1360,14 @@ void VK_OptionsMenu(){
 			if(VK_ButtonUp()==GBA_BUTTON_UP){
 				
 				if(cursor_y==0){
-					cursor_y = (4<<3);
-					cursor_to_y = (4<<3);
+					cursor_y = (5<<3);
+					cursor_to_y = (5<<3);
 				}else{
 					cursor_to_y = cursor_y - 8;
 				}
 			}
 			if(VK_ButtonUp()==GBA_BUTTON_DOWN){
-				if(cursor_y==(4<<3)){
+				if(cursor_y==(5<<3)){
 					cursor_y = 0;
 					cursor_to_y = 0;
 				}else{
@@ -1397,21 +1411,30 @@ void VK_OptionsMenu(){
 			VK_GBA_BG_MAPA[(8<<5)+14] = 0x2E0;
 			VK_GBA_BG_MAPA[(8<<5)+18] = 0x2C9+cursor_animation;
 		}
+
+		if(vk_engine_gstate.pogo_swaped){
+			VK_GBA_BG_MAPA[(9<<5)+18] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(9<<5)+22] = 0x2E0;
+		}else{
+			VK_GBA_BG_MAPA[(9<<5)+18] = 0x2E0;
+			VK_GBA_BG_MAPA[(9<<5)+22] = 0x2C9+cursor_animation;
+		}
+		
 		
 		if(vk_engine_gstate.gba_palette==0){
-			VK_GBA_BG_MAPA[(9<<5)+16] = 0x2C9+cursor_animation;
-			VK_GBA_BG_MAPA[(9<<5)+19] = 0x2E0;
-			VK_GBA_BG_MAPA[(9<<5)+23] = 0x2E0;
+			VK_GBA_BG_MAPA[(10<<5)+16] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(10<<5)+19] = 0x2E0;
+			VK_GBA_BG_MAPA[(10<<5)+23] = 0x2E0;
 		}
 		if(vk_engine_gstate.gba_palette==1){
-			VK_GBA_BG_MAPA[(9<<5)+16] = 0x2E0;
-			VK_GBA_BG_MAPA[(9<<5)+19] = 0x2C9+cursor_animation;
-			VK_GBA_BG_MAPA[(9<<5)+23] = 0x2E0;
+			VK_GBA_BG_MAPA[(10<<5)+16] = 0x2E0;
+			VK_GBA_BG_MAPA[(10<<5)+19] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(10<<5)+23] = 0x2E0;
 		}
 		if(vk_engine_gstate.gba_palette==2){
-			VK_GBA_BG_MAPA[(9<<5)+16] = 0x2E0;
-			VK_GBA_BG_MAPA[(9<<5)+19] = 0x2E0;
-			VK_GBA_BG_MAPA[(9<<5)+23] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(10<<5)+16] = 0x2E0;
+			VK_GBA_BG_MAPA[(10<<5)+19] = 0x2E0;
+			VK_GBA_BG_MAPA[(10<<5)+23] = 0x2C9+cursor_animation;
 		}
 
 		// Draw the cursor
@@ -1433,17 +1456,17 @@ void VK_DrawMainMenu(){
 	// Write the text on the dialog box
 	VK_TextX = 10;
 	VK_TextY = 7;
-	VK_Print("New Game");
+	VK_Print(MAIN_MENU_FOLDERS[0]); // MAIN_MENU_FOLDERS defined in VK_TEXTS.h
 	VK_TextY += 1;
-	VK_Print("Continue Game");
+	VK_Print(MAIN_MENU_FOLDERS[1]);
 	VK_TextY += 1;
-	VK_Print("Story");
+	VK_Print(MAIN_MENU_FOLDERS[2]);
 	VK_TextY += 1;
-	VK_Print("High Scores");
+	VK_Print(MAIN_MENU_FOLDERS[3]);
 	VK_TextY += 1;
-	VK_Print("Options");
+	VK_Print(MAIN_MENU_FOLDERS[4]);
 	VK_TextY += 1;
-	VK_Print("Restart Demo");
+	VK_Print(MAIN_MENU_FOLDERS[5]);
 	VK_TextY += 2;
 	VK_TextX -= 3;
 	VK_Print("Use The D-Pad");
@@ -2027,7 +2050,7 @@ void VK_DrawInfoOptions(){
 	
 	VK_ClearTopLayer();
 
-	VK_SpawnBox(15,10,26,8);
+	VK_SpawnBox(15,10,26,9);
 	
 	// Write the text on the dialog box
 	VK_TextX = 8;
@@ -2037,6 +2060,8 @@ void VK_DrawInfoOptions(){
 	VK_Print("Sound  On  Off");
 	VK_TextY += 1;
 	VK_Print("Music  On  Off");
+	VK_TextY += 1;
+	VK_Print("Swap pogo  On  Off");
 	VK_TextY += 1;
 	VK_Print("Palette  N  GB  GR");
 	VK_TextY += 1;
@@ -2389,6 +2414,14 @@ void VK_InfoOptions(){
 				VK_MusicEnabled = vk_engine_gstate.music_enabled;
 				break;
 				case 24:
+				// Swap pogo contol
+				if(vk_engine_gstate.pogo_swaped){
+					vk_engine_gstate.pogo_swaped = 0;
+				}else {
+					vk_engine_gstate.pogo_swaped = 1;
+				}
+				break;
+				case 32:
 				// Toggle Palette
 				vk_engine_gstate.gba_palette += 1;
 				if(vk_engine_gstate.gba_palette>2){
@@ -2411,14 +2444,14 @@ void VK_InfoOptions(){
 			if(VK_ButtonUp()==GBA_BUTTON_UP){
 				
 				if(cursor_y==0){
-					cursor_y = (4<<3);
-					cursor_to_y = (4<<3);
+					cursor_y = (5<<3);
+					cursor_to_y = (5<<3);
 				}else{
 					cursor_to_y = cursor_y - 8;
 				}
 			}
 			if(VK_ButtonUp()==GBA_BUTTON_DOWN){
-				if(cursor_y==(4<<3)){
+				if(cursor_y==(5<<3)){
 					cursor_y = 0;
 					cursor_to_y = 0;
 				}else{
@@ -2464,21 +2497,30 @@ void VK_InfoOptions(){
 			VK_GBA_BG_MAPA[(9<<5)+14] = 0x2E0;
 			VK_GBA_BG_MAPA[(9<<5)+18] = 0x2C9+cursor_animation;
 		}
+
+		if(vk_engine_gstate.pogo_swaped){
+			VK_GBA_BG_MAPA[(10<<5)+18] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(10<<5)+22] = 0x2E0;
+		}else{
+			VK_GBA_BG_MAPA[(10<<5)+18] = 0x2E0;
+			VK_GBA_BG_MAPA[(10<<5)+22] = 0x2C9+cursor_animation;
+		}
+		
 		
 		if(vk_engine_gstate.gba_palette==0){
-			VK_GBA_BG_MAPA[(10<<5)+16] = 0x2C9+cursor_animation;
-			VK_GBA_BG_MAPA[(10<<5)+19] = 0x2E0;
-			VK_GBA_BG_MAPA[(10<<5)+23] = 0x2E0;
+			VK_GBA_BG_MAPA[(11<<5)+16] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(11<<5)+19] = 0x2E0;
+			VK_GBA_BG_MAPA[(11<<5)+23] = 0x2E0;
 		}
 		if(vk_engine_gstate.gba_palette==1){
-			VK_GBA_BG_MAPA[(10<<5)+16] = 0x2E0;
-			VK_GBA_BG_MAPA[(10<<5)+19] = 0x2C9+cursor_animation;
-			VK_GBA_BG_MAPA[(10<<5)+23] = 0x2E0;
+			VK_GBA_BG_MAPA[(11<<5)+16] = 0x2E0;
+			VK_GBA_BG_MAPA[(11<<5)+19] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(11<<5)+23] = 0x2E0;
 		}
 		if(vk_engine_gstate.gba_palette==2){
-			VK_GBA_BG_MAPA[(10<<5)+16] = 0x2E0;
-			VK_GBA_BG_MAPA[(10<<5)+19] = 0x2E0;
-			VK_GBA_BG_MAPA[(10<<5)+23] = 0x2C9+cursor_animation;
+			VK_GBA_BG_MAPA[(11<<5)+16] = 0x2E0;
+			VK_GBA_BG_MAPA[(11<<5)+19] = 0x2E0;
+			VK_GBA_BG_MAPA[(11<<5)+23] = 0x2C9+cursor_animation;
 		}
 
 		// Draw the cursor

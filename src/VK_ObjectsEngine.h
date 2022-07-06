@@ -16,7 +16,7 @@
 
 
 // Normal keen can't seem to handle more than 64
-#define VK_MAX_OBJECTS 128
+#define VK_MAX_OBJECTS 256
 
 typedef struct vk_box {
 	int16_t left;

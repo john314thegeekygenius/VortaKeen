@@ -164,7 +164,7 @@ GBA_SpriteIndex_t GBA_CreateSprite(uint16_t x, uint16_t y, GBA_SpriteSizes size,
 
 	GBA_SpriteIndex+=1; // Increment the index by one
 	if(GBA_SpriteIndex>127){
-		GBA_SpriteIndex = 127; // lock in place
+		GBA_SpriteIndex = 63; // loop back
 	}
 
 	return index;

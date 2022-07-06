@@ -53,6 +53,7 @@ typedef struct vk_game_state {
 	uint8_t sound_enabled; // Is the sound enabled
 	uint8_t music_enabled; // Is the music enabled
 	uint8_t gba_palette; // What palette to use
+	uint8_t pogo_swaped; // Is the pogo control switched
 	
 	// Keen stuff
 	int32_t next_1up; // Next score to get to

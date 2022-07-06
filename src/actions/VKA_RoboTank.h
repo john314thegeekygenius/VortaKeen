@@ -158,6 +158,11 @@ int VKF_robotank_think(vk_object *obj){
 			
 			// Turn
 			VK_SetObjAnimation(obj,&VKA_robotank_turn_1);
+			
+			// Randomize the next direction
+			if(VK_GetRNG()>0x80){
+				obj->facing = !obj->facing;
+			}
 		}
 	}
 

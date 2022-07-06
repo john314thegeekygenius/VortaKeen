@@ -35,10 +35,10 @@ int VKF_shot_think(vk_object *obj){
 			// Stop the shot
 			obj->vel_x = 0x00;
 			// Spawn Zap Zot pic
-			/*vk_object *zapzotptr = VK_CreateObject(251,obj->pos_x,obj->pos_y-(4<<8));
+			vk_object *zapzotptr = VK_CreateObject(251,obj->pos_x,obj->pos_y-(4<<8));
 			if(VK_GetRNG()>0x80){
 				VK_SetObjAnimation(zapzotptr,&VKA_shot_zot);
-			}*/
+			}
 			// Kill the shot
 			VK_SetObjAnimation(obj,NULL);
 			// Play the sound

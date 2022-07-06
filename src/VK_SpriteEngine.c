@@ -52,7 +52,7 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 	useing_old_spr = 0;
 	for(i = 0; i < VK_NumOfSprites; i++){
 		// Only reuse valid sprites
-		if(VK_GameSprites[i].active==0&&VK_GameSprites[i].s.spr_type == sprite_id){
+		if(VK_GameSprites[i].s.spr_type == sprite_id && VK_GameSprites[i].active==0){
 			ptr = &VK_GameSprites[i];
 			useing_old_spr = 1;
 			VK_NumOfSprites -= 1;
@@ -62,7 +62,11 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 
 	VK_NumOfSprites += 1;
 	if(VK_NumOfSprites >= VK_MAX_SPRITES){
-		VK_NumOfSprites = VK_MAX_SPRITES-1;
+		VK_NumOfSprites = VK_MAX_SPRITES; // ?????
+		while(1){
+			GBA_ASM_MemSet16(GBA_VRAM,0x0204,120*160);
+		}; // Just hang
+
 	}
 
 	// Use the standered Keen Vorticons sprite id layout
@@ -124,19 +128,19 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 			ptr->s.sheet_width = LAZER_width;
 			ptr->s.spr_data = &LAZER_data;
 		break;
-		case 19:
-			// Zap Zot
-			ptr->s.spr_width = ZAPZOT_spr_width;
-			ptr->s.spr_height = ZAPZOT_spr_height;
-			ptr->s.sheet_width = ZAPZOT_width;
-			ptr->s.spr_data = &ZAPZOT_data;
-		break;
 		case 10:
 			// Chain
 			ptr->s.spr_width = CHAIN_spr_width;
 			ptr->s.spr_height = CHAIN_spr_height;
 			ptr->s.sheet_width = CHAIN_width;
 			ptr->s.spr_data = &CHAIN_data;
+		break;
+		case 19:
+			// Zap Zot
+			ptr->s.spr_width = ZAPZOT_spr_width;
+			ptr->s.spr_height = ZAPZOT_spr_height;
+			ptr->s.sheet_width = ZAPZOT_width;
+			ptr->s.spr_data = &ZAPZOT_data;
 		break;
 		case 20:
 			// Space ship
@@ -175,36 +179,19 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 	ptr->s.spr_type = sprite_id;
 	
 	// Only calculate sprite graphics if needed
-	if(!useing_old_spr){
+	if(useing_old_spr==0){
 		
 		unsigned short cw = ptr->s.spr_width >> 3;
 		unsigned short ch = ptr->s.spr_height >> 3;
 		
-		if(cw==1&&ch==1){
-			ptr->s.spr_cw[0] = 8;
-			ptr->s.spr_ch[0] = 8;
-			ptr->s.spr_cw[1] = 0;
-			ptr->s.spr_ch[1] = 0;
-			ptr->s.spr_cw[2] = 0;
-			ptr->s.spr_ch[2] = 0;
-			ptr->s.spr_cw[3] = 0;
-			ptr->s.spr_ch[3] = 0;
-		}else{
-			ptr->s.spr_cw[0] = (cw&0xFFFE)<<3;
-			ptr->s.spr_ch[0] = (ch&0xFFFE)<<3;
-			ptr->s.spr_cw[1] = ((cw&0x1)<<3);
-			ptr->s.spr_ch[1] = ptr->s.spr_ch[0];
-			ptr->s.spr_cw[2] = ptr->s.spr_cw[0];
-			ptr->s.spr_ch[2] = ((ch&0x1)<<3);
-			ptr->s.spr_cw[3] = 0;
-			ptr->s.spr_ch[3] = 0;
-		}
-
-		if(ptr->s.spr_cw[1] && ptr->s.spr_ch[2]){
-			// Need extra sprite
-			ptr->s.spr_cw[3] = ptr->s.spr_cw[1];
-			ptr->s.spr_ch[3] = ptr->s.spr_cw[2];
-		}
+		ptr->s.spr_cw[0] = ((cw&0xFFFE)+(cw==0x1))<<3;
+		ptr->s.spr_ch[0] = ((ch&0xFFFE)+(ch==0x1))<<3;
+		ptr->s.spr_cw[1] = ((cw&0x1)-(cw==0x1))<<3;
+		ptr->s.spr_ch[1] = ptr->s.spr_ch[0];
+		ptr->s.spr_cw[2] = ptr->s.spr_cw[0];
+		ptr->s.spr_ch[2] = ((ch&0x1)-(ch==0x1))<<3;
+		ptr->s.spr_cw[3] = ptr->s.spr_cw[1];
+		ptr->s.spr_ch[3] = ptr->s.spr_ch[2];
 
 		// Set the offsets
 		ptr->s.spr_off[0][0] = 0;
@@ -243,8 +230,8 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 			}
 		}
 		VK_GBA_SGC += (ptr->s.spr_width*ptr->s.spr_height);
-	}else{
-		VK_SetSpriteGraphics(ptr);
+		// TODO: Catch SGC here?
+		//if(VK_GBA_SGC>
 	}
 	
 	ptr->s.spr_gfx_ani = 0;
@@ -272,21 +259,14 @@ void VK_RemoveSprite(vk_sprite *ptr){
 	int e;
 	if(ptr!=NULL){
 		ptr->active = 0;
-		/*
-		// Sort of a hack
-		// Because we delete the sprites right away, we can do this
-		GBA_SpriteIndex -= ptr->s.num_sprs;
-		VK_GBA_SGC -= (ptr->s.spr_width*ptr->s.spr_height);
-		*/
-
 		// Reset the position
 		for(e = 0; e < 4; e++){
 			if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
 				//GBA_SET_SPRITE_CLEAR(ptr->s.spr_indx[e]);
 				GBA_SET_SPRITE_POSITION(ptr->s.spr_indx[e],0xF0,0xA0);
+				GBA_UPDATE_SPRITE(ptr->s.spr_indx[e]);
 			}
 		}		
-		GBA_UPDATE_SPRITES();
 	}
 };
 
@@ -329,6 +309,7 @@ void VK_RenderSprites(){
 
 void VK_RenderSprite(vk_sprite *ptr){
 	uint16_t e;
+	if(ptr==NULL) return;
 	for(e = 0; e < 4; e++){
 		if(ptr->s.spr_indx[e]>=0&&ptr->s.spr_indx[e]<128){
 			if (ptr->active&& (ptr->x >= -0x40 && ptr->y >= -0x40 && ptr->x < 0x100 && ptr->y < 0xB0)){

@@ -69,57 +69,65 @@ int VKF_icecube_think(vk_object *obj){
 		vk_object * cobj;
 
 		// Up Right
-		cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
-		cobj->s = VK_CreateSprite(7);
-		VK_SetObjAnimation(cobj,&VKA_iceshard);
-		cobj->collide = &VKF_iceshard_collide;
-		cobj->think = &VKF_iceshard_think;
-		cobj->type = vko_iceshard;
-		cobj->hitmap = 0; // don't collide
-		// Set the velocities
-		cobj->vel_x = 0x200;
-		cobj->vel_y = -0x200;
+		if(!(obj->hit_top || obj->hit_right)){
+			cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
+			cobj->s = VK_CreateSprite(7);
+			VK_SetObjAnimation(cobj,&VKA_iceshard);
+			cobj->collide = &VKF_iceshard_collide;
+			cobj->think = &VKF_iceshard_think;
+			cobj->type = vko_iceshard;
+			cobj->hitmap = 0; // don't collide
+			// Set the velocities
+			cobj->vel_x = 0x200;
+			cobj->vel_y = -0x200;
+		}
 
 		// Down Right
-		cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
-		cobj->s = VK_CreateSprite(7);
-		VK_SetObjAnimation(cobj,&VKA_iceshard);
-		cobj->collide = &VKF_iceshard_collide;
-		cobj->think = &VKF_iceshard_think;
-		cobj->type = vko_iceshard;
-		cobj->hitmap = 0; // don't collide
-		// Set the velocities
-		cobj->vel_x = 0x200;
-		cobj->vel_y = 0x200;
+		if(!(obj->hit_bottom || obj->hit_right)){
+			cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
+			cobj->s = VK_CreateSprite(7);
+			VK_SetObjAnimation(cobj,&VKA_iceshard);
+			cobj->collide = &VKF_iceshard_collide;
+			cobj->think = &VKF_iceshard_think;
+			cobj->type = vko_iceshard;
+			cobj->hitmap = 0; // don't collide
+			// Set the velocities
+			cobj->vel_x = 0x200;
+			cobj->vel_y = 0x200;
+		}
 		
 		// Up Left
-		cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
-		cobj->s = VK_CreateSprite(7);
-		VK_SetObjAnimation(cobj,&VKA_iceshard);
-		cobj->collide = &VKF_iceshard_collide;
-		cobj->think = &VKF_iceshard_think;
-		cobj->type = vko_iceshard;
-		cobj->hitmap = 0; // don't collide
-		// Set the velocities
-		cobj->vel_x = -0x200;
-		cobj->vel_y = -0x200;
+		if(!(obj->hit_top || obj->hit_left)){
+			cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
+			cobj->s = VK_CreateSprite(7);
+			VK_SetObjAnimation(cobj,&VKA_iceshard);
+			cobj->collide = &VKF_iceshard_collide;
+			cobj->think = &VKF_iceshard_think;
+			cobj->type = vko_iceshard;
+			cobj->hitmap = 0; // don't collide
+			// Set the velocities
+			cobj->vel_x = -0x200;
+			cobj->vel_y = -0x200;
+		}
 
 		// Down Left
-		cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
-		cobj->s = VK_CreateSprite(7);
-		VK_SetObjAnimation(cobj,&VKA_iceshard);
-		cobj->collide = &VKF_iceshard_collide;
-		cobj->think = &VKF_iceshard_think;
-		cobj->type = vko_iceshard;
-		cobj->hitmap = 0; // don't collide
-		// Set the velocities
-		cobj->vel_x = -0x200;
-		cobj->vel_y = 0x200;
-
+		if(!(obj->hit_bottom || obj->hit_left)){
+			cobj = VK_CreateObject(6,obj->pos_x,obj->pos_y);
+			cobj->s = VK_CreateSprite(7);
+			VK_SetObjAnimation(cobj,&VKA_iceshard);
+			cobj->collide = &VKF_iceshard_collide;
+			cobj->think = &VKF_iceshard_think;
+			cobj->type = vko_iceshard;
+			cobj->hitmap = 0; // don't collide
+			// Set the velocities
+			cobj->vel_x = -0x200;
+			cobj->vel_y = 0x200;
+		}
 
 		VK_PlaySound(VKS_CHUNKSMASH);
 
 		VK_SetObjAnimation(obj,NULL);
+		return 0;
 	}
 
 	obj->pos_x += obj->vel_x;

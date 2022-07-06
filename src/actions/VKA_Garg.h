@@ -34,7 +34,7 @@ vk_obj_ani VKA_garg_idle_4 = { 3, 3, VK_2_FRAMES, { 4<<8, 4<<8, 20<<8, 32<<8}, &
 vk_obj_ani VKA_garg_walk_1 = { 4, 6, VK_2_FRAMES, { 4<<8, 4<<8, 20<<8, 32<<8}, &VKA_garg_walk_2 };
 vk_obj_ani VKA_garg_walk_2 = { 5, 7, VK_2_FRAMES, { 4<<8, 4<<8, 20<<8, 32<<8}, &VKA_garg_walk_1 };
 
-vk_obj_ani VKA_garg_die_1 = { 8, 8, VK_2_FRAMES, { 4<<8, 4<<8, 20<<8, 32<<8}, &VKA_garg_die_2 };
+vk_obj_ani VKA_garg_die_1 = { 8, 8, VK_4_FRAMES, { 4<<8, 4<<8, 20<<8, 32<<8}, &VKA_garg_die_2 };
 vk_obj_ani VKA_garg_die_2 = { 9, 9, VK_2_FRAMES, { 4<<8, 4<<8, 20<<8, 32<<8}, &VKA_garg_die_2 };
 
 
@@ -61,7 +61,8 @@ int VKF_garg_collide(vk_object *obj, vk_object *cobj){
 		// Kill the shot
 		cobj->var1 = 1;
 		
-		// Kill the yorp
+		// Kill the garg
+		obj->vel_x = 0;
 		VK_SetObjAnimation(obj,&VKA_garg_die_1);
 		VK_PlaySound(VKS_GARGSCREAM);
 	}

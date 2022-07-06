@@ -18,8 +18,19 @@ extern const uint32_t VK_END_KEEN_POS[];
 extern const uint32_t VK_TELEPORT_DEST[];
 
 
+typedef struct VK_Bridge {
+	uint16_t init_pos;
+	uint16_t cur_pos;
+	uint16_t end_pos;
+	uint16_t tick;
+	uint16_t init_tile;
+	uint16_t active;
+}VK_Bridge;
+
+void VK_SpawnBridge(uint16_t off, int8_t x, int8_t y);
 
 extern unsigned short VK_CLEAR_TILE;
+extern uint16_t VK_BRIDGE_TILE;
 
 extern unsigned short vk_num_of_tiles;
 extern unsigned short vk_special_items;

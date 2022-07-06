@@ -6,6 +6,16 @@ const char *HIGH_SCORE_NAMES[3] = {
 	"Zzapp!",
 };
 
+const char *MAIN_MENU_FOLDERS[6] = {
+	"New Game",
+	"Continue Game",
+	"Story",
+	"High Scores",
+	"Options",
+	"Restart Demo",
+};
+
+
 const uint16_t VK_STATUE_LENGTHS[16] = {
 	0,
 	7,

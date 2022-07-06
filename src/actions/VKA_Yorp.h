@@ -38,7 +38,7 @@ vk_obj_ani VKA_yorp_walk_2 = { 5, 7, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &
 vk_obj_ani VKA_yorp_hit_1 = { 8, 8, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_hit_2 };
 vk_obj_ani VKA_yorp_hit_2 = { 9, 9, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_hit_1 };
 
-vk_obj_ani VKA_yorp_die_1 = { 10, 10, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_die_2 };
+vk_obj_ani VKA_yorp_die_1 = { 10, 10, VK_4_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_die_2 };
 vk_obj_ani VKA_yorp_die_2 = { 11, 11, VK_2_FRAMES, { 4<<8, 4<<8, 12<<8, 24<<8}, &VKA_yorp_die_2 };
 
 
@@ -62,6 +62,7 @@ int VKF_yorp_collide(vk_object *obj, vk_object *cobj){
 		cobj->var1 = 1;
 		
 		// Kill the yorp
+		obj->vel_x = 0;
 		VK_SetObjAnimation(obj,&VKA_yorp_die_1);
 		VK_PlaySound(VKS_YORPSCREAM);
 	}
