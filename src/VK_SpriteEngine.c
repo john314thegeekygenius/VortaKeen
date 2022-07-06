@@ -209,12 +209,24 @@ vk_sprite *VK_CreateSprite(uint16_t sprite_id){
 		ptr->s.spr_cw[3] = ptr->s.spr_cw[1];
 		ptr->s.spr_ch[3] = ptr->s.spr_ch[2];
 
+		// Set the offsets
+		ptr->s.spr_off[0][0] = 0;
+		ptr->s.spr_off[0][1] = 0;
+
+		ptr->s.spr_off[1][0] = ptr->s.spr_cw[0];
+		ptr->s.spr_off[1][1] = 0;
+
+		ptr->s.spr_off[2][0] = 0;
+		ptr->s.spr_off[2][1] = ptr->s.spr_ch[0];
+
+		ptr->s.spr_off[3][0] = ptr->s.spr_cw[0];
+		ptr->s.spr_off[3][1] = ptr->s.spr_ch[0];
+
 		// Create gba sprites for keen sprite
 		ptr->s.spr_indx[0] = 0xFF;
 		ptr->s.spr_indx[1] = 0xFF;
 		ptr->s.spr_indx[2] = 0xFF;
 		ptr->s.spr_indx[3] = 0xFF;
-		
 		unsigned short setoff = 0;
 
 		ptr->s.num_sprs = 0;
