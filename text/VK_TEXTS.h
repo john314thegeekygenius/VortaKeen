@@ -6,6 +6,22 @@ const char *HIGH_SCORE_NAMES[3] = {
 	"Zzapp!",
 };
 
+const char *VK_STATUS_TEXT[5] = {
+	"    SCORE     EXTRA KEEN AT ",
+	"    KEENS       SHIP PARTS  ",
+	" RAYGUN   POGO    KEYCARDS  ",
+	" CHARGE ",
+	"    PLEASE PRESS A BUTTON   ",
+};
+
+const char *GO_GET_EM_TXT[3] = {
+	"Your ship is missing",
+	"these parts:",
+	"GO GET THEM!"
+};
+
+const char *VK_KEENS_LEFT_TXT = "Keens Left";
+
 const char *MAIN_MENU_FOLDERS[6] = {
 	"New Game",
 	"Continue Game",
@@ -176,3 +192,6 @@ const char * VK_END_TEXT[9][8] = {
 	},
 
 };
+
+const char *VK_END_TBC = "TO BE CONTINUED...";
+
