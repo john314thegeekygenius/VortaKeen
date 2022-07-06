@@ -7,9 +7,13 @@ A port of Commander Keen Invasion of the Vorticons for the Gameboy Advance.
 
 As of right now, this project is in beta.
 
-TODO:
+Please report any issues with it at
 
--- Fix object issues
+https://github.com/john314thegeekygenius/VortaKeen/issues
+
+Please do not make duplicate reports.
+
+TODO:
 
 -- Add music?
 
@@ -20,9 +24,9 @@ A Button - Jump
 
 B Button - Shoot
 
-Left Trigger - Pogo
+Right Trigger - Pogo (default)
 
-Right Trigger - Options Menu
+Left Trigger - Options Menu (default)
 
 Start - Open status
 
