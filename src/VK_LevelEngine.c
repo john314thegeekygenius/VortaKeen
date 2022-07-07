@@ -178,9 +178,9 @@ void VK_ClearTopLayer(){
 	uint16_t i;
 	// Clear the maps
 	for(i = 0; i < 32*32; i++){
-		if(VK_GBA_BG_MAPB[i] != VK_CLEAR_TILE){
-			VK_GBA_BG_MAPA[i] = VK_GBA_BG_MAPB[i];
-		}
+//		if(VK_GBA_BG_MAPB[i] != VK_CLEAR_TILE){
+//			VK_GBA_BG_MAPA[i] = VK_GBA_BG_MAPB[i];
+//		}
 		VK_GBA_BG_MAPB[i] = VK_CLEAR_TILE;
 	}
 	// Hide all sprites
@@ -708,23 +708,30 @@ void VK_RenderLevel(){
 			for(i = 0; i < 16; i++){
 				uint16_t lvlt = vk_level_data[((e+vk_level_offsety)*vk_level_width)+i+vk_level_offsetx];
 				uint16_t tile = ((lvlt%8)<<1) + ((lvlt>>3)<<5);
+				VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)] = tile;
+				VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)+1] = tile+1;
+				VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)] = tile+16;
+				VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)+1] = tile+17;
 				
 				if(vk_level_tileinfo[(lvlt*6)+1]==0xffff){
 					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)] = tile;
 					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)+1] = tile+1;
 					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)] = tile+16;
 					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)+1] = tile+17;
-				}else{
-					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)] = VK_CLEAR_TILE;
-					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)+1] = VK_CLEAR_TILE;
-					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)] = VK_CLEAR_TILE;
-					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)+1] = VK_CLEAR_TILE;
-
-					VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)] = tile;
-					VK_GBA_BG_MAPA[((e<<1)<<5)+(i<<1)+1] = tile+1;
-					VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)] = tile+16;
-					VK_GBA_BG_MAPA[(((e<<1)+1)<<5)+(i<<1)+1] = tile+17;
+					continue;
 				}
+				if(vk_level_tileinfo[(lvlt*6)+1]==0xfffe){
+					tile = (((lvlt+1)%8)<<1) + (((lvlt+1)>>3)<<5);
+					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)] = tile;
+					VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)+1] = tile+1;
+					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)] = tile+16;
+					VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)+1] = tile+17;
+					continue;
+				}
+				VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)] = VK_CLEAR_TILE;
+				VK_GBA_BG_MAPB[((e<<1)<<5)+(i<<1)+1] = VK_CLEAR_TILE;
+				VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)] = VK_CLEAR_TILE;
+				VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)+1] = VK_CLEAR_TILE;
 			}
 		}
 	}

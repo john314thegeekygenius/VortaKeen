@@ -634,16 +634,50 @@ void VK_DoGameLoop(){
 							vk_viewport_x = (vk_keen_obj->pos_x-(6<<12));
 						}
 					}
-					if(vk_keen_obj->pos_y > (vk_viewport_y + (7<<12))){//
-						vk_viewport_y += 0x400;
-						if(vk_keen_obj->pos_y < (vk_viewport_y + (7<<12))){//
-							vk_viewport_y = (vk_keen_obj->pos_y-(7<<12));
+					if(vk_keen_obj->type==vko_keen){
+						if(vk_keen_obj->on_ground){
+							if(vk_keen_obj->pos_y > (vk_viewport_y + (5<<12))){//
+								vk_viewport_y += 0x400;
+								if(vk_keen_obj->pos_y < (vk_viewport_y + (5<<12))){//
+									vk_viewport_y = (vk_keen_obj->pos_y-(5<<12));
+								}
+							}
+						}else{
+							if(vk_keen_obj->pos_y > (vk_viewport_y + (6<<12))){//
+								vk_viewport_y += 0x400;
+								if(vk_keen_obj->pos_y < (vk_viewport_y + (6<<12))){//
+									vk_viewport_y = (vk_keen_obj->pos_y-(6<<12));
+								}
+							}
 						}
-					}
-					if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
-						vk_viewport_y -= 0x400;
-						if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
-							vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
+						if(vk_keen_obj->on_ground){
+							if(vk_keen_obj->pos_y < (vk_viewport_y+(5<<12))){//
+								vk_viewport_y -= 0x400;
+								if(vk_keen_obj->pos_y > (vk_viewport_y + (5<<12))){//
+									vk_viewport_y = (vk_keen_obj->pos_y-(5<<12));
+								}
+							}
+						}else{
+							if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
+								vk_viewport_y -= 0x400;
+								if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
+									vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
+								}
+							}
+						}
+					}else{
+						if(vk_keen_obj->pos_y > (vk_viewport_y + (6<<12))){//
+							vk_viewport_y += 0x400;
+							if(vk_keen_obj->pos_y < (vk_viewport_y + (6<<12))){//
+								vk_viewport_y = (vk_keen_obj->pos_y-(6<<12));
+							}
+						}
+
+						if(vk_keen_obj->pos_y < (vk_viewport_y+(3<<12))){//
+							vk_viewport_y -= 0x400;
+							if(vk_keen_obj->pos_y > (vk_viewport_y + (3<<12))){//
+								vk_viewport_y = (vk_keen_obj->pos_y-(3<<12));
+							}
 						}
 					}
 
