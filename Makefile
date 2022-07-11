@@ -34,6 +34,7 @@ GB_GBA = bin/$(BIN_NAME).gba
 
 build:
 	arm-none-eabi-gcc crt0.s -O2 $(GB_SRC) -w -mcpu=arm7tdmi -nostartfiles -Tlnkscript
+	mkdir -p bin/
 	#mv a.out $(GB_GBA)
 	arm-none-eabi-objcopy -v -O binary a.out $(GB_GBA)
 	gbafix $(GB_GBA) -t $(BIN_NAME)
