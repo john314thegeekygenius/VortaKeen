@@ -76,6 +76,8 @@ int VKF_yorp_collide(vk_object *obj, vk_object *cobj){
 					VK_SetObjAnimation(obj,&VKA_yorp_hit_1);
 					obj->var4 = 0x140;
 					obj->vel_x = 0;
+					// Keen stops pogo-ing
+					VK_SetObjAnimation(cobj,&VKA_keen_idle);
 					// Play sound
 					VK_PlaySound(VKS_YORPBOPSND);
 					return 1;
