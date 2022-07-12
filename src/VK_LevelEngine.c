@@ -101,6 +101,8 @@ GBA_IN_EWRAM unsigned short vk_level_data[256*256];
 GBA_IN_EWRAM unsigned char vk_sprite_data[32*256];
 unsigned short *vk_level_map;
 GBA_IN_EWRAM unsigned char vk_tileanimations[0xFFF];
+//GBA_IN_EWRAM unsigned char vk_tile_covers[0x1000];
+//uint16_t vk_cover_count = 0'
 
 unsigned char *TILESET_data = NULL;
 unsigned short TILESET_size = 0;
@@ -528,6 +530,14 @@ void VK_LoadLevel(uint16_t levelid){
 			if((vk_tileanimations[*tile]&0xF) != 0x1){
 				ck_update_positions[ck_number_of_updates][0] = i;
 				ck_update_positions[ck_number_of_updates][1] = e;
+			/*	if(vk_level_tileinfo[(*tile)+1]==0xFFFE){
+					vk_tile_covers[vk_cover_count] = (e*vk_level_width) + i;
+					vk_cover_count += 1;
+					if(vk_cover_count >= 0x1000){
+						vk_cover_count = 0x1000;
+					}
+				}*/
+
 				ck_number_of_updates++;
 				if(ck_number_of_updates>0x1000){
 					ck_number_of_updates = 0x1000;
@@ -687,6 +697,17 @@ void VK_RenderLevel(){
 		}
 	}
 	
+	
+	// Offset the screen
+	if(vk_level_lock_cam==0){
+		*(volatile uint16_t*)GBA_REG_BG0HOFS = vk_map_offsetx;
+		*(volatile uint16_t*)GBA_REG_BG0VOFS = vk_map_offsety;
+
+		*(volatile uint16_t*)GBA_REG_BG1HOFS = vk_map_offsetx;
+		*(volatile uint16_t*)GBA_REG_BG1VOFS = vk_map_offsety;
+	}
+	
+	
 	if(vk_level_needs_update==2){
 		vk_level_needs_update = 0;
 		
@@ -734,15 +755,6 @@ void VK_RenderLevel(){
 				VK_GBA_BG_MAPB[(((e<<1)+1)<<5)+(i<<1)+1] = VK_CLEAR_TILE;
 			}
 		}
-	}
-	
-	// Offset the screen
-	if(vk_level_lock_cam==0){
-		*(volatile uint16_t*)GBA_REG_BG0HOFS = vk_map_offsetx;
-		*(volatile uint16_t*)GBA_REG_BG0VOFS = vk_map_offsety;
-
-		*(volatile uint16_t*)GBA_REG_BG1HOFS = vk_map_offsetx;
-		*(volatile uint16_t*)GBA_REG_BG1VOFS = vk_map_offsety;
 	}
 	
 };
