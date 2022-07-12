@@ -242,8 +242,8 @@ int VKF_keen_input(vk_object *obj){
 				VK_PlaySound(VKS_GUNCLICK);
 			}
 		}
-		if(obj->var4==0 || obj->var4>0x1E){
-			obj->var4 = 0x20;
+		if(obj->var4==0 || obj->var4>0xE){
+			obj->var4 = 0x10;
 		}
 	}
 	

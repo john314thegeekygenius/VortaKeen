@@ -46,6 +46,7 @@ int VKF_butler_collide(vk_object *obj, vk_object *cobj){
 		if(obj->facing == 0){
 			if(cobj->pos_x+cobj->animation->cbox.right < obj->pos_x+obj->animation->cbox.right){
 				cobj->vel_x -= 0x800; // ZOOOOOOM!
+				cobj->facing = 0; // Face left
 				// Play sound
 				VK_PlaySound(VKS_YORPBUMPSND);
 				return 1;
@@ -54,6 +55,7 @@ int VKF_butler_collide(vk_object *obj, vk_object *cobj){
 		if(obj->facing == 1){
 			if(cobj->pos_x+cobj->animation->cbox.left > obj->pos_x+obj->animation->cbox.left){
 				cobj->vel_x += 0x800; // ZOOOOOOM!
+				cobj->facing = 1; // Face right
 				// Play sound
 				VK_PlaySound(VKS_YORPBUMPSND);
 				return 1;
