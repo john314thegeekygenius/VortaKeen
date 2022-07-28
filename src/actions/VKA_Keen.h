@@ -126,7 +126,10 @@ int VKF_keen_input(vk_object *obj){
 	if(obj->hitmap==0){
 		return 0;
 	}
-	
+	// Don't take input if level is finished
+	if(vk_engine_gstate.finished_level){
+		return;
+	}
 	// Or if we are frozen!
 	if( (obj->animation == &VKA_keen_ice_1) ||
 		(obj->animation == &VKA_keen_ice_2) ||
@@ -348,15 +351,12 @@ int VKF_keen_think(vk_object *obj){
 		obj->facing = 1;
 		vk_engine_gstate.finished_level = 2;
 		obj->var4 = 0;
-		// Don't collide with the map any more
-		obj->hitmap = 0;
 	}
 	if(vk_engine_gstate.finished_level==2){
 		obj->pos_x += 0x60;
 		obj->var4 += 1;
 		if(obj->var4 > 0x80){
 			VK_ReturnToWorldmap();
-			vk_engine_gstate.finished_level = 0;
 		}
 		return 0;
 	}
@@ -398,6 +398,7 @@ int VKF_keen_think(vk_object *obj){
 			if(obj->animation == &VKA_keen_walk_2||obj->animation == &VKA_keen_walk_3||obj->animation == &VKA_keen_walk_4){
 				VK_PlaySound(VKS_KEENBLOKSND);
 			}
+			
 			VK_SetObjAnimation(obj,&VKA_keen_idle);
 		}
 	}
@@ -429,10 +430,15 @@ int VKF_keen_think(vk_object *obj){
 		}
 	}
 	
-	if(obj->animation == &VKA_keen_walk_1 || obj->animation == &VKA_keen_walk_3 ){
+	if(obj->animation == &VKA_keen_walk_1 ){
 		// Play the walk sound
 		VK_PlaySound(VKS_KEENWALKSND);
 	}
+	if(obj->animation == &VKA_keen_walk_3 ){
+		// Play the walk sound
+		VK_PlaySound(VKS_KEENWLK2SND);
+	}
+	
 
 	// Move keen
 	if(obj->var1==0){
@@ -449,6 +455,9 @@ int VKF_keen_think(vk_object *obj){
 		}
 		if(obj->vel_x<-0x200){
 			obj->vel_x = -0x200;
+		}
+		if(vk_engine_gstate.finished_level){
+			obj->vel_y = 0;
 		}
 
 		obj->pos_x += obj->vel_x;
