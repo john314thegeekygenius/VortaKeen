@@ -742,9 +742,15 @@ void VK_DoGameLoop(){
 				if(vk_engine_gstate.endsequence==0){
 					if(vk_engine_gstate.in_game==80){
 						if(vk_engine_gstate.teleporting==0x00){
-							VK_KeensLeft();
+							if(vk_engine_gstate.finished_level==0){
+								VK_KeensLeft();
+							}
 						}
 					}
+				}
+				// Reset the finished level flag
+				if(vk_engine_gstate.finished_level){
+					vk_engine_gstate.finished_level = 0;
 				}
 			}
 			if(vk_engine_gstate.faded==2){

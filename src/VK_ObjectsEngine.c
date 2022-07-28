@@ -613,7 +613,7 @@ int VK_CollideKeenWLevel(vk_object *obj){
 											obj->animation == &VKA_keen_walk_3 ||
 											obj->animation == &VKA_keen_walk_4 ){
 											if(vk_engine_gstate.finished_level==0){
-											
+												
 												// Place some tiles
 												VK_RenderTile(tileX+2,tileY,vk_level_data[tile+2],1);
 												VK_RenderTile(tileX+2,tileY+1,vk_level_data[tile+2+vk_level_width],1);
@@ -711,9 +711,11 @@ int VK_CollideKeenWLevel(vk_object *obj){
 									vk_engine_gstate.viewportX = vk_engine_gstate.posX-(8<<12);
 									vk_engine_gstate.viewportY = vk_engine_gstate.posY-(6<<12);
 
-									if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
-										vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
-									}
+									// Fixed: Level is not completed when teleported out
+									//
+									//if(vk_engine_gstate.in_game>0&&vk_engine_gstate.in_game<=16){
+									//	vk_engine_gstate.levelDone[vk_engine_gstate.in_game-1] = 1;
+									//}
 									
 									vk_engine_gstate.gotKeycardY = 0;
 									vk_engine_gstate.gotKeycardR = 0;
